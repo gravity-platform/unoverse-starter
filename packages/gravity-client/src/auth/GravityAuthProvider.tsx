@@ -32,6 +32,8 @@ export function GravityAuthProvider({ config, children }: GravityAuthProviderPro
     redirect_uri: config.redirectUri || window.location.origin,
     scope: config.scope || "openid profile email",
     userStore: new WebStorageStateStore({ store: window.sessionStorage }),
+    // Set silent_redirect_uri to match redirect_uri to prevent stale URI issues
+    silent_redirect_uri: config.redirectUri || window.location.origin,
     onSigninCallback: () => {
       // Remove OIDC params from URL after login
       window.history.replaceState({}, document.title, window.location.pathname);
