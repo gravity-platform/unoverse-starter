@@ -34,6 +34,8 @@ ENV VITE_APS_CUSTOMER_ENDPOINT=$VITE_APS_CUSTOMER_ENDPOINT
 ENV VITE_CLOUDFRONT_ENDPOINT=$VITE_CLOUDFRONT_ENDPOINT
 COPY --from=pruner /app/out/json/ .
 RUN npm install
+# Fix npm bug #4828: explicitly install platform-specific native bindings for Alpine Linux (musl)
+RUN npm install @rollup/rollup-linux-x64-musl @esbuild/linux-x64-musl --save-optional
 COPY --from=pruner /app/out/full/ .
 COPY tsconfig.base.json ./
 RUN npm run build -w @gravity-platform/gravity-client || true
