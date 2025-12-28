@@ -20,7 +20,7 @@ interface ComponentRendererProps {
  * Renders a dynamically loaded component in Shadow DOM for CSS isolation
  * Uses the universal ShadowDOMRenderer for consistent behavior
  */
-export function ComponentRenderer({ component, onAction }: ComponentRendererProps): JSX.Element {
+export function ComponentRenderer({ component, onAction }: ComponentRendererProps): React.ReactElement {
   const { Component, name, props, nodeId } = component;
 
   if (!Component) {

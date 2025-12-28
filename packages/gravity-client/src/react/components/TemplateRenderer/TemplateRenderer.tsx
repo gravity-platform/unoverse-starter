@@ -28,7 +28,7 @@ export function TemplateRenderer({
   playAudioRef,
   audioStateCallbackRef,
   sendMessage,
-}: TemplateRendererProps): JSX.Element | null {
+}: TemplateRendererProps): React.ReactElement | null {
   // Audio context (capture, playback, state tracking)
   const audioContext = useAudioContext({
     sendAudio,

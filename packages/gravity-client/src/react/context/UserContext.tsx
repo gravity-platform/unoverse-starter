@@ -31,7 +31,7 @@ interface UserProviderProps {
   children: ReactNode;
 }
 
-export function UserProvider({ children }: UserProviderProps): JSX.Element {
+export function UserProvider({ children }: UserProviderProps): React.ReactElement {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 

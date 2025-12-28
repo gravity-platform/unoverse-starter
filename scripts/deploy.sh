@@ -77,12 +77,23 @@ case $ACTION in
         docker compose up -d sab
         ;;
         
+    clean)
+        echo "🧹 Cleaning and rebuilding from scratch..."
+        echo ""
+        find . -name 'node_modules' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+        find . -name '.turbo' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+        find . -name 'dist' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+        rm -f package-lock.json
+        echo "✅ Cleaned. Now run: ./scripts/deploy.sh"
+        ;;
+        
     *)
-        echo "Usage: ./scripts/deploy.sh [full|update|rebuild]"
+        echo "Usage: ./scripts/deploy.sh [full|update|rebuild|clean]"
         echo ""
         echo "  full    - Full deploy (pull, build packages, build SAB, start)"
         echo "  update  - Pull latest images and restart"
         echo "  rebuild - Rebuild SAB only and restart"
+        echo "  clean   - Remove node_modules, .turbo, dist (run before full if issues)"
         exit 1
         ;;
 esac
