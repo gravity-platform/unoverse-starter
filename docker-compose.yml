@@ -32,7 +32,7 @@ services:
   # One-time build step - compiles packages from source
   # Run: docker compose run --rm builder
   builder:
-    image: node:20-alpine
+    image: node:20-slim
     working_dir: /app
     volumes:
       - .:/app
