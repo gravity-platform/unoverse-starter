@@ -5,21 +5,12 @@ Build custom AI experiences powered by the Gravity Platform.
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Copy environment config
+# 1. Copy environment config
 cp .env.example .env
 # Edit .env with your database and OIDC settings
 
-# 3. Pull platform images
-docker compose pull
-
-# 4. Build your client app
-docker compose build sab
-
-# 5. Start everything
-docker compose up -d
+# 2. Deploy
+./scripts/deploy.sh
 ```
 
 ## Access

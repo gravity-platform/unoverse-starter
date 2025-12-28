@@ -3,6 +3,7 @@
  * Works with: Auth0, Keycloak, Azure AD, Cognito, etc.
  */
 
+import type { ReactNode } from "react";
 import { AuthProvider, AuthProviderProps } from "react-oidc-context";
 import { WebStorageStateStore } from "oidc-client-ts";
 
@@ -21,7 +22,7 @@ export interface GravityAuthConfig {
 
 interface GravityAuthProviderProps {
   config: GravityAuthConfig;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function GravityAuthProvider({ config, children }: GravityAuthProviderProps) {
