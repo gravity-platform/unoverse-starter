@@ -1,0 +1,65 @@
+/**
+ * Design Tokens - CSS Custom Properties
+ * Single source of truth for all design values
+ * Defined on :root and :host for Shadow DOM compatibility
+ */
+
+:root, :host {
+  /* ============================================
+   * SPACING SCALE
+   * ============================================ */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+
+  /* ============================================
+   * BORDER RADIUS
+   * ============================================ */
+  --radius-sm: 0.375rem;   /* 6px - subtle rounding */
+  --radius-md: 0.5rem;     /* 8px - standard */
+  --radius-lg: 0.75rem;    /* 12px - cards, buttons */
+  --radius-xl: 1rem;       /* 16px - large cards */
+  --radius-2xl: 1.5rem;    /* 24px - hero elements */
+  --radius-full: 9999px;   /* Pills, avatars */
+
+  /* ============================================
+   * SHADOWS - Softer, layered
+   * ============================================ */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  /* Hover states - elevated shadows */
+  --shadow-hover-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-hover-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-hover-xl: 0 20px 56px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.10);
+
+  /* ============================================
+   * TRANSITIONS - Smooth easing
+   * ============================================ */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Easing functions */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  
+  /* Hover lift */
+  --hover-lift: -2px;
+  --hover-lift-sm: -1px;
+  --hover-lift-lg: -4px;
+}

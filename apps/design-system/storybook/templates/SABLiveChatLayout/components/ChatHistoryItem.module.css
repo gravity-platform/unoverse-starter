@@ -1,0 +1,55 @@
+/* ChatHistoryItem - Clean message item styling */
+@import "../../../styles/index.css";
+
+.container {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+}
+
+.componentsContainer {
+  flex: 1;
+  min-width: 0; /* Prevent flex overflow */
+}
+
+.componentsContainer > * + * {
+  margin-top: var(--spacing-3);
+}
+
+.timestamp {
+  font-size: var(--text-label-sm);
+  color: var(--color-text-tertiary);
+  display: block;
+  margin-top: var(--spacing-2);
+}
+
+.loadingState {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-body-sm);
+  line-height: 2rem; /* Match avatar height for vertical alignment */
+}
+
+/* Amazon Connect message styles */
+.amazonConnectMessage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.messageText {
+  font-size: var(--text-body-md);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-body);
+}
+
+.agentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--text-label-sm);
+  color: var(--color-text-tertiary);
+  background: var(--color-gray-100);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+  width: fit-content;
+}

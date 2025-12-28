@@ -1,0 +1,218 @@
+version: "3.8"
+
+# =============================================================================
+# GRAVITY PLATFORM DOCKER COMPOSE
+# =============================================================================
+#
+# LAYER 1: CORE PLATFORM (Pre-compiled via GitHub Actions → GHCR)
+#   - redis, server, workflow, canvas, umap, node-service
+#   - Code protected, pulled as images
+#   - node-service mounts ./packages for auto-discovery of custom nodes
+#
+# LAYER 2: CLIENT-SPECIFIC (Source or GHCR with runtime config)
+#   - sab (custom branded client app)
+#   - packages/ (custom nodes, design-system components)
+#
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # LAYER 1: CORE PLATFORM (GHCR Images)
+  # ===========================================================================
+
+  # Redis - shared state and pub/sub
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+  # Core Server - API gateway (lightweight - just routes requests)
+  server:
+    image: ghcr.io/gravity-platform/gravity-server:latest
+    ports:
+      - "4100:4100"
+    environment:
+      - NODE_ENV=production
+      - PORT=4100
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+      - AUTH_ISSUER=${AUTH_ISSUER}
+      - AUTH_AUDIENCE=${AUTH_AUDIENCE}
+      - WORKFLOW_SERVICE_URL=http://workflow:4101
+      - NODE_SERVICE_URL=http://node-service:4102
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+  # Workflow Engine - XState orchestration (heavy - manages state machines)
+  workflow:
+    image: ghcr.io/gravity-platform/gravity-workflow:latest
+    ports:
+      - "4101:4101"
+    environment:
+      - NODE_ENV=production
+      - PORT=4101
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+      - DATABASE_URL=${DATABASE_URL}
+      - SKIP_DB_INIT=${SKIP_DB_INIT}
+      - SERVER_WS_URL=ws://server:4100/ws/gravity
+      - NODE_SERVICE_URL=http://node-service:4102
+      - UMAP_SERVICE_URL=http://umap:5001
+    depends_on:
+      redis:
+        condition: service_healthy
+      # postgres:  # Using remote Postgres - set DATABASE_URL env var
+      #   condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+
+  # Canvas UI - React frontend (lightweight - static files via nginx)
+  # Runtime config injected via docker-entrypoint.sh at container start
+  canvas:
+    image: ghcr.io/gravity-platform/gravity-canvas:latest
+    ports:
+      - "3001:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_WEBSOCKET_URL=${VITE_WEBSOCKET_URL}
+      - VITE_AUTH_ISSUER=${VITE_AUTH_ISSUER}
+      - VITE_AUTH_CLIENT_ID=${VITE_AUTH_CLIENT_ID}
+      - VITE_AUTH_AUDIENCE=${VITE_AUTH_AUDIENCE}
+    depends_on:
+      - server
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
+
+  # UMAP Service - Python ML service
+  umap:
+    image: ghcr.io/gravity-platform/gravity-umap:latest
+    ports:
+      - "5001:5001"
+    volumes:
+      - umap_models:/app/models
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+
+  # Node Service - plugin execution (heavy - runs AI nodes, external API calls)
+  # GHCR image with packages mounted at runtime for auto-discovery
+  node-service:
+    image: ghcr.io/gravity-platform/gravity-node-service:latest
+    # For local development, build from source instead:
+    # build:
+    #   context: .
+    #   dockerfile: apps/node-service/Dockerfile
+    #   args:
+    #     - NODE_ENV=production
+    ports:
+      - "4102:4102"
+    volumes:
+      - ./packages:/app/packages # Mount packages for auto-discovery
+    environment:
+      - NODE_ENV=production
+      - PORT=4102
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+      - SERVER_WS_URL=ws://server:4100/ws/gravity
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+        reservations:
+          memory: 1G
+          cpus: "0.5"
+
+  # ===========================================================================
+  # LAYER 2: CLIENT-SPECIFIC (Source or GHCR with runtime config)
+  # ===========================================================================
+
+  # SAB UI - Preact frontend (lightweight - static files via nginx)
+  # BUILD FROM SOURCE: Custom branded client app with client-specific env vars
+  sab:
+    build:
+      context: .
+      dockerfile: apps/GravitySAB/Dockerfile
+      args:
+        # Build-time args from .env - these get baked into the static build
+        - VITE_API_URL
+        - VITE_WEBSOCKET_URL
+        - VITE_AUTH_ISSUER
+        - VITE_AUTH_CLIENT_ID
+        - VITE_AUTH_AUDIENCE
+    # OR use pre-built GHCR image (requires runtime config injection):
+    # image: ghcr.io/gravity-platform/gravity-sab:latest
+    ports:
+      - "3007:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
+
+volumes:
+  redis_data:
+  umap_models:

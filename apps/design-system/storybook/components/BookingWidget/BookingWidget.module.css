@@ -1,0 +1,227 @@
+/* BookingWidget - Pure CSS Module */
+@import "../../styles/index.css";
+
+.widget {
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  min-height: 600px;
+  display: flex;
+  background-color: #ffffff;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  margin: 0 auto;
+}
+
+/* LEFT SIDE - Content */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header - Confirmed State */
+.headerConfirmed {
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: linear-gradient(180deg, var(--color-success-50) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.headerConfirmed .headerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.successIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to bottom right, var(--color-success-500), var(--color-success-600));
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.successIcon svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  stroke-width: 2.5;
+}
+
+.headerTitle {
+  font-size: var(--text-headline-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-headline);
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.headerSubtitle {
+  font-size: var(--text-body-md);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-1);
+}
+
+/* Header - Edit State */
+.headerEdit {
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: #ffffff;
+}
+
+/* Service Info */
+.serviceInfo {
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.serviceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.serviceName {
+  font-size: var(--text-headline-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-headline);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.serviceDescription {
+  font-size: var(--text-body-md);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-2);
+}
+
+.priceBadge {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-primary-50);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-primary-200);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.priceText {
+  font-size: var(--text-headline-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-primary-700);
+}
+
+/* Booking Details */
+.details {
+  flex: 1;
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  background: #ffffff;
+}
+
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detailIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.detailContent {
+  flex: 1;
+}
+
+.detailLabel {
+  font-size: var(--text-label-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-1);
+}
+
+.detailValue {
+  font-size: var(--text-body-lg);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+}
+
+/* Field styles are now imported from shared form.css */
+/* Use .field, .fieldIcon, .fieldLabel, .input, .fieldValue from form.css */
+
+/* Notes */
+.notes {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.notesLabel {
+  font-size: var(--text-label-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-2);
+}
+
+.notesText {
+  font-size: var(--text-body-md);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+}
+
+/* Action Buttons */
+.actions {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--color-border-subtle);
+  background: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, var(--color-gray-50) 100%);
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+}
+
+/* Button styles removed - use Button atom from ../../atoms/Button/Button */
+/* Image styles removed - use KenBurnsImage atom from ../../atoms/Image/KenBurnsImage */
+
+/* Image Container - wrapper for KenBurnsImage atom */
+.imageContainer {
+  width: 45%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  border-left: 1px solid var(--color-border-subtle);
+}

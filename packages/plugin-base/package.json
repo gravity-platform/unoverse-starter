@@ -1,0 +1,27 @@
+{
+  "name": "@gravity-platform/plugin-base",
+  "version": "1.1.3",
+  "description": "Base package for Gravity plugin development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "gravity",
+    "plugin",
+    "base"
+  ],
+  "author": "Gravity Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

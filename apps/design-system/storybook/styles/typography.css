@@ -1,0 +1,132 @@
+/**
+ * Typography System - Material Design 3
+ * 
+ * System: Material Design 3 Type Scale with Fluid Typography
+ * Reference: https://m3.material.io/styles/typography/type-scale-tokens
+ * 
+ * Features:
+ * - Fluid typography using clamp() for responsive scaling
+ * - Material Design 3 type scale (Display, Headline, Title, Body, Label)
+ * - Optimized for readability and hierarchy
+ * - Accessible contrast and spacing
+ * 
+ * Defined on :root and :host for Shadow DOM compatibility
+ */
+
+:root, :host {
+  /* ============================================
+   * FONT FAMILIES
+   * Material Design 3 recommends system fonts for performance
+   * ============================================ */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+
+  /* Semantic aliases */
+  --font-heading: var(--font-display);
+  --font-body: var(--font-sans);
+
+  /* ============================================
+   * FONT WEIGHTS - Material Design 3
+   * ============================================ */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  /* ============================================
+   * FLUID FONT SIZES - Material Design 3 Type Scale
+   * Uses clamp() for responsive scaling between mobile (375px) and desktop (1440px)
+   * Format: clamp(min, preferred, max)
+   * ============================================ */
+
+  /* Display - Largest text, reserved for short, important text */
+  --text-display-lg: clamp(2.25rem, 2rem + 1vw, 3rem); /* 36-48px */
+  --text-display-md: clamp(1.875rem, 1.625rem + 0.75vw, 2.5rem); /* 30-40px */
+  --text-display-sm: clamp(1.5rem, 1.375rem + 0.5vw, 2rem); /* 24-32px */
+
+  /* Headline - High-emphasis text for short, important content */
+  --text-headline-lg: clamp(1.375rem, 1.25rem + 0.5vw, 1.75rem); /* 22-28px */
+  --text-headline-md: clamp(1.25rem, 1.125rem + 0.375vw, 1.5rem); /* 20-24px */
+  --text-headline-sm: clamp(1.125rem, 1.0625rem + 0.25vw, 1.25rem); /* 18-20px */
+
+  /* Title - Medium-emphasis text for shorter content */
+  --text-title-lg: clamp(1rem, 0.9375rem + 0.25vw, 1.125rem); /* 16-18px */
+  --text-title-md: clamp(0.9375rem, 0.875rem + 0.25vw, 1rem); /* 15-16px */
+  --text-title-sm: clamp(0.875rem, 0.8125rem + 0.125vw, 0.9375rem); /* 14-15px */
+
+  /* Body - Main content text */
+  --text-body-lg: clamp(0.9375rem, 0.875rem + 0.25vw, 1rem); /* 15-16px */
+  --text-body-md: 0.9375rem; /* 15px - base */
+  --text-body-sm: 0.8125rem; /* 13px */
+
+  /* Label - Utility text (buttons, captions, overlines) */
+  --text-label-lg: 0.875rem; /* 14px */
+  --text-label-md: 0.75rem; /* 12px */
+  --text-label-sm: 0.6875rem; /* 11px */
+
+  /* ============================================
+   * LINE HEIGHTS - Material Design 3
+   * Optimized for readability at each scale
+   * ============================================ */
+  --line-height-display: 1.15; /* Display text - tight */
+  --line-height-headline: 1.25; /* Headlines - snug */
+  --line-height-title: 1.35; /* Titles - comfortable */
+  --line-height-body: 1.5; /* Body - optimal readability */
+  --line-height-label: 1.4; /* Labels - compact */
+
+  /* ============================================
+   * LETTER SPACING - Material Design 3
+   * Improves readability at different sizes
+   * ============================================ */
+  --letter-spacing-display: -0.025em; /* Tighter for large text */
+  --letter-spacing-headline: -0.0125em;
+  --letter-spacing-title: 0;
+  --letter-spacing-body: 0.01em; /* Slight spacing for body */
+  --letter-spacing-label: 0.025em; /* Wider for small text */
+  --letter-spacing-button: 0.05em; /* Wide for buttons */
+
+  /* ============================================
+   * PARAGRAPH SPACING
+   * ============================================ */
+  --paragraph-spacing-tight: 0.75rem;
+  --paragraph-spacing-normal: 1rem;
+  --paragraph-spacing-relaxed: 1.5rem;
+}
+
+/* ============================================
+ * GRAY SCALE (for typography)
+ * ============================================ */
+:root, :host {
+  /* Gray scale colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Blue (for links, accents) */
+  --color-blue-50: #eff6ff;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  
+  /* ============================================
+   * SEMANTIC COLORS
+   * ============================================ */
+  --color-text-primary: rgba(0, 0, 0, 0.87);
+  --color-text-secondary: rgba(0, 0, 0, 0.6);
+  --color-text-tertiary: rgba(0, 0, 0, 0.38);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+  --color-border-default: rgba(0, 0, 0, 0.12);
+}
+

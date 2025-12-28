@@ -1,0 +1,294 @@
+/**
+ * Prose Styles - Markdown Content Typography
+ * Beautiful, readable styles for markdown-rendered content
+ * Uses design tokens for consistency
+ */
+
+.prose {
+  max-width: 65ch;
+  color: var(--color-gray-900);
+  font-size: var(--text-body-md);
+  line-height: var(--line-height-body);
+}
+
+.prose-sm {
+  font-size: var(--text-body-sm);
+  line-height: 1.6;
+}
+
+.prose-lg {
+  font-size: var(--text-body-lg);
+  line-height: 1.7;
+}
+
+.max-w-none {
+  max-width: none;
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 1.25em;
+  margin-bottom: 0.375em;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-headline);
+  letter-spacing: var(--letter-spacing-headline);
+  color: var(--color-gray-950);
+}
+
+.prose h1 {
+  font-size: var(--text-headline-lg);
+  margin-top: 0;
+}
+
+.prose h2 {
+  font-size: var(--text-headline-md);
+  margin-top: 1em;
+}
+
+.prose h3 {
+  font-size: var(--text-headline-sm);
+  margin-top: 0.875em;
+}
+
+.prose h4 {
+  font-size: var(--text-title-lg);
+}
+
+.prose h5 {
+  font-size: var(--text-title-md);
+}
+
+.prose h6 {
+  font-size: var(--text-title-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+}
+
+/* Paragraphs */
+.prose p {
+  margin-bottom: 0.75em;
+}
+
+/* Strong/Bold */
+.prose strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-950);
+}
+
+/* Links */
+.prose a {
+  color: var(--sab-red);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-base);
+  border-radius: var(--radius-sm);
+  padding: 0 0.125rem;
+  margin: 0 -0.125rem;
+}
+
+.prose a:hover {
+  color: var(--sab-red-hover);
+  background-color: var(--sab-red-50);
+}
+
+/* Links inside bold text should still be red */
+.prose strong a,
+.prose a strong,
+.prose b a,
+.prose a b {
+  color: var(--sab-red);
+  font-weight: var(--font-weight-bold);
+}
+
+.prose strong a:hover,
+.prose a strong:hover,
+.prose b a:hover,
+.prose a b:hover {
+  color: var(--sab-red-hover);
+}
+
+/* External link icon */
+.prose a[href^="http"]::after,
+.prose a[href^="https://"]::after
+{
+  content: "↗";
+  font-size: 0.875em;
+  opacity: 0.7;
+}
+
+/* Inline Code - styled as nice tags/badges */
+.prose code {
+  font-family: var(--font-body);
+  font-size: 0.875em;
+  background-color: var(--sab-red-50);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--sab-red);
+  font-weight: var(--font-weight-semibold);
+  border: 1px solid var(--sab-red-200);
+  white-space: nowrap;
+}
+
+/* Code Blocks */
+.prose pre {
+  background-color: var(--color-gray-900);
+  color: var(--color-gray-100);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin: 1em 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-body-sm);
+  line-height: 1.6;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: var(--font-weight-regular);
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+  margin: 0.75em 0;
+  padding-left: 1.5rem;
+}
+
+.prose li {
+  margin: 0.25rem 0;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left: 4px solid var(--sab-red);
+  padding-left: var(--spacing-4);
+  margin: 1.5em 0;
+  font-style: italic;
+  color: var(--color-gray-700);
+}
+
+.prose blockquote p {
+  margin: 0;
+}
+
+/* Horizontal Rule */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 2em 0;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1em 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.prose th,
+.prose td {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.prose th {
+  background: linear-gradient(to bottom, var(--color-gray-50), var(--color-gray-100));
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-label-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+.prose td {
+  font-size: var(--text-body-sm);
+  color: var(--color-gray-800);
+  background-color: var(--color-white);
+}
+
+.prose tbody tr:hover td {
+  background-color: var(--color-gray-50);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Amount column - right align (3rd column typically) */
+.prose td:nth-child(3),
+.prose th:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Category column - allow wrapping, smaller text */
+.prose td:nth-child(4),
+.prose th:nth-child(4) {
+  font-size: var(--text-label-sm);
+  word-break: break-word;
+}
+
+/* Bold rows (totals) */
+.prose tr:has(td strong) td,
+.prose tr:has(th strong) th {
+  background-color: var(--color-gray-100);
+  font-weight: var(--font-weight-semibold);
+  border-top: 2px solid var(--color-border-default);
+}
+
+/* Money styling in tables */
+.prose td strong {
+  color: var(--sab-red);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Images */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-lg);
+  margin: 1em auto;
+}
+
+.prose p img {
+  margin: 0.75em auto;
+}
+
+/* Keep last element inline for cursor (but not if it contains images) */
+.prose > *:last-child {
+  display: inline;
+}
+
+.prose > *:last-child:has(img) {
+  display: block;
+}

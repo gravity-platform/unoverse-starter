@@ -1,0 +1,57 @@
+/* ChatHistory - Clean chat history styling */
+@import "../../../styles/index.css";
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-12) var(--spacing-4);
+  flex: 1;
+}
+
+.emptyTitle {
+  font-size: var(--text-display-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-display);
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.emptySubtitle {
+  font-size: var(--text-body-lg);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+}
+
+.historyContainer {
+  width: 100%;
+}
+
+.historyContainer > * + * {
+  margin-top: var(--spacing-4);
+}
+
+.userMessageContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.userMessageBubble {
+  background-color: var(--sab-red);
+  color: #ffffff;
+  border-radius: var(--radius-2xl);
+  border-top-right-radius: var(--radius-sm);
+  padding: var(--spacing-3) var(--spacing-4);
+  max-width: 80%;
+  display: inline-block;
+  box-shadow: var(--shadow-sm);
+}
+
+.userMessageText {
+  font-size: var(--text-body-md);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-regular);
+}

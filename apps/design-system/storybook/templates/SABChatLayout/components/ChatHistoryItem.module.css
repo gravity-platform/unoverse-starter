@@ -1,0 +1,30 @@
+/* ChatHistoryItem - Pure CSS Module */
+@import "../../../styles/index.css";
+
+.container {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+}
+
+.componentsContainer {
+  flex: 1;
+  padding-right: calc(2rem + var(--spacing-3));
+}
+
+.componentsContainer > * + * {
+  margin-top: var(--spacing-3);
+}
+
+.timestamp {
+  font-size: var(--text-label-sm);
+  color: var(--color-gray-400);
+  display: block;
+  margin-top: var(--spacing-2);
+}
+
+.loadingState {
+  color: var(--color-gray-400);
+  font-size: var(--text-body-sm);
+  line-height: 2rem;
+}

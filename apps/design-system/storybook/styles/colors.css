@@ -1,0 +1,88 @@
+/**
+ * Color System
+ * Complete color palette for the Design System
+ * Primary: Green (success, primary actions)
+ * Secondary: Teal (accents, secondary actions)
+ * 
+ * Defined on :root and :host for Shadow DOM compatibility
+ */
+
+:root,
+:host {
+  /* Primary Colors - Green */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #10b981; /* Base primary color */
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+
+  /* Secondary Colors - Teal */
+  --color-secondary-50: #f0fdfa;
+  --color-secondary-100: #ccfbf1;
+  --color-secondary-200: #99f6e4;
+  --color-secondary-300: #5eead4;
+  --color-secondary-400: #2dd4bf;
+  --color-secondary-500: #14b8a6; /* Base secondary color */
+  --color-secondary-600: #0d9488;
+  --color-secondary-700: #0f766e;
+  --color-secondary-800: #115e59;
+  --color-secondary-900: #134e4a;
+
+  /* Gray Scale - Neutral colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Semantic Colors */
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-border-subtle: var(--color-gray-200);
+  --color-success-50: #f0fdf4;
+  --color-success-500: var(--color-primary-500);
+  --color-success-600: var(--color-primary-600);
+
+  /* SAB Brand Colors */
+  --sab-red: #d33131;
+  --sab-red-hover: #b82a2a;
+  --sab-red-active: #9e2424;
+  --sab-red-50: #fef2f2;
+  --sab-red-100: #fee2e2;
+  --sab-red-200: #fecaca;
+
+  /* SAB Dark/Slate */
+  --sab-slate: #42505c;
+  --sab-slate-light: #536270;
+  --sab-slate-dark: #343f48;
+}
+
+/**
+ * Color Usage Guidelines
+ * 
+ * Primary (Green):
+ * - Use for: Primary buttons, success states, positive actions
+ * - 500: Default primary color
+ * - 600: Hover state
+ * - 700: Active/pressed state
+ * - 100-300: Backgrounds, subtle highlights
+ * 
+ * Secondary (Teal):
+ * - Use for: Secondary buttons, accents, informational states
+ * - 500: Default secondary color
+ * - 600: Hover state
+ * - 700: Active/pressed state
+ * - 100-300: Backgrounds, subtle highlights
+ */

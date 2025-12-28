@@ -1,0 +1,86 @@
+/* AIResponse - Pure CSS Module */
+@import '../../styles/index.css';
+
+.container {
+  width: 100%;
+}
+
+.container > * + * {
+  margin-top: var(--spacing-3);
+}
+
+.progress {
+  font-size: var(--text-body-sm);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  padding-bottom: var(--spacing-1);
+}
+
+.progress > :first-child {
+  margin-top: 0;
+}
+
+/* Text content inherits prose styles from global prose.css via the 'prose' class */
+
+.cursor {
+  display: inline-block;
+  width: 0.125rem;
+  height: 1rem;
+  background-color: var(--color-blue-600);
+  margin-left: 1px;
+  vertical-align: middle;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.questionsContainer {
+  padding-top: var(--spacing-2);
+}
+
+.questionsContainer > * + * {
+  margin-top: var(--spacing-2);
+}
+
+.questionButton {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0.375rem var(--spacing-3);
+  border-radius: var(--radius-lg);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.questionButton:hover {
+  background-color: var(--color-gray-50);
+}
+
+.questionIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-blue-400);
+  flex-shrink: 0;
+  transition: color var(--transition-base);
+}
+
+.questionButton:hover .questionIcon {
+  color: var(--color-blue-500);
+}
+
+.questionText {
+  font-size: var(--text-body-sm);
+  color: var(--color-text-secondary);
+  transition: color var(--transition-base);
+}
+
+.questionButton:hover .questionText {
+  color: var(--color-text-primary);
+}

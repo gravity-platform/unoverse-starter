@@ -1,0 +1,346 @@
+/* BookingWidgetLayout - Pure CSS Module */
+@import "../../styles/index.css";
+
+.layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  background: linear-gradient(to bottom right, var(--color-gray-50), var(--color-gray-100));
+  overflow: hidden;
+}
+
+/* LEFT COLUMN - Form Area */
+.formColumn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+  .formColumn {
+    padding: var(--spacing-12);
+  }
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 48rem;
+  margin: auto 0;
+}
+
+.formContent {
+  display: flex;
+  justify-content: center;
+}
+
+/* Loading State - Apple-style skeleton matching BookingWidget exactly */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loadingContent {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 600px;
+  display: flex;
+  background-color: #ffffff;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* Skeleton matches BookingWidget structure exactly */
+.skeletonContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Skeleton Header - matches headerEdit */
+.skeletonHeader {
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: #ffffff;
+}
+
+.skeletonTitle {
+  height: 28px;
+  width: 240px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-2);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonSubtitle {
+  height: 18px;
+  width: 180px;
+  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 50%, var(--color-gray-100) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeletonWave 2s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+/* Service Info Section */
+.skeletonServiceInfo {
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.skeletonServiceLeft {
+  flex: 1;
+}
+
+.skeletonServiceName {
+  height: 24px;
+  width: 200px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-2);
+  animation: skeletonWave 2s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.skeletonServiceDesc {
+  height: 16px;
+  width: 320px;
+  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 50%, var(--color-gray-100) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeletonWave 2s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.skeletonPriceBadge {
+  height: 36px;
+  width: 100px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-full);
+  animation: skeletonWave 2s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+/* Skeleton Body - matches details section */
+.skeletonBody {
+  flex: 1;
+  padding: var(--spacing-6);
+  display: flex;
+  gap: var(--spacing-6);
+  background: #ffffff;
+}
+
+.skeletonLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.skeletonField {
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.skeletonField:last-child {
+  border-bottom: none;
+}
+
+.skeletonLabel {
+  height: 12px;
+  width: 80px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-2);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonValue {
+  height: 20px;
+  width: 160px;
+  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 50%, var(--color-gray-100) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+/* Image placeholder - matches imageContainer */
+.skeletonImage {
+  width: 45%;
+  flex-shrink: 0;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  border-left: 1px solid var(--color-border-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonImage::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  background: var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  animation: applePulse 2s ease-in-out infinite;
+}
+
+/* Skeleton Footer - matches actions */
+.skeletonFooter {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--color-border-subtle);
+  background: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, var(--color-gray-50) 100%);
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+}
+
+.skeletonButton {
+  height: 44px;
+  width: 120px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonButton:last-child {
+  width: 160px;
+  background: linear-gradient(90deg, var(--color-gray-300) 0%, var(--color-gray-400) 50%, var(--color-gray-300) 100%);
+  background-size: 200% 100%;
+}
+
+/* Smooth wave animation - shows content is streaming */
+@keyframes skeletonWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* RIGHT COLUMN - Hero Section */
+.heroColumn {
+  flex: 1;
+  display: none;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .heroColumn {
+    display: block;
+  }
+}
+
+.heroBackground {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 35%, #14b8a6 100%);
+}
+
+.heroPattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.heroContent {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-16);
+  color: white;
+}
+
+.heroInner {
+  max-width: 32rem;
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--spacing-6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.heroSubtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: var(--spacing-12);
+  font-weight: 400;
+}
+
+/* Feature List */
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  text-align: left;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+
+.featureIcon {
+  width: 28px;
+  height: 28px;
+  color: rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px;
+  border-radius: var(--radius-md);
+}
+
+.featureTitle {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  margin-bottom: var(--spacing-2);
+  letter-spacing: -0.01em;
+}
+
+.featureText {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+}

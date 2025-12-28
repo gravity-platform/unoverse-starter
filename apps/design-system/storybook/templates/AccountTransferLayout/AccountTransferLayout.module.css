@@ -1,0 +1,242 @@
+/* AccountTransferLayout - Pure CSS Module */
+@import "../../styles/index.css";
+
+.layout {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  background: linear-gradient(to bottom right, var(--color-gray-50), var(--color-gray-100));
+  overflow: hidden;
+  position: relative;
+}
+
+/* Back Button */
+.backButton {
+  position: absolute;
+  top: var(--spacing-4);
+  left: var(--spacing-4);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.backButton:hover {
+  background: var(--color-gray-50);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.backButton:active {
+  transform: scale(0.95);
+}
+
+/* Main Content Column */
+.contentColumn {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: var(--spacing-4);
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .contentColumn {
+    padding: var(--spacing-12);
+  }
+}
+
+.contentContainer {
+  width: 100%;
+  max-width: 64rem;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.widgetContent {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Loading State - Skeleton matching AccountTransferWidget */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loadingContent {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 600px;
+  display: flex;
+  background-color: #ffffff;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.skeletonContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Skeleton Header - matches premium header */
+.skeletonHeader {
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--sab-slate);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.skeletonIcon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  animation: skeletonPulse 2s ease-in-out infinite;
+}
+
+.skeletonHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.skeletonTitle {
+  height: 24px;
+  width: 160px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  animation: skeletonPulse 2s ease-in-out infinite;
+}
+
+.skeletonSubtitle {
+  height: 16px;
+  width: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  animation: skeletonPulse 2s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+/* Skeleton Step Indicator */
+.skeletonSteps {
+  padding: var(--spacing-4) var(--spacing-6);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.skeletonStep {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-full);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonStepLine {
+  width: 24px;
+  height: 2px;
+  background: var(--color-gray-200);
+}
+
+/* Skeleton Body */
+.skeletonBody {
+  flex: 1;
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  background: #ffffff;
+}
+
+.skeletonCard {
+  height: 80px;
+  background: linear-gradient(90deg, var(--color-gray-100) 0%, var(--color-gray-200) 50%, var(--color-gray-100) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.skeletonCard:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Skeleton Footer */
+.skeletonFooter {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--color-border-subtle);
+  background: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, var(--color-gray-50) 100%);
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: space-between;
+}
+
+.skeletonButton {
+  height: 44px;
+  width: 100px;
+  background: linear-gradient(90deg, var(--color-gray-200) 0%, var(--color-gray-300) 50%, var(--color-gray-200) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+.skeletonButtonPrimary {
+  height: 44px;
+  width: 140px;
+  background: linear-gradient(90deg, var(--sab-red-100) 0%, var(--sab-red-200) 50%, var(--sab-red-100) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeletonWave 2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes skeletonWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

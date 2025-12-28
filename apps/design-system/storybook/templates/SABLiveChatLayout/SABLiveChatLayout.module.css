@@ -1,0 +1,96 @@
+/* SABLiveChatLayout - Clean chat interface matching SABChatLayout style */
+@import "../../styles/index.css";
+
+.container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 2rem;
+  background-color: var(--color-gray-100);
+  font-family: var(--font-sans);
+  box-sizing: border-box;
+}
+
+.chatWindow {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 64rem;
+  background-color: #ffffff;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+/* Header with logo */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--spacing-3) var(--spacing-6);
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.headerLogo {
+  height: 32px;
+  width: auto;
+}
+
+/* Messages area */
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-6) var(--spacing-8);
+  display: flex;
+  flex-direction: column;
+}
+
+.messagesContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.messagesInner > * + * {
+  margin-top: var(--spacing-4);
+}
+
+/* Input area */
+.inputArea {
+  padding: var(--spacing-5) var(--spacing-8);
+  border-top: 1px solid var(--color-gray-200);
+  background-color: #ffffff;
+}
+
+.inputInner {
+  width: 100%;
+}
+
+/* Scrollbar styling */
+.messagesArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messagesArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messagesArea::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+.messagesArea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}

@@ -1,0 +1,47 @@
+/* ChatLayout - Pure CSS Module */
+@import '../../styles/index.css';
+
+.container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-gray-50);
+}
+
+.messagesContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  padding: var(--spacing-6) var(--spacing-4);
+  padding-bottom: var(--spacing-24);
+  scroll-behavior: smooth;
+}
+
+.messagesInner {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.messagesInner > * + * {
+  margin-top: var(--spacing-4);
+}
+
+.inputArea {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--color-gray-200);
+  background-color: #ffffff;
+  padding: var(--spacing-4);
+}
+
+.inputInner {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
