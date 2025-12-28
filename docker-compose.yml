@@ -36,7 +36,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "rm -rf node_modules package-lock.json .turbo && npm install && npm run build"
+    command: sh -c "find . -name 'node_modules' -type d -prune -exec rm -rf {} + 2>/dev/null; find . -name '.turbo' -type d -prune -exec rm -rf {} + 2>/dev/null; rm -f package-lock.json; npm install && npm run build"
     profiles:
       - build
   # ===========================================================================
