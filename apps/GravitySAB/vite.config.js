@@ -3,8 +3,18 @@ import preact from "@preact/preset-vite";
 import path from "path";
 
 export default defineConfig(({ mode }) => {
-  // Load env from root .env file (monorepo)
-  const env = loadEnv(mode, path.resolve(__dirname, "../.."), "VITE_");
+  // Load env from root .env file (monorepo) - for local development
+  const fileEnv = loadEnv(mode, path.resolve(__dirname, "../.."), "VITE_");
+
+  // In Docker builds, env vars come from process.env (set via Dockerfile ARG/ENV)
+  // Merge both sources, preferring process.env (Docker) over file env (local)
+  const env = {
+    VITE_AUTH_ISSUER: process.env.VITE_AUTH_ISSUER || fileEnv.VITE_AUTH_ISSUER,
+    VITE_AUTH_CLIENT_ID: process.env.VITE_AUTH_CLIENT_ID || fileEnv.VITE_AUTH_CLIENT_ID,
+    VITE_AUTH_AUDIENCE: process.env.VITE_AUTH_AUDIENCE || fileEnv.VITE_AUTH_AUDIENCE,
+    VITE_API_URL: process.env.VITE_API_URL || fileEnv.VITE_API_URL,
+    VITE_WEBSOCKET_URL: process.env.VITE_WEBSOCKET_URL || fileEnv.VITE_WEBSOCKET_URL,
+  };
 
   return {
     plugins: [preact()],
