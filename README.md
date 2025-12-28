@@ -4,16 +4,6 @@ Build custom AI experiences powered by the Gravity Platform.
 
 ## Quick Start
 
-### Clone the Repository
-
-```bash
-# Using GitHub token (replace YOUR_TOKEN with your personal access token)
-git clone https://YOUR_USERNAME:YOUR_TOKEN@github.com/gravity-platform/gravity-starter.git ~/gravity
-cd ~/gravity
-```
-
-### Local Development
-
 ```bash
 # 1. Install dependencies
 npm install
@@ -22,8 +12,7 @@ npm install
 cp .env.example .env
 # Edit .env with your database and OIDC settings
 
-# 3. Pull platform images (requires GHCR login)
-echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+# 3. Pull platform images
 docker compose pull
 
 # 4. Build your client app
@@ -54,4 +43,4 @@ docker compose up -d
 
 ## Documentation
 
-See the [Developer Guide](./docs/DEVELOPER_GUIDE.md) for full documentation.
+See the [Developer Guide](https://github.com/gravity-platform/GravityPlatform/blob/main/docs/architecture/DEVELOPER_GUIDE.md) for full documentation.

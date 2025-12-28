@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Gravity Platform Starter Template",
-  "packageManager": "npm@10.2.0",
   "workspaces": [
     "packages/*",
     "apps/*"
