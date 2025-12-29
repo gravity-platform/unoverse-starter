@@ -1,11 +1,11 @@
 /**
  * GravityAuthProvider - Provider-Agnostic OIDC Authentication
  * Works with: Auth0, Keycloak, Azure AD, Cognito, etc.
+ * Uses oauth4webapi for lightweight, framework-agnostic auth
  */
 
-import type { ReactNode } from "react";
-import { AuthProvider, AuthProviderProps } from "react-oidc-context";
-import { WebStorageStateStore } from "oidc-client-ts";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createOAuthClient, type OAuthConfig, type OAuthUser, type OAuthClient } from "./oauth-client";
 
 export interface GravityAuthConfig {
   /** OIDC issuer URL (e.g., https://your-tenant.auth0.com) */
@@ -20,32 +20,76 @@ export interface GravityAuthConfig {
   scope?: string;
 }
 
+export interface GravityAuthContextValue {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: OAuthUser | null;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  getAccessToken: () => Promise<string | null>;
+}
+
+const GravityAuthContext = createContext<GravityAuthContextValue | null>(null);
+
 interface GravityAuthProviderProps {
   config: GravityAuthConfig;
   children: ReactNode;
 }
 
 export function GravityAuthProvider({ config, children }: GravityAuthProviderProps) {
-  const oidcConfig: AuthProviderProps = {
-    authority: config.issuer,
-    client_id: config.clientId,
-    redirect_uri: config.redirectUri || window.location.origin,
-    scope: config.scope || "openid profile email",
-    userStore: new WebStorageStateStore({ store: window.sessionStorage }),
-    // Disable automatic silent renew to prevent stale redirect_uri from stored user
-    automaticSilentRenew: false,
-    onSigninCallback: () => {
-      // Remove OIDC params from URL after login
-      window.history.replaceState({}, document.title, window.location.pathname);
-    },
+  const [client] = useState<OAuthClient>(() =>
+    createOAuthClient({
+      issuer: config.issuer,
+      clientId: config.clientId,
+      audience: config.audience,
+      redirectUri: config.redirectUri,
+      scope: config.scope,
+    })
+  );
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<OAuthUser | null>(null);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        // Check if this is a callback from the auth server
+        const callbackUser = await client.handleCallback();
+        if (callbackUser) {
+          setUser(callbackUser);
+          setIsLoading(false);
+          return;
+        }
+
+        // Check for existing session
+        const existingUser = client.getUser();
+        setUser(existingUser);
+      } catch (error) {
+        console.error("[GravityAuthProvider] Init error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    init();
+  }, [client]);
+
+  const value: GravityAuthContextValue = {
+    isAuthenticated: !!user,
+    isLoading,
+    user,
+    login: () => client.login(),
+    logout: () => client.logout(),
+    getAccessToken: async () => user?.accessToken || null,
   };
 
-  // Add audience for Auth0 (and other providers that support it)
-  if (config.audience) {
-    oidcConfig.extraQueryParams = {
-      audience: config.audience,
-    };
-  }
+  return <GravityAuthContext.Provider value={value}>{children}</GravityAuthContext.Provider>;
+}
 
-  return <AuthProvider {...oidcConfig}>{children}</AuthProvider>;
+export function useGravityAuthContext(): GravityAuthContextValue {
+  const context = useContext(GravityAuthContext);
+  if (!context) {
+    throw new Error("useGravityAuthContext must be used within a GravityAuthProvider");
+  }
+  return context;
 }

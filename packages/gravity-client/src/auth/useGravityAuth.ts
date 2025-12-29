@@ -1,9 +1,10 @@
 /**
  * useGravityAuth - Hook for accessing auth state and methods
- * Provider-agnostic wrapper around react-oidc-context
+ * Uses oauth4webapi via GravityAuthProvider context
  */
 
-import { useAuth } from "react-oidc-context";
+import { useGravityAuthContext } from "./GravityAuthProvider";
+import type { OAuthUser } from "./oauth-client";
 
 export interface GravityUser {
   /** User ID (sub claim) */
@@ -16,8 +17,8 @@ export interface GravityUser {
   roles: string[];
   /** User permissions (for MCP/tool access) */
   permissions: string[];
-  /** Raw OIDC user object */
-  raw: any;
+  /** Raw OAuth user object */
+  raw: OAuthUser;
 }
 
 export interface GravityAuthState {
@@ -38,16 +39,16 @@ export interface GravityAuthState {
 }
 
 export function useGravityAuth(): GravityAuthState {
-  const auth = useAuth();
+  const auth = useGravityAuthContext();
 
-  // Parse user from OIDC profile
+  // Map OAuthUser to GravityUser
   const user: GravityUser | null = auth.user
     ? {
-        id: auth.user.profile.sub,
-        email: auth.user.profile.email,
-        name: auth.user.profile.name,
-        roles: parseArrayClaim(auth.user.profile, "roles"),
-        permissions: parseArrayClaim(auth.user.profile, "permissions"),
+        id: auth.user.id,
+        email: auth.user.email,
+        name: auth.user.name,
+        roles: auth.user.roles,
+        permissions: auth.user.permissions,
         raw: auth.user,
       }
     : null;
@@ -56,59 +57,9 @@ export function useGravityAuth(): GravityAuthState {
     isAuthenticated: auth.isAuthenticated,
     isLoading: auth.isLoading,
     user,
-    accessToken: auth.user?.access_token || null,
-
-    login: async () => {
-      try {
-        console.log("[useGravityAuth] Starting signinRedirect...");
-        console.log("[useGravityAuth] auth.settings:", auth.settings);
-        await auth.signinRedirect();
-        console.log("[useGravityAuth] signinRedirect completed");
-      } catch (error) {
-        console.error("[useGravityAuth] signinRedirect FAILED:", error);
-        throw error;
-      }
-    },
-
-    logout: async () => {
-      await auth.signoutRedirect();
-    },
-
-    getAccessToken: async () => {
-      if (!auth.user) return null;
-
-      // Check if token is expired and refresh if needed
-      if (auth.user.expired) {
-        try {
-          await auth.signinSilent();
-        } catch (error) {
-          console.error("[GravityAuth] Token refresh failed:", error);
-          return null;
-        }
-      }
-
-      return auth.user?.access_token || null;
-    },
+    accessToken: auth.user?.accessToken || null,
+    login: auth.login,
+    logout: auth.logout,
+    getAccessToken: auth.getAccessToken,
   };
-}
-
-/**
- * Parse array claims from JWT (handles namespaced claims like Auth0)
- */
-function parseArrayClaim(profile: any, claimName: string): string[] {
-  // Direct claim
-  if (Array.isArray(profile[claimName])) {
-    return profile[claimName];
-  }
-
-  // Namespaced claim (Auth0 style: https://gravity.ai/claims/permissions)
-  const namespacedKey = Object.keys(profile).find(
-    (key) => key.endsWith(`/${claimName}`) || key.endsWith(`/claims/${claimName}`)
-  );
-
-  if (namespacedKey && Array.isArray(profile[namespacedKey])) {
-    return profile[namespacedKey];
-  }
-
-  return [];
 }
