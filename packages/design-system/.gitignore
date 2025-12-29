@@ -45,3 +45,5 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+# Exception: dist/components contains generated bundles served by API
+!dist/components/
