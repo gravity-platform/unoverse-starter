@@ -11,7 +11,7 @@ export default defineConfig({
   dts: false,
   splitting: false,
   sourcemap: true,
-  clean: true,
+  clean: !process.argv.includes("--watch"), // Don't clean in watch mode to avoid race conditions
   external: ["react", "react-dom"],
   treeshake: true,
 });

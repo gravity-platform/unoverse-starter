@@ -1,6 +1,6 @@
 /**
  * ChunkAnimator - Manages smooth typewriter animation of accumulated text
- * Extracts deltas from accumulated text and animates character-by-character
+ * Uses interpolation-based animation for buttery smooth streaming
  */
 
 export interface ChunkAnimatorConfig {
@@ -11,18 +11,28 @@ export interface ChunkAnimatorConfig {
 
 export class ChunkAnimator {
   private displayedText: string = "";
-  private textQueue: string[] = []; // Queue of text deltas to animate
+  private targetText: string = ""; // The full text we're animating towards
   private isAnimating: boolean = false;
   private animationFrameId: number | null = null;
   private config: ChunkAnimatorConfig;
   private lastReceivedText: string = ""; // Track last received to prevent duplicates
 
+  // Smooth animation state
+  private currentPosition: number = 0; // Fractional position for smooth interpolation
+  private lastTimestamp: number = 0;
+  private velocity: number = 0; // Current animation velocity (chars/sec)
+  private readonly minVelocity: number = 80; // Minimum chars per second
+  private readonly maxVelocity: number = 600; // Maximum chars per second
+  private readonly acceleration: number = 800; // How fast velocity increases (chars/sec²)
+  private readonly catchUpMultiplier: number = 2.5; // Speed boost when falling behind
+
   constructor(config: ChunkAnimatorConfig) {
     this.config = config;
+    this.velocity = config.charsPerSecond;
   }
 
   /**
-   * Add accumulated text - animate from current position to new text
+   * Add accumulated text - smoothly animate towards new target
    * Server sends full accumulated text each time
    */
   addChunk(text: any): void {
@@ -33,77 +43,95 @@ export class ChunkAnimator {
 
     // Check if this is a duplicate of the last received text
     if (newText === this.lastReceivedText) {
-      // Silently ignore duplicates
       return;
     }
 
     this.lastReceivedText = newText;
+    this.targetText = newText;
 
-    // Cancel any ongoing animation
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
+    // If not already animating, start the animation loop
+    if (!this.isAnimating) {
+      this.startAnimation();
     }
-
-    // Start animating to the new text
-    this.animateToText(newText);
   }
 
   /**
-   * Animate from current displayed text to target text
+   * Start the smooth animation loop
    */
-  private animateToText(targetText: string): void {
-    const startLength = this.displayedText.length;
-    const targetLength = targetText.length;
-
-    // If target is shorter or same, just update immediately
-    if (targetLength <= startLength) {
-      this.displayedText = targetText;
-      this.config.onUpdate(this.displayedText);
-      return;
-    }
+  private startAnimation(): void {
+    if (this.isAnimating) return;
 
     this.isAnimating = true;
     this.config.onTypingChange(true);
+    this.lastTimestamp = 0;
+    this.velocity = this.config.charsPerSecond;
 
-    // IMPORTANT: Show first character immediately to prevent flash
-    // Without this, there's a 1-frame delay where nothing is displayed
-    if (startLength === 0 && targetLength > 0) {
-      this.displayedText = targetText.slice(0, 1);
+    // Show first character immediately to prevent flash
+    if (this.currentPosition === 0 && this.targetText.length > 0) {
+      this.currentPosition = 1;
+      this.displayedText = this.targetText.slice(0, 1);
       this.config.onUpdate(this.displayedText);
     }
 
-    let currentPos = Math.max(startLength, 1); // Start from at least 1 if we showed first char
-    const msPerChar = 1000 / this.config.charsPerSecond;
-    let lastUpdate = 0;
+    this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
+  }
 
-    const animate = (timestamp: number) => {
-      if (lastUpdate === 0) {
-        lastUpdate = timestamp;
-      }
+  /**
+   * Main animation loop - uses smooth interpolation
+   */
+  private animate(timestamp: number): void {
+    if (this.lastTimestamp === 0) {
+      this.lastTimestamp = timestamp;
+      this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
+      return;
+    }
 
-      const elapsed = timestamp - lastUpdate;
-      const targetPos = Math.min(currentPos + Math.floor(elapsed / msPerChar), targetLength);
+    const deltaTime = (timestamp - this.lastTimestamp) / 1000; // Convert to seconds
+    this.lastTimestamp = timestamp;
 
-      // Add characters from current position to target position
-      if (targetPos > currentPos) {
-        this.displayedText = targetText.slice(0, targetPos);
+    // Cap delta time to prevent huge jumps after tab switches
+    const cappedDelta = Math.min(deltaTime, 0.1);
+
+    const targetLength = this.targetText.length;
+    const remaining = targetLength - this.currentPosition;
+
+    // If we've caught up, check if we should stop
+    if (remaining <= 0) {
+      // Snap to target
+      if (this.displayedText !== this.targetText) {
+        this.displayedText = this.targetText;
         this.config.onUpdate(this.displayedText);
-        currentPos = targetPos;
-
-        if (currentPos >= targetLength) {
-          // Animation complete
-          this.isAnimating = false;
-          this.config.onTypingChange(false);
-          this.animationFrameId = null;
-          return;
-        }
       }
+      this.currentPosition = targetLength;
 
-      this.animationFrameId = requestAnimationFrame(animate);
-    };
+      // Keep animation running in case more text arrives
+      this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
+      return;
+    }
 
-    this.animationFrameId = requestAnimationFrame(animate);
+    // Adaptive velocity: speed up when falling behind
+    const lagRatio = remaining / Math.max(targetLength * 0.1, 20); // How far behind we are
+    const targetVelocity = Math.min(
+      this.maxVelocity,
+      Math.max(this.minVelocity, this.config.charsPerSecond * (1 + lagRatio * this.catchUpMultiplier))
+    );
+
+    // Smooth velocity transition (ease towards target velocity)
+    const velocityDiff = targetVelocity - this.velocity;
+    this.velocity += velocityDiff * Math.min(cappedDelta * 8, 1); // Smooth interpolation
+
+    // Calculate new position with smooth sub-character precision
+    const charsToAdd = this.velocity * cappedDelta;
+    this.currentPosition = Math.min(this.currentPosition + charsToAdd, targetLength);
+
+    // Only update DOM when we cross integer boundaries
+    const displayLength = Math.floor(this.currentPosition);
+    if (displayLength > this.displayedText.length) {
+      this.displayedText = this.targetText.slice(0, displayLength);
+      this.config.onUpdate(this.displayedText);
+    }
+
+    this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
   }
 
   /**
@@ -111,14 +139,42 @@ export class ChunkAnimator {
    */
   setDisplayedText(text: string): void {
     this.displayedText = text;
+    this.currentPosition = text.length;
+  }
+
+  /**
+   * Stop animation and optionally snap to target
+   */
+  stop(snapToTarget: boolean = true): void {
+    this.isAnimating = false;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    if (snapToTarget && this.targetText) {
+      this.displayedText = this.targetText;
+      this.currentPosition = this.targetText.length;
+      this.config.onUpdate(this.displayedText);
+    }
+    this.config.onTypingChange(false);
+  }
+
+  /**
+   * Reset animator state for new streaming session
+   */
+  reset(): void {
+    this.stop(false);
+    this.displayedText = "";
+    this.targetText = "";
+    this.currentPosition = 0;
+    this.lastReceivedText = "";
+    this.velocity = this.config.charsPerSecond;
   }
 
   /**
    * Cleanup
    */
   destroy(): void {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
+    this.stop(false);
   }
 }

@@ -44,11 +44,18 @@ export default function AIResponse(props: AIResponseProps) {
   // Initialize animator once
   if (!animatorRef.current) {
     animatorRef.current = new ChunkAnimator({
-      charsPerSecond: 300,
+      charsPerSecond: 250,
       onUpdate: setDisplayedText,
       onTypingChange: () => {}, // Not used - we use isStreaming prop instead
     });
   }
+
+  // Cleanup animator on unmount
+  React.useEffect(() => {
+    return () => {
+      animatorRef.current?.destroy();
+    };
+  }, []);
 
   // Handle text updates - use useLayoutEffect to prevent flash
   // useLayoutEffect runs synchronously after DOM mutations but before paint
@@ -68,15 +75,18 @@ export default function AIResponse(props: AIResponseProps) {
 
     // Only animate if text has changed
     if (text !== lastTextRef.current) {
-      // For first text during streaming, show first char immediately to prevent flash
-      if (lastTextRef.current === "" && text.length > 0) {
-        setDisplayedText(text.slice(0, 1));
-        animatorRef.current?.setDisplayedText(text.slice(0, 1));
-      }
       animatorRef.current?.addChunk(text);
       lastTextRef.current = text;
     }
   }, [text, isStreaming]);
+
+  // Handle streaming end - snap to final text
+  React.useEffect(() => {
+    if (!isStreaming && text && animatorRef.current) {
+      // Streaming ended, ensure we show the complete text
+      animatorRef.current.stop(true);
+    }
+  }, [isStreaming, text]);
 
   // Questions are always an array of strings
   const questionList = questions || [];
