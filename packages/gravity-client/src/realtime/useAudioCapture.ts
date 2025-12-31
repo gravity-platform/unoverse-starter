@@ -140,8 +140,17 @@ export function useAudioCapture(options: UseAudioCaptureOptions = {}): UseAudioC
     try {
       console.log("[AudioCapture] Loading MicVAD...");
       // Dynamic import to avoid SSR issues
-      const { MicVAD } = await import("@ricky0123/vad-web");
-      console.log("[AudioCapture] MicVAD loaded, creating instance...");
+      // Handle both ESM and CJS module structures
+      const vadModule = await import("@ricky0123/vad-web");
+      const MicVAD = vadModule.MicVAD || (vadModule as any).default?.MicVAD;
+      console.log("[AudioCapture] MicVAD loaded, creating instance...", {
+        MicVAD: !!MicVAD,
+        moduleKeys: Object.keys(vadModule),
+      });
+
+      if (!MicVAD) {
+        throw new Error(`MicVAD not found in module. Available exports: ${Object.keys(vadModule).join(", ")}`);
+      }
 
       const vad = await MicVAD.new({
         positiveSpeechThreshold,

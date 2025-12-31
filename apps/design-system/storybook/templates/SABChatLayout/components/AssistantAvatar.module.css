@@ -3,8 +3,9 @@
 
 .container {
   display: flex;
-  gap: var(--spacing-3);
   align-items: center;
+  width: 2rem;
+  flex-shrink: 0;
 }
 
 .avatarContainer {
@@ -18,11 +19,6 @@
   border-radius: var(--radius-full);
   object-fit: cover;
   box-shadow: var(--shadow-md);
-}
-
-.animationContainer {
-  display: flex;
-  align-items: center;
 }
 
 .dotsContainer {

@@ -25,7 +25,14 @@ export default defineConfig(({ mode }) => {
       dedupe: ["react", "react-dom", "zustand", "preact"],
     },
     optimizeDeps: {
-      include: ["zustand", "react-oidc-context", "oidc-client-ts", "@gravity-platform/gravity-client"],
+      include: [
+        "zustand",
+        "react-oidc-context",
+        "oidc-client-ts",
+        "@gravity-platform/gravity-client",
+        "@ricky0123/vad-web",
+        "onnxruntime-web",
+      ],
     },
     build: {
       commonjsOptions: {

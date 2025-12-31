@@ -56,6 +56,13 @@ export class ReactSSRConverter {
 
       // Vite build configuration
       await build({
+        esbuild: {
+          // Use classic JSX transform so it compiles to React.createElement
+          // This avoids jsx-runtime issues in UMD bundles
+          jsx: "transform",
+          jsxFactory: "React.createElement",
+          jsxFragment: "React.Fragment",
+        },
         build: {
           lib: {
             entry: tempEntryPath,

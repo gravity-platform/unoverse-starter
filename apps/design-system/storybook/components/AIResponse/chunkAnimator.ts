@@ -21,10 +21,9 @@ export class ChunkAnimator {
   private currentPosition: number = 0; // Fractional position for smooth interpolation
   private lastTimestamp: number = 0;
   private velocity: number = 0; // Current animation velocity (chars/sec)
-  private readonly minVelocity: number = 80; // Minimum chars per second
-  private readonly maxVelocity: number = 600; // Maximum chars per second
-  private readonly acceleration: number = 800; // How fast velocity increases (chars/sec²)
-  private readonly catchUpMultiplier: number = 2.5; // Speed boost when falling behind
+  private readonly minVelocity: number = 150; // Minimum chars per second
+  private readonly maxVelocity: number = 1200; // Maximum chars per second
+  private readonly catchUpMultiplier: number = 4; // Speed boost when falling behind
 
   constructor(config: ChunkAnimatorConfig) {
     this.config = config;
@@ -66,10 +65,12 @@ export class ChunkAnimator {
     this.lastTimestamp = 0;
     this.velocity = this.config.charsPerSecond;
 
-    // Show first character immediately to prevent flash
+    // Show first chunk immediately for instant feedback
     if (this.currentPosition === 0 && this.targetText.length > 0) {
-      this.currentPosition = 1;
-      this.displayedText = this.targetText.slice(0, 1);
+      // Show up to 10 chars or first word boundary immediately
+      const immediateChars = Math.min(this.targetText.length, Math.max(10, this.targetText.indexOf(" ", 5) + 1 || 10));
+      this.currentPosition = immediateChars;
+      this.displayedText = this.targetText.slice(0, immediateChars);
       this.config.onUpdate(this.displayedText);
     }
 
@@ -116,9 +117,9 @@ export class ChunkAnimator {
       Math.max(this.minVelocity, this.config.charsPerSecond * (1 + lagRatio * this.catchUpMultiplier))
     );
 
-    // Smooth velocity transition (ease towards target velocity)
+    // Fast velocity transition for responsive feel
     const velocityDiff = targetVelocity - this.velocity;
-    this.velocity += velocityDiff * Math.min(cappedDelta * 8, 1); // Smooth interpolation
+    this.velocity += velocityDiff * Math.min(cappedDelta * 15, 1); // Quick interpolation
 
     // Calculate new position with smooth sub-character precision
     const charsToAdd = this.velocity * cappedDelta;

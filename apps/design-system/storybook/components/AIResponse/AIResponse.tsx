@@ -39,12 +39,11 @@ export default function AIResponse(props: AIResponseProps) {
   });
   const animatorRef = useRef<ChunkAnimator | null>(null);
   const lastTextRef = useRef<string>("");
-  const hasInitializedRef = useRef(false);
 
   // Initialize animator once
   if (!animatorRef.current) {
     animatorRef.current = new ChunkAnimator({
-      charsPerSecond: 250,
+      charsPerSecond: 400,
       onUpdate: setDisplayedText,
       onTypingChange: () => {}, // Not used - we use isStreaming prop instead
     });
@@ -57,36 +56,24 @@ export default function AIResponse(props: AIResponseProps) {
     };
   }, []);
 
-  // Handle text updates - use useLayoutEffect to prevent flash
-  // useLayoutEffect runs synchronously after DOM mutations but before paint
+  // Handle text updates
   React.useLayoutEffect(() => {
     if (!text) return;
 
-    // If this is the first render and we're NOT streaming, show text immediately
-    // This handles both: text at mount AND text arriving via COMPONENT_DATA after mount
-    if (!hasInitializedRef.current && !isStreaming) {
+    // Not streaming = show full text immediately
+    if (!isStreaming) {
+      animatorRef.current?.stop(false);
       setDisplayedText(text);
       lastTextRef.current = text;
-      hasInitializedRef.current = true;
       return;
     }
 
-    hasInitializedRef.current = true;
-
-    // Only animate if text has changed
+    // Streaming: animate new text
     if (text !== lastTextRef.current) {
       animatorRef.current?.addChunk(text);
       lastTextRef.current = text;
     }
   }, [text, isStreaming]);
-
-  // Handle streaming end - snap to final text
-  React.useEffect(() => {
-    if (!isStreaming && text && animatorRef.current) {
-      // Streaming ended, ensure we show the complete text
-      animatorRef.current.stop(true);
-    }
-  }, [isStreaming, text]);
 
   // Questions are always an array of strings
   const questionList = questions || [];
@@ -96,6 +83,11 @@ export default function AIResponse(props: AIResponseProps) {
       {/* Reasoning/Thinking - rendered as markdown in italic gray */}
       {progressText && (
         <div className={styles.progress}>
+          <span className={styles.dotsContainer}>
+            <span className={styles.dot} />
+            <span className={styles.dot} />
+            <span className={styles.dot} />
+          </span>
           <Markdown options={markdownOptions}>{progressText}</Markdown>
         </div>
       )}

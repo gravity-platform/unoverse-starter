@@ -24,7 +24,50 @@
 }
 
 .loadingState {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  line-height: 2rem;
+}
+
+.dotsContainer {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  background-color: var(--sab-red);
+  border-radius: var(--radius-full);
+  animation: waveFloat 1.6s ease-in-out infinite;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes waveFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.loadingText {
   color: var(--color-gray-400);
   font-size: var(--text-body-sm);
-  line-height: 2rem;
+  font-style: italic;
 }

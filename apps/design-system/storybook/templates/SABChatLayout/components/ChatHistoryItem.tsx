@@ -34,7 +34,7 @@ function formatRelativeTime(date: string): string {
 
 export function ChatHistoryItem({ response, onQuestionClick, onComponentAction, client }: ChatHistoryItemProps) {
   const { streamingState, components, timestamp } = response;
-  const showAnimation = streamingState === "streaming";
+  const showAnimation = false; // Dots now in loading state text
 
   if (streamingState === "complete" && components.length === 0) {
     return null;
@@ -73,7 +73,16 @@ export function ChatHistoryItem({ response, onQuestionClick, onComponentAction, 
             {timestamp && <span className={styles.timestamp}>{formatRelativeTime(timestamp)}</span>}
           </>
         ) : (
-          streamingState === "streaming" && <div className={styles.loadingState}>Thinking...</div>
+          streamingState === "streaming" && (
+            <div className={styles.loadingState}>
+              <span className={styles.dotsContainer}>
+                <span className={styles.dot} />
+                <span className={styles.dot} />
+                <span className={styles.dot} />
+              </span>
+              <span className={styles.loadingText}>Thinking...</span>
+            </div>
+          )
         )}
       </div>
     </div>

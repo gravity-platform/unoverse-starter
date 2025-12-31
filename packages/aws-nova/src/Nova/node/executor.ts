@@ -59,8 +59,15 @@ export default class NovaSpeechExecutor extends CallbackNode<AWSNovaSpeechConfig
         executionId: context.executionId,
       });
 
-      // Get workflow variables from context
-      const { chatId, conversationId, userId, providerId } = context.workflow?.variables || {};
+      // Get workflow variables from context - check both workflow.variables and publishingContext
+      const workflowVars = context.workflow?.variables || {};
+      const pubContext = context.publishingContext || {};
+
+      // Prefer publishingContext (runtime) over workflow.variables (may be empty in distributed mode)
+      const chatId = pubContext.chatId || workflowVars.chatId || "";
+      const conversationId = pubContext.conversationId || workflowVars.conversationId || "";
+      const userId = pubContext.userId || workflowVars.userId || "";
+      const providerId = workflowVars.providerId || "AWS Nova Speech";
 
       // Get action from input metadata (passed from client via START_CALL/END_CALL)
       // Structure: inputs.input.[sourceNodeId].output.metadata.action
@@ -71,32 +78,27 @@ export default class NovaSpeechExecutor extends CallbackNode<AWSNovaSpeechConfig
       const inputData = sourceData?.output || sourceData;
       const action = inputData?.metadata?.action;
 
-      console.log("🎯 [NOVA EXECUTOR] Action:", action, "message:", inputData?.message);
+      this.logger.debug("Nova executor context", { action, conversationId, chatId });
 
       // Build metadata for the service using context (like BedrockClaude)
       const metadata = {
         workflowId: context.workflowId || context.workflow?.id || "",
         executionId: context.executionId,
         nodeId: context.nodeId,
-        chatId: chatId || "",
-        conversationId: conversationId || "",
-        userId: userId || "",
-        providerId: providerId || "AWS Nova Speech",
+        chatId,
+        conversationId,
+        userId,
+        providerId,
         workflowRunId: context.executionId,
       };
 
       // Use chatId as the sessionId for streaming
       const streamId = chatId;
 
-      // Log configuration status with VOICE DEBUGGING
-      console.log("🎯 [VOICE DEBUG] Nova Speech executor received config:", {
+      // Debug-level logging - won't appear in production
+      this.logger.debug("Nova config", {
         voice: config.voice,
-        voiceType: typeof config.voice,
-        temperature: config.temperature,
-        temperatureType: typeof config.temperature,
         hasSystemPrompt: !!config.systemPrompt,
-        systemPromptPreview: config.systemPrompt ? config.systemPrompt.substring(0, 100) + "..." : "none",
-        hasConversationHistory: config.conversationHistory || [],
         historyCount: config.conversationHistory?.length || 0,
       });
 
@@ -136,11 +138,10 @@ export default class NovaSpeechExecutor extends CallbackNode<AWSNovaSpeechConfig
 
       // Save token usage to database if we have usage data
       if (stats.total_tokens && stats.total_tokens > 0) {
-        // Debug log to check what stats contains
-        console.log("🔍 [NOVA EXECUTOR DEBUG] Stats:", {
-          total_tokens: stats.total_tokens,
-          inputTokens: stats.inputTokens,
-          outputTokens: stats.outputTokens,
+        this.logger.debug("Token stats", {
+          total: stats.total_tokens,
+          input: stats.inputTokens,
+          output: stats.outputTokens,
         });
 
         try {
