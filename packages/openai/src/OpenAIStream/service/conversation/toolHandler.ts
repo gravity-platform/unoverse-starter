@@ -41,12 +41,13 @@ export async function handleToolCalls(
   streamState: StreamState,
   mcpService: Record<string, (input: any) => Promise<any>>,
   logger: any,
-  traceContext?: MCPTraceContext
+  traceContext?: MCPTraceContext,
+  api?: any
 ): Promise<ToolHandlerResult> {
   logger.info(`🔧 Model requested ${streamState.toolCalls.length} tool call(s)`);
 
   // Execute all tool calls in parallel
-  const toolResults = await executeToolCallsInParallel(streamState.toolCalls, mcpService, logger, traceContext);
+  const toolResults = await executeToolCallsInParallel(streamState.toolCalls, mcpService, logger, traceContext, api);
 
   // Check if workflow MCP was called
   const isWorkflowMCP = hasWorkflowMCP(streamState.toolCalls);

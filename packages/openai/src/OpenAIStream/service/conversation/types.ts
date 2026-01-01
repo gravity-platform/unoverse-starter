@@ -25,6 +25,7 @@ export interface ConversationConfig {
   logger: any;
   maxIterations?: number;
   traceContext?: MCPTraceContext;
+  api?: any;
 }
 
 export interface ConversationResult {

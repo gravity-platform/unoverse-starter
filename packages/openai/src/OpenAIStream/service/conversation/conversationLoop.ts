@@ -58,6 +58,7 @@ export async function runConversationLoop(config: ConversationConfig): Promise<C
     emitMcpResult,
     logger,
     traceContext,
+    api,
   } = config;
 
   const maxIterations = config.maxIterations || 10;
@@ -102,7 +103,7 @@ export async function runConversationLoop(config: ConversationConfig): Promise<C
     }
 
     // Execute tools
-    const toolResult = await handleToolCalls(streamState, mcpService, logger, traceContext);
+    const toolResult = await handleToolCalls(streamState, mcpService, logger, traceContext, api);
 
     // Emit results
     toolResult.mcpResults.forEach((r) => {

@@ -114,6 +114,7 @@ export async function streamCompletionCallback(
       logger,
       maxIterations: 10,
       traceContext,
+      api: executionContext?.api,
     });
 
     logger.info(`🔍 [streamingRefactored] IMMEDIATELY after runConversationLoop - result keys:`, Object.keys(result));
