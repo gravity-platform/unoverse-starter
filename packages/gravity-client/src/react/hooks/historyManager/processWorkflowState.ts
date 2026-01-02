@@ -31,47 +31,36 @@ export async function processWorkflowState({
     const template = metadata?.template;
     const templateMode = metadata?.templateMode || "switch";
 
-    // Load template if provided AND it's different from current
+    // Load template if provided
     if (template && loadComponent) {
-      setActiveTemplate((currentTemplate) => {
-        if (currentTemplate?.name === template) {
-          console.log(`[History] ⏭️ Template already active: ${template}, skipping switch`);
-          return currentTemplate;
+      try {
+        const templateUrl = `/components/${template}.js`;
+        const TemplateComponent = await loadComponent(templateUrl, template);
+        const newTemplate: TemplateInfo = {
+          Component: TemplateComponent,
+          name: template,
+          props: {},
+        };
+
+        if (templateMode === "stack") {
+          setTemplateStack((prev) => [...prev, newTemplate]);
+          console.log(`[History] ✅ Template stacked via WORKFLOW_STATE: ${template}`);
+        } else if (templateMode === "replace") {
+          setTemplateStack((prev) => {
+            const newStack = [...prev];
+            newStack[newStack.length - 1] = newTemplate;
+            return newStack;
+          });
+          console.log(`[History] ✅ Template replaced via WORKFLOW_STATE: ${template}`);
+        } else {
+          // Default: switch mode - replace everything
+          setActiveTemplate(newTemplate);
+          setTemplateStack([newTemplate]);
+          console.log(`[History] ✅ Template switched via WORKFLOW_STATE: ${template}`);
         }
-
-        // Load new template
-        (async () => {
-          try {
-            const templateUrl = `/components/${template}.js`;
-            const TemplateComponent = await loadComponent(templateUrl, template);
-            const newTemplate: TemplateInfo = {
-              Component: TemplateComponent,
-              name: template,
-              props: {},
-            };
-
-            if (templateMode === "stack") {
-              setTemplateStack((prev) => [...prev, newTemplate]);
-              console.log(`[History] ✅ Template stacked: ${template}`);
-            } else if (templateMode === "replace") {
-              setTemplateStack((prev) => {
-                const newStack = [...prev];
-                newStack[newStack.length - 1] = newTemplate;
-                return newStack;
-              });
-              console.log(`[History] ✅ Template replaced: ${template}`);
-            } else {
-              setActiveTemplate(newTemplate);
-              setTemplateStack([newTemplate]);
-              console.log(`[History] ✅ Template switched: ${template}`);
-            }
-          } catch (error) {
-            console.error("[History] Failed to load template:", template, error);
-          }
-        })();
-
-        return currentTemplate;
-      });
+      } catch (error) {
+        console.error("[History] Failed to load template:", template, error);
+      }
     }
 
     // Check if response already exists for this chatId

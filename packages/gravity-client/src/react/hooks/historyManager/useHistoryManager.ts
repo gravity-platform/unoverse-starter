@@ -106,6 +106,7 @@ export function useHistoryManager(
           sendComponentReady,
           withZustandData,
           setActiveTemplate,
+          setTemplateStack,
           openFocus,
           setComponentData,
         });

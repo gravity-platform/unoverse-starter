@@ -13,6 +13,7 @@ interface ProcessComponentInitOptions {
   sendComponentReady?: (componentName: string, messageId: string) => void;
   withZustandData?: (Component: any) => any;
   setActiveTemplate: React.Dispatch<React.SetStateAction<TemplateInfo | null>>;
+  setTemplateStack: React.Dispatch<React.SetStateAction<TemplateInfo[]>>;
   openFocus?: (
     componentId: string,
     targetTriggerNode: string | null,
@@ -30,22 +31,33 @@ export async function processComponentInit({
   sendComponentReady,
   withZustandData,
   setActiveTemplate,
+  setTemplateStack,
   openFocus,
   setComponentData,
 }: ProcessComponentInitOptions): Promise<void> {
   const { component, nodeId, chatId, metadata } = event;
 
+  console.log(`[History] 🔍 COMPONENT_INIT received:`, { nodeId, componentType: component?.type, chatId });
+
   // Handle template components
   if (nodeId && nodeId.includes("_template")) {
+    console.log(`[History] 🎯 Template COMPONENT_INIT detected:`, { nodeId, template: component?.type });
     if (loadComponent) {
       try {
         const Component = await loadComponent(component.componentUrl, component.type);
-        setActiveTemplate({
+        const newTemplate: TemplateInfo = {
           Component,
           name: component.type,
           nodeId,
           props: component.props || {},
-        });
+        };
+
+        // Update both activeTemplate and templateStack for consistency
+        // This ensures TemplateRenderer renders the new template regardless of which it checks first
+        setActiveTemplate(newTemplate);
+        setTemplateStack([newTemplate]);
+
+        console.log(`[History] ✅ Template switched via COMPONENT_INIT: ${component.type}`);
         sendComponentReady?.(component.type, event.id || "");
       } catch (error) {
         console.error("[History] Failed to load template:", component.type, error);

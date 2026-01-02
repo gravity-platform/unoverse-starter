@@ -44,8 +44,10 @@ export async function streamCompletionCallback(
     });
 
     // Step 1: Discover MCP tools using user query for semantic relevance
+    // Use message from workflow variables (from production input or testInputs)
+    const mcpQuery = executionContext?.workflow?.variables?.message;
     logger.info("🔍🔍🔍 [BEFORE MCP DISCOVERY] About to call discoverMCPTools");
-    const mcpConfig = await discoverMCPTools(executionContext, logger, config.prompt, executionContext?.api);
+    const mcpConfig = await discoverMCPTools(executionContext, logger, mcpQuery, executionContext?.api);
     logger.info("✅✅✅ [AFTER MCP DISCOVERY] discoverMCPTools returned:", {
       hasConfig: !!mcpConfig,
       toolCount: mcpConfig?.tools?.length || 0,

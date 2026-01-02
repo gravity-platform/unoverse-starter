@@ -15,6 +15,11 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_AUTH_AUDIENCE": JSON.stringify(env.VITE_AUTH_AUDIENCE),
       "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL),
       "import.meta.env.VITE_WEBSOCKET_URL": JSON.stringify(env.VITE_WEBSOCKET_URL),
+      // Amazon Connect config
+      "import.meta.env.VITE_CONTACT_FLOW_ID": JSON.stringify(env.VITE_CONTACT_FLOW_ID),
+      "import.meta.env.VITE_INSTANCE_ID": JSON.stringify(env.VITE_INSTANCE_ID),
+      "import.meta.env.VITE_API_GATEWAY_ENDPOINT": JSON.stringify(env.VITE_API_GATEWAY_ENDPOINT),
+      "import.meta.env.VITE_CONNECT_REGION": JSON.stringify(env.VITE_CONNECT_REGION),
     },
     resolve: {
       alias: {
