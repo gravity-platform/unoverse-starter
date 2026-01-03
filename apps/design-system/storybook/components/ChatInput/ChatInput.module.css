@@ -310,7 +310,8 @@
   color: var(--color-gray-700);
   cursor: pointer;
   transition: all var(--transition-base);
-  white-space: nowrap;
+  white-space: normal;
+  text-align: left;
   box-shadow: var(--shadow-sm);
 }
 
