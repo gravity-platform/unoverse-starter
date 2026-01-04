@@ -112,7 +112,7 @@ services:
       - REDIS_NAMESPACE=${REDIS_NAMESPACE}
       - DATABASE_URL=${DATABASE_URL}
       - SKIP_DB_INIT=${SKIP_DB_INIT}
-      - SERVER_WS_URL=ws://server:4100/ws/gravity
+      - SERVER_WS_URL=ws://server:4100
       - PACKAGES_PATH=/app/packages
       - NODE_SERVICE_URL=http://node-service:4102
       - DESIGN_SYSTEM_PATH=/app/packages/design-system
@@ -194,7 +194,7 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_TLS=${REDIS_TLS}
       - REDIS_NAMESPACE=${REDIS_NAMESPACE}
-      - SERVER_WS_URL=ws://server:4100/ws/gravity
+      - SERVER_WS_URL=ws://server:4100
       - WORKFLOW_SERVICE_URL=http://workflow:4101
       - PACKAGES_PATH=/app/packages
     depends_on:
