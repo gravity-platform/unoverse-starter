@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.VITE_AUTH_CLIENT_ID": JSON.stringify(env.VITE_AUTH_CLIENT_ID),
       "import.meta.env.VITE_AUTH_AUDIENCE": JSON.stringify(env.VITE_AUTH_AUDIENCE),
       "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL),
-      "import.meta.env.VITE_WEBSOCKET_URL": JSON.stringify(env.VITE_WEBSOCKET_URL),
+      "import.meta.env.VITE_SERVER_WS_URL": JSON.stringify(env.VITE_SERVER_WS_URL),
       // Amazon Connect config
       "import.meta.env.VITE_CONTACT_FLOW_ID": JSON.stringify(env.VITE_CONTACT_FLOW_ID),
       "import.meta.env.VITE_INSTANCE_ID": JSON.stringify(env.VITE_INSTANCE_ID),

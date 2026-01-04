@@ -6,7 +6,7 @@ export const workflowConfig = {
 };
 
 export const apiUrl = import.meta.env.VITE_API_URL;
-export const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+export const wsUrl = import.meta.env.VITE_SERVER_WS_URL;
 
 // Amazon Connect configuration (loaded from env vars)
 // Only create config if all required values are present
