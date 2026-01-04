@@ -966,11 +966,11 @@
   }
 
   .imageContainer {
-    width: 100%;
-    height: 200px;
-    border-left: none;
-    border-top: 1px solid var(--color-border-subtle);
-    order: -1;
+    display: none;
+  }
+
+  .inlineImage {
+    display: none;
   }
 
   .formRow {
