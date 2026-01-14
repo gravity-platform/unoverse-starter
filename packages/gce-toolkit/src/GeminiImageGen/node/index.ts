@@ -18,7 +18,7 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
     description: "Generate images using Google's Gemini AI models",
     category: "AI",
     color: "#4285F4",
-    logoUrl: "https://res.cloudinary.com/sonik/image/upload/v1749262616/gravity/icons/google-gemini-icon.svg",
+    logoUrl: "https://res.cloudinary.com/sonik/image/upload/v1768126954/gravity/icons/gemini.png",
 
     inputs: [
       {
@@ -53,9 +53,9 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
           type: "string",
           title: "Model",
           description: "Select the Gemini model to use",
-          enum: ["gemini-2.5-flash-image-preview", "gemini-2.0-flash-exp"],
-          enumNames: ["Gemini 2.5 Flash Image Preview", "Gemini 2.0 Flash Exp"],
-          default: "gemini-2.5-flash-image-preview",
+          enum: ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"],
+          enumNames: ["Gemini 2.5 Flash Image (Nano Banana)", "Gemini 3 Pro (Nano Banana Pro)"],
+          default: "gemini-2.5-flash-image",
         },
         prompt: {
           type: "string",
@@ -73,19 +73,18 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
           minimum: 1,
           maximum: 10,
         },
-        outputFormat: {
-          type: "string",
-          title: "Output Format",
-          description: "How to return the generated images",
-          enum: ["base64", "url"],
-          enumNames: ["Base64 (embedded)", "URL (requires storage)"],
-          default: "base64",
-        },
         fileName: {
           type: "string",
           title: "File Name Prefix",
           description: "Prefix for generated image file names (optional)",
           default: "generated_image",
+          "ui:field": "template",
+        },
+        referenceImageUrl: {
+          type: "string",
+          title: "Reference Image URL",
+          description: "URL of a reference image for likeness/style. Supports {{signal.node.output.photo_url}} syntax.",
+          default: "",
           "ui:field": "template",
         },
       },

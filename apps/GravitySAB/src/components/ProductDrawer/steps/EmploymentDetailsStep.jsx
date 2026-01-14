@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Briefcase, Building2, DollarSign, Clock } from "lucide-react";
+import { Button } from "../../Button";
 
 /**
  * EmploymentDetailsStep - Step 2: Collect employment and income information
@@ -47,7 +48,7 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
                 required
                 value={formData.employmentStatus}
                 onChange={(e) => handleInputChange("employmentStatus", e.target.value)}
-                className="w-full h-14 pl-12 pr-4 text-base font-medium rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:ring-0 transition-all appearance-none"
+                className="w-full h-12 pl-12 pr-4 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all appearance-none"
               >
                 <option value="">Select status</option>
                 <option value="employed">Employed</option>
@@ -73,7 +74,7 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
                     type="text"
                     value={formData.employerName}
                     onChange={(e) => handleInputChange("employerName", e.target.value)}
-                    className="w-full h-14 pl-12 pr-4 text-base font-medium rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:ring-0 transition-all"
+                    className="w-full h-12 pl-12 pr-4 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-gray-400"
                     placeholder={formData.employmentStatus === "self-employed" ? "Your business name" : "Company name"}
                   />
                 </div>
@@ -90,7 +91,7 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
                     type="text"
                     value={formData.jobTitle}
                     onChange={(e) => handleInputChange("jobTitle", e.target.value)}
-                    className="w-full h-14 pl-12 pr-4 text-base font-medium rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:ring-0 transition-all"
+                    className="w-full h-12 pl-12 pr-4 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all placeholder:text-gray-400"
                     placeholder="Your role"
                   />
                 </div>
@@ -106,7 +107,7 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
                   <select
                     value={formData.yearsEmployed}
                     onChange={(e) => handleInputChange("yearsEmployed", e.target.value)}
-                    className="w-full h-14 pl-12 pr-4 text-base font-medium rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:ring-0 transition-all appearance-none"
+                    className="w-full h-12 pl-12 pr-4 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all appearance-none"
                   >
                     <option value="">Select duration</option>
                     <option value="less-than-1">Less than 1 year</option>
@@ -131,7 +132,7 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
                 required
                 value={formData.monthlyIncome}
                 onChange={(e) => handleInputChange("monthlyIncome", e.target.value)}
-                className="w-full h-14 pl-12 pr-4 text-base font-medium rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-600 focus:ring-0 transition-all appearance-none"
+                className="w-full h-12 pl-12 pr-4 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-red-500 focus:bg-white focus:ring-1 focus:ring-red-500/20 transition-all appearance-none"
               >
                 <option value="">Select income range</option>
                 <option value="5000-10000">AED 5,000 - 10,000</option>
@@ -157,20 +158,9 @@ export function EmploymentDetailsStep({ initialData, onSubmit }) {
 
       {/* Footer - Continue Button */}
       <div className="px-6 py-5 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <button
-          onClick={handleSubmit}
-          disabled={!isFormValid}
-          className={`
-            w-full py-3.5 font-medium text-[15px] rounded-xl transition-all
-            ${
-              isFormValid
-                ? "bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.98]"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-            }
-          `}
-        >
+        <Button variant="primary" size="lg" fullWidth onClick={handleSubmit} disabled={!isFormValid}>
           Continue
-        </button>
+        </Button>
       </div>
     </div>
   );

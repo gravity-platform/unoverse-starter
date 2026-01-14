@@ -111,3 +111,21 @@ export const PlaidCredential = {
     },
   ],
 };
+
+// Abyssale Credential for template rendering
+export const AbyssaleCredential = {
+  name: "abyssaleCredential",
+  displayName: "Abyssale",
+  description: "Abyssale API credentials for high-quality template rendering",
+  properties: [
+    {
+      name: "apiKey",
+      displayName: "API Key",
+      type: "string" as const,
+      required: true,
+      secret: true,
+      description: "Your Abyssale API key from the dashboard",
+      placeholder: "Enter your Abyssale API key",
+    },
+  ],
+};

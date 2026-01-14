@@ -19,6 +19,7 @@ import { CardCarouselNode } from "./CardCarousel/node";
 import { ChatInputNode } from "./ChatInput/node";
 import { CardFinderNode } from "./CardFinder/node";
 import { ListPickerNode } from "./ListPicker/node";
+import { PDFViewerNode } from "./PDFViewer/node";
 
 // All design system nodes
 const nodes = [
@@ -31,6 +32,7 @@ const nodes = [
   CardFinderNode,
   ChatInputNode,
   ListPickerNode,
+  PDFViewerNode,
 ];
 
 const plugin = createPlugin({

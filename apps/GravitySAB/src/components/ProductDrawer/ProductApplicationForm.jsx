@@ -67,19 +67,16 @@ export function ProductApplicationForm({ product, onBack, onComplete }) {
     }
   }, [currentStep, onBack]);
 
-  // Step indicator
+  // Step indicator - SAB red
   const StepIndicator = () => (
     <div className="flex items-center justify-center gap-2 py-4">
       {[1, 2, 3].map((step) => (
         <div
           key={step}
-          className={`h-2 rounded-full transition-all duration-300 ${
-            step === currentStep
-              ? "w-8 bg-blue-600"
-              : step < currentStep
-              ? "w-2 bg-blue-600"
-              : "w-2 bg-gray-300 dark:bg-gray-700"
-          }`}
+          className={`h-2 rounded-full transition-all duration-300 ${step === currentStep ? "w-8" : "w-2"}`}
+          style={{
+            background: step <= currentStep ? "linear-gradient(135deg, #d33131 0%, #b82a2a 100%)" : "#d1d5db",
+          }}
         />
       ))}
     </div>

@@ -3,16 +3,35 @@
  * Handles all Gemini API interactions with proper credential management
  */
 
-import { GoogleGenAI } from '@google/genai';
-import mime from 'mime';
-import {
-  GeminiImageGenConfig,
-  GeminiImageGenCredentials,
-  GeneratedImage,
-} from "../util/types";
+import { GoogleGenAI } from "@google/genai";
+import mime from "mime";
+import { GeminiImageGenConfig, GeminiImageGenCredentials, GeneratedImage } from "../util/types";
 import { getNodeCredentials, geminiLogger as logger } from "../../shared/platform";
 
 type CredentialContext = any;
+
+/**
+ * Fetch an image from URL and convert to base64
+ */
+async function fetchImageAsBase64(url: string, log: any): Promise<{ base64: string; mimeType: string }> {
+  log.info("Fetching reference image", { url: url.substring(0, 100) });
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image from ${url}: ${response.status} ${response.statusText}`);
+  }
+
+  const contentType = response.headers.get("content-type") || "image/jpeg";
+  const arrayBuffer = await response.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+  log.info("Reference image fetched and converted", {
+    mimeType: contentType,
+    sizeBytes: arrayBuffer.byteLength,
+  });
+
+  return { base64, mimeType: contentType };
+}
 
 /**
  * Generate images using Google Gemini's image generation API
@@ -47,17 +66,39 @@ export async function generateImages(
     });
 
     const geminiConfig = {
-      responseModalities: ['IMAGE', 'TEXT'],
+      responseModalities: ["IMAGE", "TEXT"],
     };
+
+    // Build content parts
+    const parts: any[] = [];
+
+    // Fetch and add reference image if URL provided
+    if (config.referenceImageUrl) {
+      try {
+        const { base64, mimeType } = await fetchImageAsBase64(config.referenceImageUrl, log);
+        parts.push({
+          inlineData: {
+            mimeType,
+            data: base64,
+          },
+        });
+        log.info("Reference image added to request");
+      } catch (error: any) {
+        log.warn("Failed to fetch reference image, continuing without it", {
+          error: error.message,
+        });
+      }
+    }
+
+    // Add the main prompt
+    parts.push({
+      text: config.prompt,
+    });
 
     const contents = [
       {
-        role: 'user',
-        parts: [
-          {
-            text: config.prompt,
-          },
-        ],
+        role: "user",
+        parts,
       },
     ];
 
@@ -69,7 +110,7 @@ export async function generateImages(
     });
 
     const images: GeneratedImage[] = [];
-    let textResponse = '';
+    let textResponse = "";
     let fileIndex = 0;
 
     // Process streaming response
@@ -83,14 +124,14 @@ export async function generateImages(
         // Extract image data
         if (part.inlineData) {
           const inlineData = part.inlineData;
-          const mimeType = inlineData.mimeType || 'image/png';
-          const fileExtension = mime.getExtension(mimeType) || 'png';
-          const fileName = config.fileName 
+          const mimeType = inlineData.mimeType || "image/png";
+          const fileExtension = mime.getExtension(mimeType) || "png";
+          const fileName = config.fileName
             ? `${config.fileName}_${fileIndex}.${fileExtension}`
             : `generated_image_${fileIndex}.${fileExtension}`;
 
           images.push({
-            data: inlineData.data || '',
+            data: inlineData.data || "",
             mimeType,
             fileName,
           });

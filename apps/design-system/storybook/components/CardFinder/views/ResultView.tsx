@@ -25,6 +25,23 @@ export default function ResultView({ recommendedCard, runnerUpCard, onApply }: R
     }, 150);
   };
 
+  const handleApplyClick = () => {
+    // Build object exactly like Card2 does
+    const obj = {
+      ...card,
+      object_type: "service",
+      title: card.name,
+      description: card.positioning,
+      image: card.imageUrl,
+    };
+    console.log("[CardFinder] Button clicked, dispatching gravity:action", obj.title);
+    window.dispatchEvent(
+      new CustomEvent("gravity:action", {
+        detail: { type: "click", data: { object: obj }, componentId: "CardFinder" },
+      })
+    );
+  };
+
   const matchPercentage = Math.min(Math.round(fitScore), 100);
 
   return (
@@ -189,7 +206,7 @@ export default function ResultView({ recommendedCard, runnerUpCard, onApply }: R
 
           {/* CTA */}
           <div className={styles.ctaSection}>
-            <Button variant="primary" size="lg" onClick={onApply} className={styles.applyButtonPremium}>
+            <Button variant="primary" size="lg" onClick={handleApplyClick} className={styles.applyButtonPremium}>
               <span>Apply for this card</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />

@@ -43,14 +43,25 @@ const plugin = createPlugin({
     const { PlaidTransactionsNode } = await import("./PlaidTransactions/node");
     api.registerNode(PlaidTransactionsNode);
 
+    // Import and register Abyssale node
+    const { AbyssaleNode } = await import("./Abyssale/node");
+    api.registerNode(AbyssaleNode);
+
     // Import and register credentials
-    const { SearchAPICredential, ApifyCredential, HyperbrowserCredential, GoogleAPICredential, PlaidCredential } =
-      await import("./credentials");
+    const {
+      SearchAPICredential,
+      ApifyCredential,
+      HyperbrowserCredential,
+      GoogleAPICredential,
+      PlaidCredential,
+      AbyssaleCredential,
+    } = await import("./credentials");
     api.registerCredential(SearchAPICredential);
     api.registerCredential(ApifyCredential);
     api.registerCredential(HyperbrowserCredential);
     api.registerCredential(GoogleAPICredential);
     api.registerCredential(PlaidCredential);
+    api.registerCredential(AbyssaleCredential);
   },
 });
 

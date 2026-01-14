@@ -11,11 +11,12 @@ export function useProductDrawer() {
   // Listen for gravity:action events
   useEffect(() => {
     const handleAction = (e) => {
+      console.log("[useProductDrawer] Received gravity:action event", e.detail);
       const { type, data, componentId } = e.detail || {};
 
-      // Only open drawer for service objects
+      // Open drawer for service objects
       if (type === "click" && data?.object?.object_type === "service") {
-        console.log("[useProductDrawer] Opening drawer for service", { componentId });
+        console.log("[useProductDrawer] Opening drawer for service", { componentId, object: data.object });
         setActiveProduct(data.object);
         setDrawerOpen(true);
       }

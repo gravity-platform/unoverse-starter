@@ -60,7 +60,7 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
           description: "Maximum number of tokens to generate",
           default: 256,
           minimum: 1,
-          maximum: 4096,
+          maximum: 16000,
         },
         temperature: {
           type: "number",

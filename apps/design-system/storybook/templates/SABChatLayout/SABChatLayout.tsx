@@ -113,18 +113,24 @@ export default function SABChatLayout(props: SABChatLayoutProps) {
         </div>
 
         {/* Input area */}
-        <div className={styles.inputArea}>
-          <ChatInput
-            placeholder={placeholder}
-            onSend={sendMessage}
-            disabled={isStreaming}
-            enableAudio={true}
-            faqs={isFocusOpen ? [] : faqs}
-            actions={isFocusOpen ? [] : actions}
-            recommendations={isFocusOpen ? [] : recommendations}
-            focusContext={focusContext}
-          />
-        </div>
+        {/* TEMP FIX: Hide chat input when focus mode is open
+            TODO: Remove this condition when proper focus mode layout is implemented
+            that renders at chatWindow level instead of inside messagesArea.
+            See FOCUS_MODE.md for the proper architecture. */}
+        {!isFocusOpen && (
+          <div className={styles.inputArea}>
+            <ChatInput
+              placeholder={placeholder}
+              onSend={sendMessage}
+              disabled={isStreaming}
+              enableAudio={true}
+              faqs={isFocusOpen ? [] : faqs}
+              actions={isFocusOpen ? [] : actions}
+              recommendations={isFocusOpen ? [] : recommendations}
+              focusContext={focusContext}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

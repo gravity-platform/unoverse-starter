@@ -6,8 +6,8 @@ export interface GeminiImageGenConfig {
   model: string;
   prompt: string;
   numberOfImages?: number;
-  outputFormat?: 'base64' | 'url';
   fileName?: string;
+  referenceImageUrl?: string;
 }
 
 export interface GeminiImageGenCredentials {
