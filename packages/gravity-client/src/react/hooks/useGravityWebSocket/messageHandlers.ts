@@ -5,8 +5,6 @@
 import type {
   ServerMessage,
   ComponentInitMessage,
-  ComponentDataMessage,
-  ComponentRemoveMessage,
   WorkflowStateMessage,
   NodeExecutionMessage,
   SuggestionsUpdateMessage,
@@ -32,14 +30,6 @@ export function handleServerMessage(data: ServerMessage, ws: WebSocket, ctx: Mes
 
     case "COMPONENT_INIT":
       handleComponentInit(data as ComponentInitMessage, ctx);
-      break;
-
-    case "COMPONENT_DATA":
-      handleComponentData(data as ComponentDataMessage, ctx);
-      break;
-
-    case "COMPONENT_REMOVE":
-      handleComponentRemove(data as ComponentRemoveMessage, ctx);
       break;
 
     case "WORKFLOW_STATE":
@@ -103,12 +93,29 @@ function handleSessionReady(ws: WebSocket, ctx: MessageHandlerContext): void {
 }
 
 /**
- * New component initialized - add to Zustand store
+ * Component init - creates if new, updates if exists
+ * Tracks by chatId_nodeId to prevent duplicate history entries
  */
+const initializedComponentsSet = new Set<string>();
+
 function handleComponentInit(msg: ComponentInitMessage, ctx: MessageHandlerContext): void {
   if (!msg.chatId) {
     return;
   }
+
+  const componentKey = `${msg.chatId}_${msg.nodeId}`;
+
+  // Check if already initialized - if so, treat as COMPONENT_DATA (just update props)
+  if (initializedComponentsSet.has(componentKey)) {
+    // Already initialized - just update the data, don't re-add to events
+    if (msg.component.props && Object.keys(msg.component.props).length > 0) {
+      ctx.updateComponentData(msg.chatId, msg.nodeId, msg.component.props);
+    }
+    return;
+  }
+
+  // First time seeing this component - full initialization
+  initializedComponentsSet.add(componentKey);
 
   ctx.initComponent(msg.chatId, msg.nodeId, msg.component.type);
 
@@ -117,30 +124,8 @@ function handleComponentInit(msg: ComponentInitMessage, ctx: MessageHandlerConte
     ctx.updateComponentData(msg.chatId, msg.nodeId, msg.component.props);
   }
 
-  ctx.setEvents((prev) => [...prev, { ...msg, id: `${msg.nodeId}_${Date.now()}` }]);
-}
-
-/**
- * Component data update - update Zustand store
- */
-function handleComponentData(msg: ComponentDataMessage, ctx: MessageHandlerContext): void {
-  console.log("[WS] 📦 COMPONENT_DATA received", msg);
-  if (!msg.chatId) {
-    console.warn("[WS] ⚠️ COMPONENT_DATA missing chatId, skipping");
-    return;
-  }
-  ctx.updateComponentData(msg.chatId, msg.nodeId, msg.data);
-  console.log("[WS] ✅ COMPONENT_DATA processed", { nodeId: msg.nodeId, chatId: msg.chatId });
-}
-
-/**
- * Component removed - remove from Zustand store
- */
-function handleComponentRemove(msg: ComponentRemoveMessage, ctx: MessageHandlerContext): void {
-  if (!msg.chatId) {
-    return;
-  }
-  ctx.removeComponent(msg.chatId, msg.nodeId);
+  // Add to events queue for history processing
+  ctx.setEvents((prev) => [...prev, { ...msg, id: componentKey }]);
 }
 
 /**

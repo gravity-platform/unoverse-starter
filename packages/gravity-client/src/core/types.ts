@@ -63,15 +63,13 @@ export type WorkflowState =
 export type ServerMessageType =
   | "SESSION_READY"
   | "COMPONENT_INIT"
-  | "COMPONENT_DATA"
-  | "COMPONENT_REMOVE"
   | "WORKFLOW_STATE"
   | "NODE_EXECUTION"
   | "SUGGESTIONS_UPDATE"
   | "AI_ASSIST_RESULT";
 
 /**
- * Component initialization message
+ * Component init message - client handles deduplication
  */
 export interface ComponentInitMessage {
   type: "COMPONENT_INIT";
@@ -83,29 +81,6 @@ export interface ComponentInitMessage {
     props?: Record<string, any>;
   };
   metadata?: Record<string, any>; // Top-level metadata (contains targetTriggerNode for Focus Mode)
-}
-
-/**
- * Component data update message
- */
-export interface ComponentDataMessage {
-  type: "COMPONENT_DATA";
-  chatId: string;
-  nodeId: string;
-  data: Record<string, any>;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Component remove message
- */
-export interface ComponentRemoveMessage {
-  type: "COMPONENT_REMOVE";
-  chatId: string;
-  nodeId: string;
-  component: {
-    type: string;
-  };
 }
 
 /**
@@ -185,8 +160,6 @@ export interface NodeExecutionMessage {
 export type ServerMessage =
   | SessionReadyMessage
   | ComponentInitMessage
-  | ComponentDataMessage
-  | ComponentRemoveMessage
   | WorkflowStateMessage
   | NodeExecutionMessage
   | SuggestionsUpdateMessage

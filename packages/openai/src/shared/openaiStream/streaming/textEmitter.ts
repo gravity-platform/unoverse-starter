@@ -3,7 +3,7 @@
  * Handles emitting text chunks during streaming
  */
 
-const EMIT_INTERVAL = 100; // Emit every ~100 new chars for smoother streaming
+const EMIT_INTERVAL = 30; // Emit every ~30 new chars for smoother streaming
 
 export class TextEmitter {
   private charsSinceLastEmit: number = 0;

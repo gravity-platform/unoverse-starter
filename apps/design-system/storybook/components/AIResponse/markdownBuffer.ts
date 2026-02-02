@@ -1,64 +1,70 @@
 /**
  * Markdown Buffer - Holds back incomplete markdown syntax during streaming
  * Prevents jumpy rendering when links, bold, code blocks are partially streamed
+ *
+ * IMPORTANT: This must be conservative - only buffer clearly incomplete syntax
+ * at the very end of the text. Being too aggressive causes text to disappear.
  */
 
 /**
  * Find the safe cutoff point in markdown text
  * Returns the index up to which we can safely render
+ *
+ * Strategy: Only look at the last ~10 characters for incomplete syntax.
+ * This prevents the "disappearing text" bug when links like [SAB Card](url) stream in.
  */
 export function getSafeMarkdownCutoff(text: string): number {
   if (!text) return 0;
 
-  let safeEnd = text.length;
+  const len = text.length;
 
-  // Check for incomplete link: [text](url) or [text]
-  // Find last unclosed [ that doesn't have a matching ]
-  const lastOpenBracket = text.lastIndexOf("[");
-  if (lastOpenBracket !== -1) {
-    const afterBracket = text.slice(lastOpenBracket);
-    // Check if this bracket is closed with ](url) pattern
-    const closedLink = /^\[[^\]]*\]\([^)]*\)/.test(afterBracket);
-    const closedRef = /^\[[^\]]*\](?!\()/.test(afterBracket) && afterBracket.indexOf("]") < afterBracket.length - 1;
+  // Only examine the very end of text (last 10 chars) for incomplete syntax
+  // Being too aggressive causes text to disappear while links stream in
+  const tailStart = Math.max(0, len - 10);
+  const tail = text.slice(tailStart);
 
-    if (!closedLink && !closedRef) {
-      // Incomplete link - cut before it
-      safeEnd = Math.min(safeEnd, lastOpenBracket);
-    }
-  }
+  // Check for incomplete link ONLY if [ is in the last 10 chars
+  // This prevents cutting off text like "[SAB VISA Signature Credit Card](" mid-stream
+  const bracketInTail = tail.lastIndexOf("[");
+  if (bracketInTail !== -1) {
+    const afterBracket = tail.slice(bracketInTail);
+    // Check if this is a complete link [text](url)
+    const isComplete = /^\[[^\]]*\]\([^)]*\)/.test(afterBracket);
+    // Check if it's a closed reference [text]
+    const isClosed = /^\[[^\]]*\]/.test(afterBracket);
 
-  // Check for incomplete bold/italic: ** or * or __ or _
-  // Count asterisks and underscores from the end
-  const patterns = [
-    { marker: "**", name: "bold" },
-    { marker: "__", name: "bold" },
-    { marker: "*", name: "italic" },
-    { marker: "_", name: "italic" },
-    { marker: "`", name: "code" },
-    { marker: "```", name: "codeblock" },
-  ];
-
-  for (const { marker } of patterns) {
-    const lastMarker = text.lastIndexOf(marker);
-    if (lastMarker !== -1 && lastMarker > safeEnd - 20) {
-      // Check if there's a closing marker after this one
-      const afterMarker = text.slice(lastMarker + marker.length);
-      if (!afterMarker.includes(marker)) {
-        // Unclosed marker - cut before it
-        safeEnd = Math.min(safeEnd, lastMarker);
+    if (!isComplete && !isClosed) {
+      // Incomplete link - but only cut if it's very short (just started)
+      // If the bracket content is long, show it anyway to avoid flicker
+      if (afterBracket.length < 8) {
+        return tailStart + bracketInTail;
       }
     }
   }
 
-  // Don't cut in the middle of a word - find last space before safeEnd
-  if (safeEnd < text.length && safeEnd > 0) {
-    const lastSpace = text.lastIndexOf(" ", safeEnd);
-    if (lastSpace > safeEnd - 50 && lastSpace > 0) {
-      safeEnd = lastSpace;
+  // Check for trailing incomplete markers (only at the very end)
+  // These patterns indicate we're mid-syntax
+  const trailingPatterns = [
+    /\*{1,2}$/, // Ends with * or **
+    /_{1,2}$/, // Ends with _ or __
+    /`{1,3}$/, // Ends with `, ``, or ```
+  ];
+
+  for (const pattern of trailingPatterns) {
+    const match = tail.match(pattern);
+    if (match) {
+      // Only cut if this looks like the START of a marker (preceded by space or start)
+      const matchStart = tailStart + tail.length - match[0].length;
+      const charBefore = matchStart > 0 ? text[matchStart - 1] : " ";
+      // If preceded by whitespace or punctuation, it's likely a new marker
+      if (/[\s\n(]/.test(charBefore)) {
+        return matchStart;
+      }
     }
   }
 
-  return safeEnd;
+  // Show everything - don't be aggressive
+  return len;
 }
 
 /**

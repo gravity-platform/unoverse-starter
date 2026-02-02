@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import Markdown from "markdown-to-jsx";
-import { getSafeMarkdown } from "./markdownBuffer";
 import styles from "./AIResponse.module.css";
 
 // Custom link component that opens in new tab
@@ -23,14 +22,18 @@ interface AIResponseProps {
   onQuestionClick?: (question: string) => void;
   className?: string;
   nodeId?: string; // For Zustand store subscription
-  isStreaming?: boolean; // Show typing cursor when streaming
+  isStreaming?: boolean; // Show typing cursor when streaming (legacy)
+  streamingState?: "idle" | "streaming" | "complete"; // From renderComponent
 }
 
 // Timeout in ms to stop thinking animation after no updates
 const THINKING_TIMEOUT_MS = 3000;
 
 export default function AIResponse(props: AIResponseProps) {
-  const { progressText, text, questions, onQuestionClick, className, isStreaming } = props;
+  const { progressText, text, questions, onQuestionClick, className, isStreaming, streamingState } = props;
+
+  // Derive streaming state: support both isStreaming (boolean) and streamingState (enum)
+  const isCurrentlyStreaming = isStreaming ?? streamingState === "streaming";
 
   // Track if thinking animation should show (stops after timeout of no updates)
   const [showThinkingDots, setShowThinkingDots] = useState(true);
@@ -69,7 +72,6 @@ export default function AIResponse(props: AIResponseProps) {
     }
   }, [text]);
 
-  // SIMPLE: Just show the text prop directly. Server sends accumulated text.
   const questionList = questions || [];
 
   return (
@@ -88,12 +90,12 @@ export default function AIResponse(props: AIResponseProps) {
         </div>
       )}
 
-      {/* Text - server sends accumulated chunks, use getSafeMarkdown during streaming */}
+      {/* Text - show directly, aiContext protects against shorter text overwrites */}
       {text && (
         <div className={`${styles.textContent} prose`}>
-          <Markdown options={markdownOptions}>{getSafeMarkdown(text, !!isStreaming)}</Markdown>
+          <Markdown options={markdownOptions}>{text}</Markdown>
           {/* Animated blinking cursor inline with text */}
-          {isStreaming && <span className={styles.cursor} />}
+          {isCurrentlyStreaming && <span className={styles.cursor} />}
         </div>
       )}
 

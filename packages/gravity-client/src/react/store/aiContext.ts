@@ -100,7 +100,7 @@ interface AIContextState {
     componentId: string,
     targetTriggerNode: string | null,
     chatId: string | null,
-    agentName?: string | null
+    agentName?: string | null,
   ) => void;
   /** Close focus mode */
   closeFocus: () => void;
@@ -302,15 +302,30 @@ export const useAIContext = create<AIContextState>((set) => ({
   },
 
   updateComponentData: (key, updates) => {
-    set((state) => ({
-      componentData: {
-        ...state.componentData,
-        [key]: {
-          ...(state.componentData[key] || {}),
-          ...updates,
+    set((state) => {
+      const existing = state.componentData[key] || {};
+      const merged = { ...existing };
+
+      // Merge each prop, but for 'text' only accept longer values (streaming protection)
+      // This prevents late/out-of-order chunks from overwriting longer text
+      for (const [prop, value] of Object.entries(updates)) {
+        if (prop === "text" && typeof value === "string" && typeof existing.text === "string") {
+          // Only update text if new value is longer (prevents late chunk overwrites)
+          if (value.length >= existing.text.length) {
+            merged[prop] = value;
+          }
+        } else {
+          merged[prop] = value;
+        }
+      }
+
+      return {
+        componentData: {
+          ...state.componentData,
+          [key]: merged,
         },
-      },
-    }));
+      };
+    });
   },
 
   getComponentData: (key) => {
