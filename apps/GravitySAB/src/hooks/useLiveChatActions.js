@@ -9,7 +9,7 @@ export function useLiveChatActions() {
 
   // Called by GravityClient when ready
   const onReady = useCallback(({ loadTemplate }) => {
-    console.log("[useLiveChatActions] GravityClient ready");
+    // console.log("[useLiveChatActions] GravityClient ready");
     loadTemplateRef.current = loadTemplate;
   }, []);
 

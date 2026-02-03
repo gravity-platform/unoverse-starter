@@ -16,8 +16,17 @@ By the end of this challenge, you'll have:
 ### 1. Clone gravity-starter
 
 ```bash
-git clone https://github.com/gravity-platform/gravity-starter.git ~/gravity
+git clone https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/gravity-platform/gravity-starter.git ~/gravity
 cd ~/gravity
+```
+
+> **Note:** Replace `YOUR_GITHUB_USERNAME` and `YOUR_TOKEN` with your GitHub credentials. The token needs `repo` scope (see Step 3).
+
+**Already cloned?** Set up the remote for future pulls:
+
+```bash
+cd ~/gravity
+git remote set-url origin https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/gravity-platform/gravity-starter.git
 ```
 
 ### 2. Configure Environment
@@ -40,11 +49,9 @@ REDIS_PORT=6379
 DISABLE_AUTH=true
 ```
 
-### 3. Login to GHCR
+### 3. Create GitHub Token & Login to GHCR
 
-You need a GitHub PAT with `read:packages` scope to pull the platform images.
-
-> **Note:** This gives read-only access to compiled Docker images only. No source code access.
+You need a GitHub PAT to pull code and Docker images.
 
 **For Developers:**
 
@@ -52,8 +59,10 @@ You need a GitHub PAT with `read:packages` scope to pull the platform images.
 2. Create a Personal Access Token:
    - Go to https://github.com/settings/tokens
    - Click **Generate new token (classic)**
-   - Name it (e.g., "Gravity Docker")
-   - Select **only** `read:packages` scope
+   - Name it (e.g., "Gravity")
+   - Select scopes:
+     - `repo` (for git pull access to gravity-starter)
+     - `read:packages` (for Docker images from GHCR)
    - Click **Generate token**
    - Copy the token (you won't see it again!)
 3. Login to GHCR:
@@ -64,7 +73,11 @@ echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdi
 
 **For Admins (one-time setup):**
 
-Add developers to your GitHub team at `github.com/orgs/gravity-platform/teams`
+1. Add developers to your GitHub team at `github.com/orgs/gravity-platform/teams`
+2. Grant the team **Read** access to `gravity-starter` repo (not GravityPlatform - that's your IP!)
+3. GHCR package access is inherited from org membership
+
+> **Security Note:** The `repo` scope on the token allows authentication, but the team's **Read** role prevents pushing. Developers can pull but cannot modify your code.
 
 ### 4. Deploy
 
@@ -155,6 +168,20 @@ The starter pack includes these node packages:
 | Loki       | 3100 | Log Aggregation             |
 | Tempo      | 3200 | Distributed Tracing         |
 | Promtail   | 9080 | Log Shipping                |
+
+## Troubleshooting
+
+### Free Up Disk Space
+
+Docker images can accumulate over time. To clean up:
+
+```bash
+# Remove unused images and containers (keeps volumes/data)
+docker system prune -a -f
+
+# Nuclear option - removes EVERYTHING including volumes (⚠️ deletes database data!)
+docker system prune -a --volumes -f
+```
 
 ## ✅ Challenge Complete
 

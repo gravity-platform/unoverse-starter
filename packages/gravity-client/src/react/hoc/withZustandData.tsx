@@ -10,7 +10,7 @@ import { useAIContext } from "../store/aiContext";
  * Key format: `${chatId}_${nodeId}` - isolates component instances per conversation turn
  */
 export function withZustandData<P extends object>(
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
 ): React.FC<P & { nodeId?: string; chatId?: string }> {
   return function WrappedComponent({ nodeId, chatId, ...props }: P & { nodeId?: string; chatId?: string }) {
     // Subscribe using chatId_nodeId to isolate component instances per conversation turn
@@ -24,10 +24,10 @@ export function withZustandData<P extends object>(
     const streamingState = useAIContext((state) => state.streamingState);
     const isStreaming = streamingState === "streaming";
 
-    // Debug logging
-    React.useEffect(() => {
-      console.log("[withZustandData] 🔄 Data updated", { stateKey, componentData, propsKeys: Object.keys(props) });
-    }, [componentData, stateKey]);
+    // Debug logging - only in development and only first update per stateKey
+    // React.useEffect(() => {
+    //   console.log("[withZustandData] 🔄 Data updated", { stateKey, componentData, propsKeys: Object.keys(props) });
+    // }, [componentData, stateKey]);
 
     // Create updateData function for component to update its own state
     const updateData = React.useCallback(
@@ -36,7 +36,7 @@ export function withZustandData<P extends object>(
           updateComponentData(stateKey, updates);
         }
       },
-      [stateKey, updateComponentData]
+      [stateKey, updateComponentData],
     );
 
     // Merge props: static props from history + dynamic data from Zustand
