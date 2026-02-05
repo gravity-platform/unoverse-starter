@@ -1,0 +1,52 @@
+---
+# Caddy Reverse Proxy Uninstallation Playbook
+# Removes Caddy when customer has their own load balancer
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/uninstall-caddy.yml
+
+- name: Uninstall Caddy Reverse Proxy
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: "[1/3] Stop Caddy service"
+      service:
+        name: caddy
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: "[2/3] Remove Caddy package"
+      apt:
+        name: caddy
+        state: absent
+        purge: yes
+
+    - name: "[3/3] Remove Caddy repository"
+      file:
+        path: /etc/apt/sources.list.d/caddy-stable.list
+        state: absent
+
+    - name: "[3/3] Remove Caddy GPG key"
+      file:
+        path: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+        state: absent
+
+  post_tasks:
+    - name: "=== CADDY UNINSTALLATION COMPLETE ==="
+      debug:
+        msg: |
+          ============================================
+          CADDY REMOVED
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          
+          Caddy has been uninstalled.
+          
+          Configure your load balancer to route:
+            - Port 443 → Canvas (3001)
+            - Port 443 → API (4100) 
+            - Port 443 → MCP (4103)
+            - Port 443 → SAB (3007)
+          ============================================

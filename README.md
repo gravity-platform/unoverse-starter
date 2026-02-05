@@ -2,21 +2,36 @@
 
 Build custom AI experiences powered by the Gravity Platform.
 
-## Quick Start
+## Quick Start (Ansible)
 
 ```bash
-# 1. Copy environment config
+# 1. Configure environment
 cp .env.example .env
-# Edit .env with your database and OIDC settings
+nano .env  # Set DATABASE_URL, REDIS_*, AUTH_* variables
 
-# 2. Deploy
-./scripts/deploy.sh
+# 2. Deploy via Ansible
+cd ansible
+export GHCR_USERNAME=your-github-username
+export GHCR_TOKEN=ghp_your_pat
+ansible-playbook -i inventory/production.yml playbooks/install.yml
 ```
 
 ## Access
 
-- **Canvas** (Workflow Builder): http://localhost:3001
-- **SAB** (Client App): http://localhost:3007
+- **Canvas** (Workflow Builder): https://yourdomain.com
+- **API**: https://api.yourdomain.com
+
+> **Note:** SAB (client app) is deployed separately to CDN (Vercel/Netlify).
+
+## Ansible Playbooks
+
+| Playbook | Purpose |
+|----------|---------|
+| `install.yml` | First-time install (Docker, services, health checks) |
+| `upgrade.yml` | Pull new GHCR images and restart |
+| `install-caddy.yml` | Install Caddy with TLS |
+| `health-check.yml` | Check service health |
+| `rollback.yml` | Rollback to previous version |
 
 ## Development
 
@@ -31,7 +46,3 @@ cp .env.example .env
 1. Create component in `apps/design-system/storybook/components/`
 2. Generate nodes: `npm run gen:nodes`
 3. Restart: `docker compose restart node-service`
-
-## Documentation
-
-See the [Developer Guide](https://github.com/gravity-platform/GravityPlatform/blob/main/docs/architecture/DEVELOPER_GUIDE.md) for full documentation.

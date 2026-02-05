@@ -1,0 +1,39 @@
+# Gravity Platform Staging Inventory
+# Test deployment on DigitalOcean
+
+all:
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+
+    # Docker image registry
+    docker_registry: ghcr.io/gravity-platform
+    gravity_version: latest
+
+    # GHCR credentials - set via environment or pass with -e
+    # export GHCR_USERNAME=payner35 GHCR_TOKEN=ghp_xxx
+    ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') }}"
+    ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') }}"
+
+  children:
+    app_vms:
+      hosts:
+        gravity-prod:
+          ansible_host: YOUR_VM_IP
+      vars:
+        gravity_services:
+          - server
+          - workflow
+          - node-service
+          - mcp-server
+          - canvas
+          - redis
+          - postgres
+
+    ml_vms:
+      hosts:
+        gravity-prod:
+          ansible_host: YOUR_VM_IP
+      vars:
+        gravity_services:
+          - umap

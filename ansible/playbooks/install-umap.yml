@@ -1,0 +1,147 @@
+---
+# UMAP Service Installation Playbook
+# Deploys UMAP to dedicated ML VM(s)
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
+#
+# Prerequisites:
+#   - ML VM provisioned and accessible via SSH
+#   - GHCR credentials configured in inventory or environment
+#
+# After deployment, update App VMs .env:
+#   UMAP_SERVICE_URL=http://<ML_VM_PRIVATE_IP>:5001
+
+- name: Install UMAP Service on ML VM
+  hosts: ml_vms
+  become: yes
+
+  pre_tasks:
+    - name: "[1/7] Check current system"
+      debug:
+        msg: "Installing UMAP on {{ inventory_hostname }} ({{ ansible_host }})"
+
+    - name: "[2/7] Install Docker via convenience script"
+      shell: |
+        if ! command -v docker &> /dev/null; then
+          echo "Installing Docker..."
+          curl -fsSL https://get.docker.com | sh
+        else
+          echo "Docker already installed"
+        fi
+      args:
+        creates: /usr/bin/docker
+      register: docker_install
+
+    - name: "[2/7] Docker install output"
+      debug:
+        msg: "{{ docker_install.stdout_lines | default(['Docker already present']) }}"
+
+    - name: "[3/7] Start Docker service"
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: "[3/7] Verify Docker running"
+      command: docker --version
+      register: docker_version
+
+    - name: "[3/7] Docker version"
+      debug:
+        msg: "{{ docker_version.stdout }}"
+
+    - name: "[4/7] Add user to docker group"
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+  tasks:
+    - name: "[5/7] Create UMAP directories"
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+      loop:
+        - /opt/gravity-umap
+        - /opt/gravity-umap/models
+
+    - name: "[6/7] Login to GHCR"
+      shell: echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
+      when: ghcr_token is defined and ghcr_token != ""
+      no_log: true
+      register: ghcr_login
+
+    - name: "[6/7] GHCR login status"
+      debug:
+        msg: "Logged in to GHCR as {{ ghcr_username }}"
+      when: ghcr_token is defined and ghcr_token != ""
+
+    - name: "[6/7] Pull UMAP image"
+      command: docker pull ghcr.io/gravity-platform/gravity-umap:{{ gravity_version | default('latest') }}
+      register: pull_result
+
+    - name: "[6/7] Image pulled"
+      debug:
+        msg: "UMAP image pulled successfully"
+
+    - name: "[7/7] Stop existing UMAP container"
+      command: docker stop gravity-umap
+      ignore_errors: yes
+
+    - name: "[7/7] Remove existing UMAP container"
+      command: docker rm gravity-umap
+      ignore_errors: yes
+
+    - name: "[7/7] Start UMAP service"
+      command: >
+        docker run -d
+        --name gravity-umap
+        --restart unless-stopped
+        -p 5001:5001
+        -v /opt/gravity-umap/models:/app/models
+        --memory=2g
+        --cpus=1.0
+        ghcr.io/gravity-platform/gravity-umap:{{ gravity_version | default('latest') }}
+      register: start_result
+
+    - name: "[7/7] Container started"
+      debug:
+        msg: "UMAP container started"
+
+  post_tasks:
+    - name: "Wait for UMAP to initialize"
+      pause:
+        seconds: 5
+
+    - name: "Health check - UMAP (port 5001)"
+      uri:
+        url: "http://localhost:5001/health"
+        status_code: 200
+      register: umap_health
+      until: umap_health.status == 200
+      retries: 30
+      delay: 2
+      ignore_errors: yes
+
+    - name: "=== UMAP DEPLOYMENT SUMMARY ==="
+      debug:
+        msg: |
+          ============================================
+          UMAP SERVICE DEPLOYED
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          
+          Health: {{ 'OK' if umap_health.status == 200 else 'FAILED' }}
+          
+          Internal URL: http://{{ ansible_host }}:5001
+          
+          Next steps:
+            1. Update App VMs .env with:
+               UMAP_SERVICE_URL=http://{{ ansible_host }}:5001
+            
+            2. Redeploy App VMs or restart workflow service
+          ============================================

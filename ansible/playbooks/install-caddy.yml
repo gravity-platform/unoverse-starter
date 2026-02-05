@@ -1,0 +1,99 @@
+---
+# Caddy Reverse Proxy Installation Playbook
+# Installs Caddy and configures hostname-based routing for Gravity services
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai"
+#
+# This playbook:
+#   1. Installs Caddy from official repo
+#   2. Configures Caddyfile for hostname routing
+#   3. Enables and starts Caddy service
+#
+# Caddy automatically provisions Let's Encrypt TLS certificates.
+
+- name: Install Caddy Reverse Proxy
+  hosts: all
+  become: yes
+
+  vars:
+    domain: "{{ domain | default('localhost') }}"
+
+  tasks:
+    - name: "[1/5] Install prerequisites"
+      apt:
+        name:
+          - debian-keyring
+          - debian-archive-keyring
+          - apt-transport-https
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: "[2/5] Add Caddy GPG key"
+      shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
+    - name: "[2/5] Add Caddy repository"
+      shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+      args:
+        creates: /etc/apt/sources.list.d/caddy-stable.list
+
+    - name: "[3/5] Install Caddy"
+      apt:
+        name: caddy
+        state: present
+        update_cache: yes
+
+    - name: "[4/5] Configure Caddyfile"
+      template:
+        src: ../templates/Caddyfile.j2
+        dest: /etc/caddy/Caddyfile
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Caddy
+
+    - name: "[5/5] Enable and start Caddy"
+      service:
+        name: caddy
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Reload Caddy
+      service:
+        name: caddy
+        state: reloaded
+
+  post_tasks:
+    - name: "Verify Caddy is running"
+      command: systemctl status caddy
+      register: caddy_status
+      changed_when: false
+
+    - name: "=== CADDY INSTALLATION SUMMARY ==="
+      debug:
+        msg: |
+          ============================================
+          CADDY REVERSE PROXY INSTALLED
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          Domain: {{ domain }}
+
+          Configured routes:
+            - https://{{ domain }} → Canvas (port 3001)
+            - https://api.{{ domain }} → API Server (port 4100)
+            - https://mcp.{{ domain }} → MCP Server (port 4103)
+            - https://sab.{{ domain }} → SAB (port 3007)
+
+          To add custom routes, edit /etc/caddy/Caddyfile
+
+          TLS: Auto-provisioned via Let's Encrypt
+
+          To update routing, edit /etc/caddy/Caddyfile
+          Then run: sudo systemctl reload caddy
+          ============================================

@@ -1,0 +1,3 @@
+# Place your .env file here for deployment
+# Copy from .env.example and fill in your values
+# This file (.env) should be in .gitignore

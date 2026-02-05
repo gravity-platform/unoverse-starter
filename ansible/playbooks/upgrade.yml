@@ -1,0 +1,87 @@
+---
+# Gravity Platform Rolling Upgrade Playbook
+# Upgrades services one VM at a time for zero downtime
+
+- name: Rolling Upgrade Gravity Platform
+  hosts: app_vms
+  become: yes
+  serial: 1  # One host at a time for rolling upgrade
+  vars_files:
+    - ../vars/secrets.yml
+
+  pre_tasks:
+    - name: Display upgrade info
+      debug:
+        msg: "Upgrading {{ inventory_hostname }} to version {{ gravity_version }}"
+
+  tasks:
+    - name: Pull new images
+      command: docker compose pull
+      args:
+        chdir: /opt/gravity
+
+    - name: Stop services gracefully
+      command: docker compose stop {{ gravity_services | join(' ') }}
+      args:
+        chdir: /opt/gravity
+
+    - name: Start services with new images
+      command: docker compose up -d {{ gravity_services | join(' ') }}
+      args:
+        chdir: /opt/gravity
+
+    - name: Wait for services to be healthy
+      uri:
+        url: "http://localhost:{{ item.port }}/health"
+        status_code: 200
+      register: health_check
+      until: health_check.status == 200
+      retries: 30
+      delay: 2
+      loop:
+        - { name: server, port: 4100 }
+        - { name: workflow, port: 4101 }
+        - { name: node-service, port: 4102 }
+      when: item.name in gravity_services
+
+    - name: Verify readiness
+      uri:
+        url: "http://localhost:{{ item.port }}/ready"
+        status_code: 200
+      loop:
+        - { name: server, port: 4100 }
+        - { name: workflow, port: 4101 }
+        - { name: node-service, port: 4102 }
+      when: item.name in gravity_services
+
+  post_tasks:
+    - name: Display upgrade status
+      debug:
+        msg: "{{ inventory_hostname }} upgraded successfully to {{ gravity_version }}"
+
+# Upgrade ML VMs separately (not rolling - single instance)
+- name: Upgrade ML VMs
+  hosts: ml_vms
+  become: yes
+  vars_files:
+    - ../vars/secrets.yml
+
+  tasks:
+    - name: Pull new UMAP image
+      command: docker compose pull umap
+      args:
+        chdir: /opt/gravity
+
+    - name: Restart UMAP service
+      command: docker compose up -d umap
+      args:
+        chdir: /opt/gravity
+
+    - name: Wait for UMAP to be healthy
+      uri:
+        url: "http://localhost:5001/health"
+        status_code: 200
+      register: health_check
+      until: health_check.status == 200
+      retries: 30
+      delay: 2
