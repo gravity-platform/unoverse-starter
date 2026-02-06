@@ -34,30 +34,16 @@ Install these on your machine:
 
 ## Step 1: Get Access
 
-Ask your Gravity admin to:
+Ask your Gravity admin for:
 
-1. Add your GitHub username to the organization
-2. Give you access to your org's fork of `gravity-starter`
-3. Provide you with the **DATABASE_URL** and **Redis credentials**
-
----
-
-## Step 2: Create GitHub Token
-
-You need a Personal Access Token (PAT) to pull Docker images.
-
-1. Go to https://github.com/settings/tokens
-2. Click **Generate new token (classic)**
-3. Name it (e.g., "Gravity Dev")
-4. Select scopes:
-   - `repo` — for git access to your org's starter repo
-   - `read:packages` — for pulling Docker images from GHCR
-5. Click **Generate token**
-6. **Copy the token** (you won't see it again!)
+1. Access to your org's fork of `gravity-starter` (GitHub)
+2. **DOCR Token** — for pulling Docker images (DigitalOcean Container Registry)
+3. **DATABASE_URL** — PostgreSQL connection string
+4. **Redis credentials** — host, port, password
 
 ---
 
-## Step 3: Clone YOUR ORG'S Starter Repo
+## Step 2: Clone YOUR ORG'S Starter Repo
 
 > ⚠️ **Clone your organization's fork, NOT the gravity-platform repo.**
 
@@ -70,16 +56,27 @@ cd ~/gravity
 If your org uses a private repo, include your credentials:
 
 ```bash
-git clone https://YOUR_USERNAME:YOUR_TOKEN@github.com/YOUR_ORG/gravity-starter.git ~/gravity
+git clone https://YOUR_USERNAME:YOUR_GITHUB_TOKEN@github.com/YOUR_ORG/gravity-starter.git ~/gravity
 ```
+
+---
+
+## Step 3: Get Registry Token
+
+Ask your Gravity admin for a **DigitalOcean Container Registry token**.
+
+This token lets you pull the pre-built platform images. You don't need GitHub access to the platform code.
 
 ---
 
 ## Step 4: Login to Docker Registry
 
 ```bash
-echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+# Use the DOCR token from your admin
+echo "dop_v1_xxxxx" | docker login registry.digitalocean.com -u dop_v1_xxxxx --password-stdin
 ```
+
+You should see: `Login Succeeded`
 
 ---
 
@@ -116,10 +113,6 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_TLS=false
-
-# GHCR credentials
-GHCR_USERNAME=your-github-username
-GHCR_TOKEN=ghp_your_token_here
 
 # Auth (your admin will provide these)
 AUTH_ISSUER=https://your-tenant.auth0.com
@@ -238,8 +231,8 @@ docker compose up -d          # Restart with new images
 ### "unauthorized" when pulling images
 
 ```bash
-# Re-login to GHCR
-echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+# Re-login to DOCR with your token
+echo "dop_v1_xxxxx" | docker login registry.digitalocean.com -u dop_v1_xxxxx --password-stdin
 ```
 
 ### Services not starting
