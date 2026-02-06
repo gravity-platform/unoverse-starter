@@ -1,194 +1,282 @@
-# Challenge 1: Getting Started
+# Getting Started
 
-Deploy the Gravity platform and access Canvas.
+Set up your local development environment for building on Gravity.
 
-## Goal
+---
 
-By the end of this challenge, you'll have:
+## ⚠️ IMPORTANT: What You Have Access To
 
-- Gravity platform running locally or on a server
-- Access to Canvas (workflow builder)
-- Access to SAB (client application)
-- Access to Storybook (component development)
+As a developer, you work with **your organization's fork** of gravity-starter:
 
-## Steps
+| ✅ You Have Access To                  | ❌ You Do NOT Have Access To      |
+| -------------------------------------- | --------------------------------- |
+| Your org's fork of `gravity-starter`   | `GravityPlatform` (core platform) |
+| Custom nodes in `packages/`            | Core service source code          |
+| UI components in `apps/design-system/` | Server, Workflow, Canvas source   |
+| Client app in `apps/GravitySAB/`       | Node-service internals            |
+| Docker images (pre-built binaries)     | Platform IP                       |
 
-### 1. Clone gravity-starter
+**The core platform runs as Docker images.** You never see or modify the source code — you build ON TOP of it.
+
+---
+
+## Prerequisites
+
+Install these on your machine:
+
+| Tool        | Version | Install                                 |
+| ----------- | ------- | --------------------------------------- |
+| **Docker**  | 24+     | https://docs.docker.com/get-docker/     |
+| **Node.js** | 20+     | https://nodejs.org/ or `nvm install 20` |
+| **Git**     | 2.x     | https://git-scm.com/                    |
+
+---
+
+## Step 1: Get Access
+
+Ask your Gravity admin to:
+
+1. Add your GitHub username to the organization
+2. Give you access to your org's fork of `gravity-starter`
+3. Provide you with the **DATABASE_URL** and **Redis credentials**
+
+---
+
+## Step 2: Create GitHub Token
+
+You need a Personal Access Token (PAT) to pull Docker images.
+
+1. Go to https://github.com/settings/tokens
+2. Click **Generate new token (classic)**
+3. Name it (e.g., "Gravity Dev")
+4. Select scopes:
+   - `repo` — for git access to your org's starter repo
+   - `read:packages` — for pulling Docker images from GHCR
+5. Click **Generate token**
+6. **Copy the token** (you won't see it again!)
+
+---
+
+## Step 3: Clone YOUR ORG'S Starter Repo
+
+> ⚠️ **Clone your organization's fork, NOT the gravity-platform repo.**
 
 ```bash
-git clone https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/gravity-platform/gravity-starter.git ~/gravity
+# Replace YOUR_ORG with your organization name
+git clone https://github.com/YOUR_ORG/gravity-starter.git ~/gravity
 cd ~/gravity
 ```
 
-> **Note:** Replace `YOUR_GITHUB_USERNAME` and `YOUR_TOKEN` with your GitHub credentials. The token needs `repo` scope (see Step 3).
-
-**Already cloned?** Set up the remote for future pulls:
+If your org uses a private repo, include your credentials:
 
 ```bash
-cd ~/gravity
-git remote set-url origin https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/gravity-platform/gravity-starter.git
+git clone https://YOUR_USERNAME:YOUR_TOKEN@github.com/YOUR_ORG/gravity-starter.git ~/gravity
 ```
 
-### 2. Configure Environment
+---
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your settings:
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:pass@host:5432/gravity
-
-# Redis
-REDIS_HOST=redis
-REDIS_PORT=6379
-
-# Auth (optional for local dev)
-DISABLE_AUTH=true
-```
-
-### 3. Create GitHub Token & Login to GHCR
-
-You need a GitHub PAT to pull code and Docker images.
-
-**For Developers:**
-
-1. Ask your Gravity admin to add your GitHub username to the team
-2. Create a Personal Access Token:
-   - Go to https://github.com/settings/tokens
-   - Click **Generate new token (classic)**
-   - Name it (e.g., "Gravity")
-   - Select scopes:
-     - `repo` (for git pull access to gravity-starter)
-     - `read:packages` (for Docker images from GHCR)
-   - Click **Generate token**
-   - Copy the token (you won't see it again!)
-3. Login to GHCR:
+## Step 4: Login to Docker Registry
 
 ```bash
 echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-**For Admins (one-time setup):**
+---
 
-1. Add developers to your GitHub team at `github.com/orgs/gravity-platform/teams`
-2. Grant the team **Read** access to `gravity-starter` repo (not GravityPlatform - that's your IP!)
-3. GHCR package access is inherited from org membership
+## Step 5: Start Redis
 
-> **Security Note:** The `repo` scope on the token allows authentication, but the team's **Read** role prevents pushing. Developers can pull but cannot modify your code.
-
-### 4. Deploy
+Redis is required. Run it locally with Docker:
 
 ```bash
-./scripts/deploy.sh
+docker run -d --name gravity-redis -p 6379:6379 redis:7-alpine
 ```
 
-**Deploy Script Options:**
-
-| Command                       | What it does                                                    |
-| ----------------------------- | --------------------------------------------------------------- |
-| `./scripts/deploy.sh`         | Full deploy (pull images, gen:nodes, build packages, build SAB) |
-| `./scripts/deploy.sh update`  | Pull latest GHCR images and restart (no rebuild)                |
-| `./scripts/deploy.sh rebuild` | Rebuild SAB only and restart                                    |
-| `./scripts/deploy.sh clean`   | Clean caches + full deploy (use when builds fail)               |
-
-**After deploying, restart services to pick up changes:**
+Verify it's running:
 
 ```bash
-docker compose restart
+docker ps | grep redis
 ```
 
-### 5. Local Development
+---
 
-For local development with hot reload:
-
-**Start Redis first:**
+## Step 6: Configure Environment
 
 ```bash
-docker pull redis:7-alpine   # Pull from Docker Hub
-docker compose up -d redis   # Start Redis
+cp ansible/files/.env.example .env
 ```
 
-**Then run the platform:**
+Edit `.env` with credentials from your admin:
 
 ```bash
-npm install          # Install dependencies
-npm run build        # Build all packages with Turbo
-npm run dev          # Run everything with hot reload
+# Database (get from your admin)
+DATABASE_URL=postgresql://user:pass@host:5432/gravity
+
+# Redis (local Docker)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_TLS=false
+
+# GHCR credentials
+GHCR_USERNAME=your-github-username
+GHCR_TOKEN=ghp_your_token_here
+
+# Auth (your admin will provide these)
+AUTH_ISSUER=https://your-tenant.auth0.com
+AUTH_CLIENT_ID=your-client-id
+AUTH_AUDIENCE=gravity-api
 ```
 
-This starts all services locally with file watching enabled.
+---
 
-### 6. Verify
+## Step 7: Start the Platform
 
 ```bash
-docker compose ps  # All services should be "Up"
+docker compose up -d
 ```
 
-## Services
+This pulls pre-built images from GHCR and starts all core services.
 
-### Core Platform (GHCR Images)
+**First time?** This downloads ~2GB of images. Subsequent starts are fast.
 
-| Service      | Port | Description                                           |
-| ------------ | ---- | ----------------------------------------------------- |
-| Canvas       | 3001 | Workflow Builder UI                                   |
-| Server       | 4100 | REST API Gateway, WebSocket Hub, OAuth/JWT auth       |
-| Workflow     | 4101 | Agent Builder, Workflow Orchestration, Signal Routing |
-| Node Service | 4102 | Marketplace, Custom Components, Design System         |
-| MCP Server   | 4103 | ChatGPT Apps Integration, OAuth/JWT auth              |
-| UMAP Service | 5001 | UMAP Model Training, Spatial Search Embedding         |
-| Redis        | 6379 | Cache, pub/sub                                        |
-| Postgres     | 5432 | Database                                              |
+---
 
-### Marketplace Nodes (Included)
+## Step 8: Verify
 
-The starter pack includes these node packages:
+```bash
+docker compose ps
+```
 
-| Package                           | Description                            |
-| --------------------------------- | -------------------------------------- |
-| `@gravity-platform/openai`        | OpenAI GPT models, embeddings          |
-| `@gravity-platform/aws-bedrock`   | AWS Bedrock (Claude, Titan)            |
-| `@gravity-platform/aws-nova`      | AWS Nova models                        |
-| `@gravity-platform/aws-s3`        | S3 file operations                     |
-| `@gravity-platform/cloudinary`    | Image/video management                 |
-| `@gravity-platform/pinecone`      | Vector database                        |
-| `@gravity-platform/design-system` | UI components (Card, AIResponse, etc.) |
-| `@gravity-platform/flow`          | Flow control (Loop, Switch, etc.)      |
-| `@gravity-platform/ingest`        | Content ingestion                      |
+All services should show "Up":
 
-### Starter Pack (Your Code)
+```
+NAME                  STATUS
+gravity-server        Up
+gravity-workflow      Up
+gravity-canvas        Up
+gravity-node-service  Up
+gravity-umap          Up
+gravity-grafana       Up
+...
+```
 
-| Service   | Port | URL                   | Description              |
-| --------- | ---- | --------------------- | ------------------------ |
-| Storybook | 6006 | http://localhost:6006 | UI Component Development |
-| SAB       | 3007 | http://localhost:3007 | Client Chat Application  |
+---
 
-### Observability (Core Platform)
+## Step 9: Access Services
 
-| Service    | Port | Description                 |
-| ---------- | ---- | --------------------------- |
-| Grafana    | 3000 | Dashboards & Visualizations |
-| Prometheus | 9090 | Metrics Collection          |
-| Loki       | 3100 | Log Aggregation             |
-| Tempo      | 3200 | Distributed Tracing         |
-| Promtail   | 9080 | Log Shipping                |
+| Service     | URL                   | Description      |
+| ----------- | --------------------- | ---------------- |
+| **Canvas**  | http://localhost:3001 | Workflow Builder |
+| **Grafana** | http://localhost:3000 | Logs & Metrics   |
+| **API**     | http://localhost:4100 | REST API         |
+
+---
+
+## Developing Your Code
+
+Now that the platform is running, you can develop your custom code:
+
+### Custom Nodes
+
+```bash
+cd ~/gravity
+npm install
+npm run build -w @gravity-platform/my-custom-node
+docker compose restart node-service workflow
+```
+
+### UI Components (Storybook)
+
+```bash
+npm run storybook -w @gravity-platform/design-system-dev
+# Opens http://localhost:6006
+```
+
+### Client App (SAB)
+
+```bash
+cd apps/GravitySAB
+npm install
+npm run dev
+# Opens http://localhost:3007
+```
+
+---
+
+## Daily Workflow
+
+```bash
+# Start your day
+cd ~/gravity
+docker compose up -d          # Start platform
+
+# Make changes to packages/ or apps/
+npm run build                 # Build your changes
+docker compose restart node-service workflow  # Pick up changes
+
+# End your day
+docker compose down           # Stop platform
+```
+
+---
+
+## Updating the Platform
+
+When your admin releases a new version:
+
+```bash
+cd ~/gravity
+git pull                      # Get latest starter code
+docker compose pull           # Get latest Docker images
+docker compose up -d          # Restart with new images
+```
+
+---
 
 ## Troubleshooting
 
-### Free Up Disk Space
-
-Docker images can accumulate over time. To clean up:
+### "unauthorized" when pulling images
 
 ```bash
-# Remove unused images and containers (keeps volumes/data)
-docker system prune -a -f
-
-# Nuclear option - removes EVERYTHING including volumes (⚠️ deletes database data!)
-docker system prune -a --volumes -f
+# Re-login to GHCR
+echo "YOUR_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-## ✅ Challenge Complete
+### Services not starting
 
-You should see the Canvas workflow builder. Proceed to [Challenge 2: Create Your First Agent](./02-create-your-first-agent.md).
+```bash
+docker compose logs server    # Check specific service logs
+docker compose logs workflow
+```
+
+### Redis connection refused
+
+```bash
+# Make sure Redis is running
+docker ps | grep redis
+
+# If not running, start it
+docker run -d --name gravity-redis -p 6379:6379 redis:7-alpine
+```
+
+### Clean restart
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+### Nuclear reset (deletes all data!)
+
+```bash
+docker compose down -v
+docker system prune -a -f
+docker compose up -d
+```
+
+---
+
+## What's Next?
+
+- [Challenge 2: Create Your First Agent](./02-create-your-first-agent.md)
+- [Challenge 3: Create Your First Node](./03-create-your-first-node.md)
