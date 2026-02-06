@@ -3,7 +3,11 @@
 # Installs Caddy and configures hostname-based routing for Gravity services
 #
 # Usage:
-#   ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai"
+#   Direct mode (Caddy handles TLS):
+#     ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai"
+#
+#   Behind Load Balancer (LB terminates TLS):
+#     ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai" -e "behind_lb=true"
 #
 # This playbook:
 #   1. Installs Caddy from official repo
@@ -17,7 +21,8 @@
   become: yes
 
   vars:
-    domain: "{{ domain | default('localhost') }}"
+    caddy_domain: "{{ domain | default('localhost') }}"
+    caddy_behind_lb: "{{ behind_lb | default(false) }}"
 
   tasks:
     - name: "[1/5] Install prerequisites"
@@ -82,17 +87,15 @@
           CADDY REVERSE PROXY INSTALLED
           ============================================
           Host: {{ inventory_hostname }} ({{ ansible_host }})
-          Domain: {{ domain }}
+          Domain: {{ caddy_domain }}
+          Mode: {% if caddy_behind_lb %}Behind Load Balancer (HTTP only){% else %}Direct (TLS via Lets Encrypt){% endif %}
 
           Configured routes:
-            - https://{{ domain }} → Canvas (port 3001)
-            - https://api.{{ domain }} → API Server (port 4100)
-            - https://mcp.{{ domain }} → MCP Server (port 4103)
-            - https://sab.{{ domain }} → SAB (port 3007)
+            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://{{ caddy_domain }} -> Canvas (port 3001)
+            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://api.{{ caddy_domain }} -> API Server (port 4100)
+            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://mcp.{{ caddy_domain }} -> MCP Server (port 4103)
 
-          To add custom routes, edit /etc/caddy/Caddyfile
-
-          TLS: Auto-provisioned via Let's Encrypt
+          TLS: {% if caddy_behind_lb %}Terminated at Load Balancer{% else %}Auto-provisioned via Lets Encrypt{% endif %}
 
           To update routing, edit /etc/caddy/Caddyfile
           Then run: sudo systemctl reload caddy

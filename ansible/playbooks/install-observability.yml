@@ -1,0 +1,64 @@
+---
+# Gravity Platform Observability Stack Installation
+# Installs Grafana, Loki, Prometheus, Promtail, Tempo for POC/demo environments
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/install-observability.yml
+#
+# Note: For enterprise deployments, customers typically use their own observability stack.
+#       This playbook is for POC/demo environments only.
+
+- name: Install Observability Stack
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: "[1/3] Verify Gravity is installed"
+      stat:
+        path: /opt/gravity/docker-compose.yml
+      register: gravity_installed
+
+    - name: "[1/3] Fail if Gravity not installed"
+      fail:
+        msg: "Gravity Platform not installed. Run install.yml first."
+      when: not gravity_installed.stat.exists
+
+    - name: "[2/3] Start observability services"
+      command: docker compose up -d grafana loki prometheus promtail tempo
+      args:
+        chdir: /opt/gravity
+      register: start_result
+
+    - name: "[2/3] Services started"
+      debug:
+        msg: "{{ start_result.stdout_lines | default(['Observability services starting...']) }}"
+
+    - name: "[3/3] Wait for Grafana to be ready"
+      uri:
+        url: "http://localhost:3000/api/health"
+        status_code: 200
+      register: grafana_health
+      until: grafana_health.status == 200
+      retries: 10
+      delay: 3
+      ignore_errors: yes
+
+  post_tasks:
+    - name: "=== OBSERVABILITY STACK INSTALLED ==="
+      debug:
+        msg: |
+          ============================================
+          OBSERVABILITY STACK INSTALLED
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          
+          Services:
+            - Grafana:    http://{{ ansible_host }}:3000
+            - Prometheus: http://{{ ansible_host }}:9090
+            - Loki:       http://{{ ansible_host }}:3100
+            - Tempo:      http://{{ ansible_host }}:3200
+          
+          Default Grafana credentials: admin / admin
+          
+          Note: For enterprise, export metrics/logs to customer SIEM instead.
+          ============================================

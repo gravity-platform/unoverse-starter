@@ -1,10 +1,23 @@
 ---
 # Gravity Platform Installation Playbook
-# Installs Gravity services on target VMs
+# Installs core platform services from GHCR
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/install.yml
+#
+# Prerequisites:
+#   - ansible/files/.env configured with GHCR_USERNAME, GHCR_TOKEN, DATABASE_URL, etc.
+#
+# This playbook installs CORE PLATFORM only (from GHCR images).
+# For customer packages (custom nodes, design system), run deploy-packages.yml
 
 - name: Install Gravity Platform
   hosts: all
   become: yes
+
+  vars:
+    gravity_dir: /opt/gravity
+    core_services: "server workflow node-service mcp-server canvas"
 
   pre_tasks:
     - name: "[1/10] Check current system"
@@ -48,58 +61,60 @@
         append: yes
 
   tasks:
-    - name: "[5/10] Create Gravity directory"
+    - name: "[5/10] Read GHCR credentials from local .env"
+      shell: grep '^GHCR_USERNAME=' {{ env_file | default('../files/.env') }} | cut -d= -f2
+      register: ghcr_username_result
+      delegate_to: localhost
+      become: no
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[5/10] Read GHCR_TOKEN from local .env"
+      shell: grep '^GHCR_TOKEN=' {{ env_file | default('../files/.env') }} | cut -d= -f2
+      register: ghcr_token_result
+      delegate_to: localhost
+      become: no
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[5/10] Set GHCR credentials"
+      set_fact:
+        ghcr_username: "{{ ghcr_username_result.stdout | default('') }}"
+        ghcr_token: "{{ ghcr_token_result.stdout | default('') }}"
+
+    - name: "[6/10] Create gravity directory"
       file:
-        path: /opt/gravity
+        path: "{{ gravity_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
         mode: "0755"
 
-    - name: "[6/10] Copy .env file"
+    - name: "[6/10] Copy docker-compose.yml"
+      copy:
+        src: "{{ playbook_dir }}/../../docker-compose.yml"
+        dest: "{{ gravity_dir }}/docker-compose.yml"
+        owner: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: "[7/10] Copy .env file"
       copy:
         src: "{{ env_file | default('../files/.env') }}"
         dest: /opt/gravity/.env
         owner: "{{ ansible_user }}"
         mode: "0600"
 
-    - name: "[6/10] Verify .env copied"
-      debug:
-        msg: ".env file copied to /opt/gravity/.env"
-
-    - name: "[7/10] Copy docker-compose.yml"
-      copy:
-        src: "{{ playbook_dir }}/../../docker-compose.yml"
-        dest: /opt/gravity/docker-compose.yml
-        owner: "{{ ansible_user }}"
-        mode: "0644"
-
-    - name: "[7/10] Create nginx config directory"
-      file:
-        path: /opt/gravity/config/nginx
-        state: directory
-        owner: "{{ ansible_user }}"
-        mode: "0755"
-
-    - name: "[7/10] Copy nginx config"
-      copy:
-        src: "{{ playbook_dir }}/../../config/nginx/nginx.conf"
-        dest: /opt/gravity/config/nginx/nginx.conf
-        owner: "{{ ansible_user }}"
-        mode: "0644"
-
     - name: "[8/10] Login to GHCR"
       shell: echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
-      when: ghcr_token is defined and ghcr_token != ""
+      when: ghcr_token != ""
       no_log: true
       register: ghcr_login
 
     - name: "[8/10] GHCR login status"
       debug:
         msg: "Logged in to GHCR as {{ ghcr_username }}"
-      when: ghcr_token is defined and ghcr_token != ""
+      when: ghcr_token != ""
 
-    - name: "[9/10] Pull Gravity images (this may take a few minutes)"
+    - name: "[9/10] Pull Gravity images"
       command: docker compose pull
       args:
         chdir: /opt/gravity
@@ -109,10 +124,10 @@
       debug:
         msg: "Docker images pulled successfully"
 
-    - name: "[10/10] Start all Gravity services"
-      command: docker compose up -d
+    - name: "[10/10] Start core Gravity services"
+      command: docker compose up -d {{ core_services }}
       args:
-        chdir: /opt/gravity
+        chdir: "{{ gravity_dir }}"
       register: start_result
 
     - name: "[10/10] Services started"
@@ -154,28 +169,20 @@
       delay: 2
       ignore_errors: yes
 
-    - name: "Get running containers"
-      command: docker compose ps --format json
-      args:
-        chdir: /opt/gravity
-      register: containers
-      ignore_errors: yes
-
     - name: "=== DEPLOYMENT SUMMARY ==="
       debug:
         msg: |
           ============================================
-          GRAVITY PLATFORM DEPLOYED SUCCESSFULLY
+          GRAVITY PLATFORM DEPLOYED
           ============================================
           Host: {{ inventory_hostname }} ({{ ansible_host }})
 
           Service Health:
-            - Server:       {{ 'OK' if server_health.status == 200 else 'FAILED' }}
-            - Workflow:     {{ 'OK' if workflow_health.status == 200 else 'FAILED' }}
-            - Node Service: {{ 'OK' if node_health.status == 200 else 'FAILED' }}
+            - Server:       {{ 'OK' if (server_health.status | default(0)) == 200 else 'FAILED' }}
+            - Workflow:     {{ 'OK' if (workflow_health.status | default(0)) == 200 else 'FAILED' }}
+            - Node Service: {{ 'OK' if (node_health.status | default(0)) == 200 else 'FAILED' }}
 
           Access URLs:
             - Canvas:   http://{{ ansible_host }}:3001
             - API:      http://{{ ansible_host }}:4100
-            - Grafana:  http://{{ ansible_host }}:3000
           ============================================

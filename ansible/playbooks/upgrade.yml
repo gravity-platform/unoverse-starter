@@ -5,9 +5,7 @@
 - name: Rolling Upgrade Gravity Platform
   hosts: app_vms
   become: yes
-  serial: 1  # One host at a time for rolling upgrade
-  vars_files:
-    - ../vars/secrets.yml
+  serial: 1 # One host at a time for rolling upgrade
 
   pre_tasks:
     - name: Display upgrade info
@@ -55,27 +53,44 @@
       when: item.name in gravity_services
 
   post_tasks:
+    - name: Prune old Docker images
+      command: docker image prune -af --filter "until=24h"
+      register: prune_result
+
+    - name: Display prune result
+      debug:
+        msg: "Pruned: {{ prune_result.stdout_lines | default(['No images pruned']) }}"
+
     - name: Display upgrade status
       debug:
         msg: "{{ inventory_hostname }} upgraded successfully to {{ gravity_version }}"
 
 # Upgrade ML VMs separately (not rolling - single instance)
+# Only runs if ml_vms group exists and has hosts
 - name: Upgrade ML VMs
   hosts: ml_vms
   become: yes
-  vars_files:
-    - ../vars/secrets.yml
+  ignore_unreachable: yes
 
   tasks:
+    - name: Check if UMAP is configured
+      command: docker compose config --services
+      args:
+        chdir: /opt/gravity
+      register: services
+      changed_when: false
+
     - name: Pull new UMAP image
       command: docker compose pull umap
       args:
         chdir: /opt/gravity
+      when: "'umap' in services.stdout"
 
     - name: Restart UMAP service
       command: docker compose up -d umap
       args:
         chdir: /opt/gravity
+      when: "'umap' in services.stdout"
 
     - name: Wait for UMAP to be healthy
       uri:
@@ -85,3 +100,4 @@
       until: health_check.status == 200
       retries: 30
       delay: 2
+      when: "'umap' in services.stdout"

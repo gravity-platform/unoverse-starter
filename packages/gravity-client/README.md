@@ -26,7 +26,7 @@ function ChatPage() {
     <GravityClient
       config={{
         apiUrl: "http://localhost:4100",
-        wsUrl: "ws://localhost:4100/ws/gravity-ds",
+        wsUrl: "ws://localhost:4100",
       }}
       session={{
         conversationId: "conv_123",
@@ -163,7 +163,7 @@ client.sendAgentMessage({
 
 ```typescript
 {
-  type: "AGENT_MESSAGE", chatId, agentName, source, components;
+  type: ("AGENT_MESSAGE", chatId, agentName, source, components);
 }
 ```
 
@@ -188,7 +188,7 @@ client.loadTemplate("inputtrigger1", { chatId: "chat_123" });
 
 ```typescript
 {
-  type: "LOAD_TEMPLATE", workflowId, targetTriggerNode, chatId; // optional
+  type: ("LOAD_TEMPLATE", workflowId, targetTriggerNode, chatId); // optional
 }
 ```
 
@@ -355,7 +355,7 @@ const endCall = async () => {
 ```typescript
 interface GravityConfig {
   apiUrl: string; // Server URL (e.g., "http://localhost:4100")
-  wsUrl: string; // WebSocket URL (e.g., "ws://localhost:4100/ws/gravity-ds")
+  wsUrl: string; // WebSocket base URL (e.g., "ws://localhost:4100") - code appends /ws/gravity
   getAccessToken?: () => Promise<string>; // Auth token provider
 }
 ```
@@ -602,10 +602,7 @@ const { userId, loading, updateUserId } = useUser();
 ### `useGravityWebSocket(sessionParams, wsUrl)`
 
 ```tsx
-const { isConnected, isReady, events, sendUserAction } = useGravityWebSocket(
-  sessionParams,
-  "ws://localhost:4100/ws/gravity-ds"
-);
+const { isConnected, isReady, events, sendUserAction } = useGravityWebSocket(sessionParams, "ws://localhost:4100");
 ```
 
 ### `useHistoryManager(sessionParams, options)`

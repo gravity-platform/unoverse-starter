@@ -1,0 +1,69 @@
+---
+# Gravity Platform Database Setup Playbook
+# Creates database tables - uses CREATE TABLE IF NOT EXISTS (safe to run multiple times)
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/db-setup.yml
+#
+# Prerequisites:
+#   - Core services deployed (install.yml)
+#   - DATABASE_URL configured in /opt/gravity/.env
+
+- name: Database Setup
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: "[1/4] Verify .env exists"
+      stat:
+        path: /opt/gravity/.env
+      register: env_file
+
+    - name: "[1/4] Fail if .env missing"
+      fail:
+        msg: ".env file not found at /opt/gravity/.env - run install.yml first"
+      when: not env_file.stat.exists
+
+    - name: "[2/4] Check DATABASE_URL is configured"
+      shell: grep -q "^DATABASE_URL=" /opt/gravity/.env
+      register: db_url_check
+      ignore_errors: yes
+
+    - name: "[2/4] Fail if DATABASE_URL missing"
+      fail:
+        msg: "DATABASE_URL not found in .env - configure database connection first"
+      when: db_url_check.rc != 0
+
+    - name: "[3/4] Run database migrations via workflow service"
+      command: docker compose exec -T workflow npm run db:migrate
+      args:
+        chdir: /opt/gravity
+      register: migrate_result
+      ignore_errors: yes
+
+    - name: "[3/4] Migration output"
+      debug:
+        msg: "{{ migrate_result.stdout_lines | default(['No output']) }}"
+
+    - name: "[4/4] Verify database connectivity"
+      command: docker compose exec -T workflow npm run db:check
+      args:
+        chdir: /opt/gravity
+      register: db_check
+      ignore_errors: yes
+
+  post_tasks:
+    - name: "=== DATABASE MIGRATION SUMMARY ==="
+      debug:
+        msg: |
+          ============================================
+          DATABASE MIGRATION
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          Migration: {{ 'OK' if migrate_result.rc == 0 else 'FAILED - check logs' }}
+
+          If migration failed, check:
+            - DATABASE_URL in /opt/gravity/.env
+            - Database is accessible from VM
+            - Firewall allows port 5432
+          ============================================

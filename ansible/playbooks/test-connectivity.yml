@@ -1,0 +1,90 @@
+---
+# Test Connectivity and Ports
+# Verifies all services are reachable and ports are open
+#
+# Usage:
+#   ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
+
+- name: Test Connectivity and Ports
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: "[1/5] Check Docker is running"
+      command: docker info
+      register: docker_info
+      ignore_errors: yes
+
+    - name: "[1/5] Docker status"
+      debug:
+        msg: "{{ 'Docker OK' if docker_info.rc == 0 else 'Docker NOT running' }}"
+
+    - name: "[2/5] Check running containers"
+      command: docker compose ps --format json
+      args:
+        chdir: /opt/gravity
+      register: containers
+      ignore_errors: yes
+
+    - name: "[3/5] Test internal service ports"
+      wait_for:
+        host: localhost
+        port: "{{ item.port }}"
+        timeout: 5
+      loop:
+        - { name: "Canvas", port: 3001 }
+        - { name: "Server", port: 4100 }
+        - { name: "Workflow", port: 4101 }
+        - { name: "Node Service", port: 4102 }
+        - { name: "MCP Server", port: 4103 }
+        - { name: "Redis", port: 6379 }
+      register: port_checks
+      ignore_errors: yes
+
+    - name: "[4/5] Test service health endpoints"
+      uri:
+        url: "http://localhost:{{ item.port }}/health"
+        status_code: 200
+        timeout: 5
+      loop:
+        - { name: "Server", port: 4100 }
+        - { name: "Workflow", port: 4101 }
+        - { name: "Node Service", port: 4102 }
+        - { name: "MCP Server", port: 4103 }
+      register: health_checks
+      ignore_errors: yes
+
+    - name: "[5/5] Test external connectivity (if Caddy installed)"
+      wait_for:
+        host: localhost
+        port: "{{ item }}"
+        timeout: 5
+      loop: [80, 443]
+      register: caddy_ports
+      ignore_errors: yes
+
+  post_tasks:
+    - name: "=== CONNECTIVITY TEST RESULTS ==="
+      debug:
+        msg: |
+          ============================================
+          CONNECTIVITY TEST RESULTS
+          ============================================
+          Host: {{ inventory_hostname }} ({{ ansible_host }})
+          
+          Docker: {{ 'OK' if docker_info.rc == 0 else 'FAILED' }}
+          
+          Port Status:
+          {% for result in port_checks.results %}
+            - {{ result.item.name }} ({{ result.item.port }}): {{ 'OK' if result.failed == false else 'CLOSED' }}
+          {% endfor %}
+          
+          Health Endpoints:
+          {% for result in health_checks.results %}
+            - {{ result.item.name }}: {{ 'OK' if result.failed == false else 'FAILED' }}
+          {% endfor %}
+          
+          Caddy (external):
+            - Port 80: {{ 'OK' if caddy_ports.results[0].failed == false else 'CLOSED' }}
+            - Port 443: {{ 'OK' if caddy_ports.results[1].failed == false else 'CLOSED' }}
+          ============================================
