@@ -197,6 +197,7 @@ git pull              # Get latest starter code
 | `./gravity build`       | Build all packages + gen:nodes + restart services     |
 | `./gravity build <pkg>` | Build one package + restart services                  |
 | `./gravity gendesign`   | Generate workflow nodes from design system + restart  |
+| `./gravity open`        | Open Canvas in browser (`./gravity open grafana`)     |
 
 ---
 
