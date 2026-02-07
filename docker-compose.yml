@@ -105,8 +105,10 @@ services:
       - "4102:4102"
     volumes:
       - ./packages:/app/packages # Mount packages for auto-discovery
+      - ./node_modules:/app/host_node_modules # Hoisted package deps
     environment:
       - NODE_ENV=production
+      - NODE_PATH=/app/host_node_modules
       - PORT=4102
       - PACKAGES_PATH=/app/packages
       - REDIS_HOST=${REDIS_HOST}

@@ -233,7 +233,7 @@ echo "=== Done ==="
 | Services not running   | Container crashed                  | `docker compose logs <service>` then `gravity update`     |
 | Health endpoint failed | Missing `.env` vars                | Check `.env` has `REDIS_HOST`, `DATABASE_URL`, auth vars  |
 | Packages not built     | No `dist/` directory               | `gravity update` (builds all packages)                    |
-| Plugins: 0 loaded      | node-service can't import packages | Check image version — needs v1.8.4+. Run `gravity update` |
+| Plugins: 0 loaded      | node-service can't import packages | Check image version — needs v1.8.6+. Run `gravity update` |
 | Component bundles 404  | Server can't find design-system    | Verify `DESIGN_SYSTEM_PATH` in docker-compose.yml         |
 | Canvas 404             | Container not started              | `docker compose up -d canvas`                             |
 
