@@ -102,11 +102,20 @@ services:
       - "4102:4102"
     volumes:
       - ./packages:/app/packages # Mount packages for auto-discovery
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /app/node_modules/@gravity-platform
+        for dir in /app/packages/*/; do
+          name=$$(basename "$$dir")
+          ln -sfn "$$dir" "/app/node_modules/@gravity-platform/$$name"
+        done
+        exec node dist/index.js
     environment:
       - NODE_ENV=production
       - PORT=4102
       - PACKAGES_PATH=/app/packages
-      - NODE_PATH=/app/packages:/app/node_modules
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
