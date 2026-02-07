@@ -2,36 +2,37 @@
 
 Build custom AI experiences powered by the Gravity Platform.
 
-## Quick Start (Ansible)
+## Quick Start
 
 ```bash
-# 1. Configure environment
-cp .env.example .env
-nano .env  # Set DATABASE_URL, REDIS_*, AUTH_* variables
+# 1. Install the Gravity CLI
+npm install
 
-# 2. Deploy via Ansible
-cd ansible
-export GHCR_USERNAME=your-github-username
-export GHCR_TOKEN=ghp_your_pat
-ansible-playbook -i inventory/production.yml playbooks/install.yml
+# 2. Run the setup wizard
+npx gravity init
+
+# 3. Start the platform
+npx gravity start
 ```
+
+## CLI Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npx gravity init` | Interactive setup wizard |
+| `npx gravity start` | Start the platform |
+| `npx gravity stop` | Stop the platform |
+| `npx gravity status` | Show service health |
+| `npx gravity logs` | Stream logs |
+| `npx gravity update` | Pull latest images and restart |
+| `npx gravity doctor` | Diagnose issues |
+| `npx gravity dev` | Start dev mode |
 
 ## Access
 
-- **Canvas** (Workflow Builder): https://yourdomain.com
-- **API**: https://api.yourdomain.com
-
-> **Note:** SAB (client app) is deployed separately to CDN (Vercel/Netlify).
-
-## Ansible Playbooks
-
-| Playbook | Purpose |
-|----------|---------|
-| `install.yml` | First-time install (Docker, services, health checks) |
-| `upgrade.yml` | Pull new GHCR images and restart |
-| `install-caddy.yml` | Install Caddy with TLS |
-| `health-check.yml` | Check service health |
-| `rollback.yml` | Rollback to previous version |
+- **Canvas** (Workflow Builder): http://localhost:3001
+- **API**: http://localhost:4100
+- **Grafana** (Logs): http://localhost:3000
 
 ## Development
 
@@ -39,10 +40,14 @@ ansible-playbook -i inventory/production.yml playbooks/install.yml
 
 1. Create a new package in `packages/my-custom-node/`
 2. Build: `npm run build -w @gravity-platform/my-custom-node`
-3. Restart: `docker compose restart node-service`
+3. Restart: `docker compose restart node-service workflow`
 
 ### Creating UI Components
 
 1. Create component in `apps/design-system/storybook/components/`
 2. Generate nodes: `npm run gen:nodes`
 3. Restart: `docker compose restart node-service`
+
+## Deployment (Production)
+
+See `ansible/` for production deployment playbooks.
