@@ -44,7 +44,7 @@ function createNodeDefinition(): EnhancedNodeDefinition {
           title: "Actor/Task ID",
           description: "Apify actor ID (e.g. apify/web-scraper) or task ID (e.g. username~task-name)",
           default: "",
-          placeholder: "gavinpay~adgm-company-register",
+          placeholder: "username~my-scraper-task",
         },
         urls: {
           type: "string",

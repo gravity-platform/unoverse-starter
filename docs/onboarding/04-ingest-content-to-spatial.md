@@ -16,7 +16,7 @@ Add content to the spatial search index for semantic discovery.
 4. Configure:
    - **Scope**: Check both ✅ Workflow and ✅ Platform
    - **Name**: `Apify`
-   - **API Token**: `YOUR_APIFY_TOKEN`
+   - **API Token**: Your Apify API token (from https://console.apify.com/account/integrations)
 5. Click **Save Credential**
 
 ## Step 2: Open Spatial
@@ -29,7 +29,7 @@ Add content to the spatial search index for semantic discovery.
 1. Click the **Import** button (or connector icon)
 2. Select **Apify** as the data source
 3. Configure the connection:
-   - **Dataset ID or Run ID**: `WFfJUKJ7mIJOdTTPW`
+   - **Dataset ID or Run ID**: Your Apify dataset or run ID
    - **Process Full Run**: ✅ Enabled
 4. Click **Import**
 5. Wait for items to be ingested (e.g., 220 items)
