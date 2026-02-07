@@ -452,9 +452,15 @@ cmd_update() {
   banner "Updating Gravity Platform"
   timer_start
 
-  # Pull latest starter code
+  # Pull latest starter code (stash local changes if needed)
   echo "  Pulling latest code..."
-  (cd "$ROOT" && git pull) || warn "git pull failed — continuing with image update"
+  local stashed=false
+  if (cd "$ROOT" && git diff --quiet 2>/dev/null); then
+    (cd "$ROOT" && git pull) || warn "git pull failed — continuing with image update"
+  else
+    (cd "$ROOT" && git stash --quiet && git pull && git stash pop --quiet) || warn "git pull failed — continuing with image update"
+    stashed=true
+  fi
   ok "Code updated"
 
   # Pull latest Docker images
