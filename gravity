@@ -451,9 +451,24 @@ cmd_logs() {
 cmd_update() {
   banner "Updating Gravity Platform"
   timer_start
+
+  # Pull latest starter code
+  echo "  Pulling latest code..."
+  (cd "$ROOT" && git pull) || warn "git pull failed — continuing with image update"
+  ok "Code updated"
+
+  # Pull latest Docker images
   echo "  Pulling latest images..."
   docker compose -f "$ROOT/docker-compose.yml" pull
   ok "Images updated"
+
+  # Rebuild plugin-base + gen:nodes in case packages changed
+  echo "  Rebuilding packages..."
+  (cd "$ROOT" && npm install --silent 2>/dev/null) || true
+  (cd "$ROOT" && npm run build -w @gravity-platform/plugin-base 2>/dev/null) || true
+  (cd "$ROOT" && npm run gen:nodes 2>/dev/null) || true
+  ok "Packages rebuilt"
+
   echo "  Restarting services..."
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d
   echo ""
