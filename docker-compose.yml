@@ -23,6 +23,7 @@ services:
 
   # Core Server - API gateway (lightweight - just routes requests)
   server:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-server:latest
     ports:
       - "4100:4100"
@@ -53,6 +54,7 @@ services:
 
   # Workflow Engine - XState orchestration (heavy - manages state machines)
   workflow:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-workflow:latest
     ports:
       - "4101:4101"
@@ -85,6 +87,7 @@ services:
   # Canvas UI - React frontend (lightweight - static files via nginx)
   # Runtime config injected via docker-entrypoint.sh at container start
   canvas:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-canvas:latest
     ports:
       - "3001:80"
@@ -109,6 +112,7 @@ services:
 
   # UMAP Service - Python ML service
   umap:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-umap:latest
     ports:
       - "5001:5001"
@@ -127,6 +131,7 @@ services:
   # Node Service - plugin execution (heavy - runs AI nodes, external API calls)
   # DOCR image with packages mounted at runtime for auto-discovery
   node-service:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-node-service:latest
     # For local development, build from source instead:
     # build:
@@ -163,6 +168,7 @@ services:
 
   # MCP Server - OpenAI Apps integration (lightweight - HTTP server)
   mcp-server:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-mcp-server:latest
     ports:
       - "4103:4103"
@@ -198,6 +204,7 @@ services:
   # ===========================================================================
 
   loki:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-loki:latest
     container_name: gravity-loki
     ports:
@@ -212,6 +219,7 @@ services:
           cpus: "0.5"
 
   promtail:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-promtail:latest
     container_name: gravity-promtail
     volumes:
@@ -226,6 +234,7 @@ services:
           cpus: "0.25"
 
   grafana:
+    platform: linux/amd64
     image: registry.digitalocean.com/gravity-repo/gravity-grafana:latest
     container_name: gravity-grafana
     ports:
