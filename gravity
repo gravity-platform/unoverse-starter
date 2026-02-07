@@ -456,9 +456,33 @@ cmd_pull() {
     return
   fi
 
-  echo "  Pulling images from DOCR..."
+  # docker compose pull ignores platform: field — must use docker pull --platform
+  local IMAGES=(
+    "registry.digitalocean.com/gravity-repo/gravity-server:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-workflow:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-canvas:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-umap:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-node-service:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-mcp-server:latest"
+  )
+
+  local total=${#IMAGES[@]}
+  local count=0
+  local failed=0
+
   echo ""
-  docker compose -f "$ROOT/docker-compose.yml" pull
+  for img in "${IMAGES[@]}"; do
+    ((count++))
+    local short="${img##*/}"          # gravity-server:latest
+    short="${short%%:*}"              # gravity-server
+    echo -ne "  ${DIM}[$count/$total]${NC} Pulling ${BOLD}$short${NC}..."
+    if docker pull --platform linux/amd64 "$img" &>/dev/null; then
+      echo -e " ${GREEN}✓${NC}"
+    else
+      echo -e " ${RED}✗${NC}"
+      ((failed++))
+    fi
+  done
   echo ""
 
   # Count how many gravity images we have now
