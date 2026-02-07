@@ -106,6 +106,7 @@ services:
       - NODE_ENV=production
       - PORT=4102
       - PACKAGES_PATH=/app/packages
+      - NODE_PATH=/app/packages:/app/node_modules
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
