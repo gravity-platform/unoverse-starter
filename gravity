@@ -14,6 +14,7 @@ set -e
 #   ./gravity logs      Stream all logs
 #   ./gravity logs <s>  Stream logs for one service
 #   ./gravity update    Pull latest images and restart
+#   ./gravity update nodes  Rebuild packages + restart node-service only
 #   ./gravity doctor    Diagnose issues
 #   ./gravity pull      Pull images only
 #   ./gravity dev       Install deps, gen:nodes, start dev environment
@@ -449,44 +450,94 @@ cmd_logs() {
 # ─── UPDATE ─────────────────────────────────────────────────────────────────
 
 cmd_update() {
-  banner "Updating Gravity Platform"
+  echo ""
+  echo -e "  ${BOLD}Updating Gravity Platform${NC}"
+  echo ""
   timer_start
 
-  # Pull latest starter code (stash local changes if needed)
-  echo "  Pulling latest code..."
-  local stashed=false
+  # Step 1: Code
+  printf "  ${DIM}●${NC} Pulling latest code..."
+  local git_ok=true
   if (cd "$ROOT" && git diff --quiet 2>/dev/null); then
-    (cd "$ROOT" && git pull) || warn "git pull failed — continuing with image update"
+    (cd "$ROOT" && git pull --quiet 2>/dev/null) || git_ok=false
   else
-    (cd "$ROOT" && git stash --quiet && git pull && git stash pop --quiet) || warn "git pull failed — continuing with image update"
-    stashed=true
+    (cd "$ROOT" && git stash --quiet && git pull --quiet 2>/dev/null && git stash pop --quiet) || git_ok=false
   fi
-  ok "Code updated"
+  printf "\r"
+  if $git_ok; then ok "Code updated"; else warn "Code update failed — continuing"; fi
 
-  # Pull latest Docker images
-  echo "  Pulling latest images..."
-  docker compose -f "$ROOT/docker-compose.yml" pull
-  # Show image digest so user can tell if images changed
-  local img_id
-  img_id=$(docker compose -f "$ROOT/docker-compose.yml" images server --format '{{.ID}}' 2>/dev/null | head -1 | cut -c1-12)
-  ok "Images updated ${DIM}(server: ${img_id:-unknown})${NC}"
+  # Step 2: Images
+  printf "  ${DIM}●${NC} Pulling images..."
+  docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1
+  printf "\r"
+  ok "Images pulled                    "
 
-  # Rebuild ALL packages (plugin-base first, then all others, then gen:nodes)
-  echo "  Rebuilding packages..."
-  (cd "$ROOT" && npm install --silent 2>/dev/null) || true
-  (cd "$ROOT" && npm run build -w @gravity-platform/plugin-base 2>/dev/null) || true
+  # Step 3: Build
+  printf "  ${DIM}●${NC} Building packages..."
+  (cd "$ROOT" && npm install --silent >/dev/null 2>&1) || true
+  (cd "$ROOT" && npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1) || true
   local build_output
   build_output=$(cd "$ROOT" && npm run build --workspaces --if-present 2>&1) || true
   local pkg_count
-  pkg_count=$(echo "$build_output" | grep -c '> .* build$' || echo "0")
-  (cd "$ROOT" && npm run gen:nodes 2>/dev/null) || true
-  ok "Packages rebuilt ${DIM}(${pkg_count} packages)${NC}"
+  pkg_count=$(echo "$build_output" | grep -c '> .* build' || echo "0")
+  (cd "$ROOT" && npm run gen:nodes >/dev/null 2>&1) || true
+  printf "\r"
+  ok "${pkg_count} packages built                "
 
-  echo "  Restarting services..."
-  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d
+  # Step 4: Restart
+  printf "  ${DIM}●${NC} Restarting services..."
+  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1
+  printf "\r"
+  ok "Services restarted               "
+
+  # Summary
   echo ""
-  ok "Platform updated ${DIM}($(timer_elapsed))${NC}"
-  info "Run ${BOLD}./gravity status${NC} to verify"
+  echo -e "  ${GREEN}${BOLD}Done${NC} ${DIM}in $(timer_elapsed)${NC}"
+  echo ""
+  echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
+  echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
+  echo ""
+}
+
+# ─── UPDATE NODES ────────────────────────────────────────────────────────────
+
+cmd_update_nodes() {
+  echo ""
+  echo -e "  ${BOLD}Updating Nodes${NC}"
+  echo ""
+  timer_start
+
+  # Step 1: Dependencies
+  printf "  ${DIM}●${NC} Installing dependencies..."
+  (cd "$ROOT" && npm install --silent >/dev/null 2>&1) || true
+  printf "\r"
+  ok "Dependencies installed            "
+
+  # Step 2: Build
+  printf "  ${DIM}●${NC} Building packages..."
+  (cd "$ROOT" && npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1) || true
+  local build_output
+  build_output=$(cd "$ROOT" && npm run build --workspaces --if-present 2>&1) || true
+  local pkg_count
+  pkg_count=$(echo "$build_output" | grep -c '> .* build' || echo "0")
+  printf "\r"
+  ok "${pkg_count} packages built                "
+
+  # Step 3: Generate nodes
+  printf "  ${DIM}●${NC} Generating nodes..."
+  (cd "$ROOT" && npm run gen:nodes >/dev/null 2>&1) || true
+  printf "\r"
+  ok "Nodes generated                  "
+
+  # Step 4: Restart
+  printf "  ${DIM}●${NC} Restarting node-service..."
+  docker compose -f "$ROOT/docker-compose.yml" restart node-service >/dev/null 2>&1 || true
+  printf "\r"
+  ok "Node-service restarted           "
+
+  # Summary
+  echo ""
+  echo -e "  ${GREEN}${BOLD}Done${NC} ${DIM}in $(timer_elapsed)${NC}"
   echo ""
 }
 
@@ -920,7 +971,13 @@ case "${1:-}" in
   stop)   cmd_stop ;;
   status) cmd_status ;;
   logs)   cmd_logs "$2" ;;
-  update) cmd_update ;;
+  update)
+    if [ "${2:-}" = "nodes" ]; then
+      cmd_update_nodes
+    else
+      cmd_update
+    fi
+    ;;
   pull)   cmd_pull ;;
   doctor) cmd_doctor ;;
   dev)    cmd_dev ;;
