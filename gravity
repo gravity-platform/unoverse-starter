@@ -466,7 +466,10 @@ cmd_update() {
   # Pull latest Docker images
   echo "  Pulling latest images..."
   docker compose -f "$ROOT/docker-compose.yml" pull
-  ok "Images updated"
+  # Show image digest so user can tell if images changed
+  local img_id
+  img_id=$(docker compose -f "$ROOT/docker-compose.yml" images server --format '{{.ID}}' 2>/dev/null | head -1 | cut -c1-12)
+  ok "Images updated ${DIM}(server: ${img_id:-unknown})${NC}"
 
   # Rebuild ALL packages (plugin-base first, then all others, then gen:nodes)
   echo "  Rebuilding packages..."
