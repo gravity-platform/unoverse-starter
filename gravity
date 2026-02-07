@@ -327,30 +327,42 @@ cmd_start() {
   fi
 
   # Start services silently, show our own progress
-  echo -ne "  ${DIM}Starting services...${NC}"
-  if ! docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans &>/dev/null; then
-    echo ""
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+
+  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans &>/dev/null &
+  local up_pid=$!
+  local i=0
+  while kill -0 "$up_pid" 2>/dev/null; do
+    local c="${spin:i++%${#spin}:1}"
+    printf "\r  ${CYAN}%s${NC} ${DIM}Starting services...${NC} " "$c"
+    sleep 0.1
+  done
+  wait "$up_pid" 2>/dev/null
+  local up_exit=$?
+  if [ $up_exit -ne 0 ]; then
+    printf "\r  ${RED}✗${NC} ${DIM}Starting services...${NC} \n"
     warn "Some services had issues starting. Checking status..."
   else
-    echo -e "\r  ${DIM}Starting services...${NC} done"
+    printf "\r  ${GREEN}✓${NC} ${DIM}Starting services${NC}  \n"
   fi
 
   # Wait for services to be healthy
-  echo -ne "  ${DIM}Waiting for health checks...${NC}"
   local attempts=0
   local running=0
   local total=0
+  i=0
   while [ $attempts -lt 15 ]; do
     running=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" --filter "status=running" 2>/dev/null | wc -l | tr -d ' ')
     total=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
       break
     fi
-    echo -ne "."
+    local c="${spin:i++%${#spin}:1}"
+    printf "\r  ${CYAN}%s${NC} ${DIM}Waiting for health checks...${NC} ${DIM}(%d/%d)${NC} " "$c" "$running" "$total"
     sleep 2
     ((attempts++))
   done
-  echo ""
+  printf "\r  ${GREEN}✓${NC} ${DIM}Health checks passed${NC}       \n"
 
   echo ""
   if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
@@ -470,16 +482,32 @@ cmd_pull() {
   local count=0
   local failed=0
 
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+
   echo ""
   for img in "${IMAGES[@]}"; do
     ((count++))
     local short="${img##*/}"          # gravity-server:latest
     short="${short%%:*}"              # gravity-server
-    echo -ne "  ${DIM}[$count/$total]${NC} Pulling ${BOLD}$short${NC}..."
-    if docker pull --platform linux/amd64 "$img" &>/dev/null; then
-      echo -e " ${GREEN}✓${NC}"
+
+    # Start pull in background
+    docker pull --platform linux/amd64 "$img" &>/dev/null &
+    local pid=$!
+
+    # Animate spinner while pulling
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+      local c="${spin:i++%${#spin}:1}"
+      printf "\r  ${DIM}[%d/%d]${NC} ${CYAN}%s${NC} Pulling ${BOLD}%s${NC} " "$count" "$total" "$c" "$short"
+      sleep 0.1
+    done
+
+    # Check result
+    wait "$pid" 2>/dev/null
+    if [ $? -eq 0 ]; then
+      printf "\r  ${DIM}[%d/%d]${NC} ${GREEN}✓${NC} Pulling ${BOLD}%s${NC} \n" "$count" "$total" "$short"
     else
-      echo -e " ${RED}✗${NC}"
+      printf "\r  ${DIM}[%d/%d]${NC} ${RED}✗${NC} Pulling ${BOLD}%s${NC} \n" "$count" "$total" "$short"
       ((failed++))
     fi
   done
