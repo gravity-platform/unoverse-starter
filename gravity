@@ -19,6 +19,7 @@ set -e
 #   ./gravity dev       Install deps, gen:nodes, start dev environment
 # =============================================================================
 
+GRAVITY_VERSION="1.0.0"
 DOCR_REGISTRY="registry.digitalocean.com"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -48,21 +49,64 @@ DIM='\033[2m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+WHITE='\033[1;37m'
+UNDERLINE='\033[4m'
+
 ok()   { echo -e "  ${GREEN}✓${NC} $1"; }
 warn() { echo -e "  ${YELLOW}⚠${NC} $1"; }
 fail() { echo -e "  ${RED}✗${NC} $1"; }
 info() { echo -e "  ${DIM}$1${NC}"; }
+link() { echo -e "  ${CYAN}${UNDERLINE}$1${NC}"; }
 banner() {
   echo ""
   echo -e "  ${BOLD}${CYAN}⬡ $1${NC}"
   echo -e "  ${DIM}─────────────────────────────────${NC}"
 }
 
+# Elapsed time helper
+timer_start() { GRAVITY_START=$(date +%s); }
+timer_elapsed() {
+  local end=$(date +%s)
+  local elapsed=$((end - GRAVITY_START))
+  if [ $elapsed -ge 60 ]; then
+    echo "$((elapsed / 60))m $((elapsed % 60))s"
+  else
+    echo "${elapsed}s"
+  fi
+}
+
+# First-run detection
+check_first_run() {
+  if [ ! -f "$ROOT/.env" ]; then
+    echo ""
+    echo -e "  ${YELLOW}${BOLD}Welcome to Gravity Platform!${NC}"
+    echo ""
+    echo -e "  Looks like this is your first time. Let's get you set up."
+    echo -e "  You'll need credentials from your Gravity admin."
+    echo ""
+    read -p "  Ready to start setup? [Y/n] " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+      cmd_init
+    else
+      echo ""
+      info "Run ${BOLD}./gravity init${NC} when you're ready."
+      echo ""
+    fi
+    exit 0
+  fi
+}
+
 # ─── INIT ───────────────────────────────────────────────────────────────────
 
 cmd_init() {
-  banner "Gravity Platform Setup"
   echo ""
+  echo -e "  ${BOLD}${CYAN}⬡ Gravity Platform Setup${NC}"
+  echo -e "  ${DIM}─────────────────────────────────${NC}"
+  echo ""
+  timer_start
 
   # Check Docker
   if ! command -v docker &>/dev/null; then
@@ -112,9 +156,14 @@ cmd_init() {
     fail "Token should start with dop_v1_"
   done
 
-  # Database
-  read -p "  DATABASE_URL [postgresql://user:password@host:5432/gravity]: " DATABASE_URL
-  DATABASE_URL="${DATABASE_URL:-postgresql://user:password@host:5432/gravity}"
+  # Database (required — from admin)
+  while true; do
+    read -p "  DATABASE_URL (from your admin): " DATABASE_URL
+    if [ -n "$DATABASE_URL" ] && [[ "$DATABASE_URL" != *"user:password"* ]]; then
+      break
+    fi
+    fail "DATABASE_URL is required — get it from your Gravity admin"
+  done
 
   # Redis
   read -p "  REDIS_HOST [host.docker.internal]: " REDIS_HOST
@@ -128,12 +177,22 @@ cmd_init() {
   read -p "  REDIS_TLS [false]: " REDIS_TLS
   REDIS_TLS="${REDIS_TLS:-false}"
 
-  # Auth
-  read -p "  AUTH_ISSUER [https://your-tenant.auth0.com]: " AUTH_ISSUER
-  AUTH_ISSUER="${AUTH_ISSUER:-https://your-tenant.auth0.com}"
+  # Auth (required — from admin)
+  while true; do
+    read -p "  AUTH_ISSUER (e.g. https://your-tenant.auth0.com): " AUTH_ISSUER
+    if [ -n "$AUTH_ISSUER" ] && [[ "$AUTH_ISSUER" != *"your-tenant"* ]]; then
+      break
+    fi
+    fail "AUTH_ISSUER is required — get it from your Gravity admin"
+  done
 
-  read -p "  AUTH_CLIENT_ID [your-client-id]: " AUTH_CLIENT_ID
-  AUTH_CLIENT_ID="${AUTH_CLIENT_ID:-your-client-id}"
+  while true; do
+    read -p "  AUTH_CLIENT_ID: " AUTH_CLIENT_ID
+    if [ -n "$AUTH_CLIENT_ID" ] && [[ "$AUTH_CLIENT_ID" != *"your-"* ]]; then
+      break
+    fi
+    fail "AUTH_CLIENT_ID is required — get it from your Gravity admin"
+  done
 
   read -p "  AUTH_AUDIENCE [gravity-api]: " AUTH_AUDIENCE
   AUTH_AUDIENCE="${AUTH_AUDIENCE:-gravity-api}"
@@ -174,10 +233,18 @@ ENVEOF
   cmd_pull
 
   # Done
-  banner "Setup Complete!"
   echo ""
-  ok "Run ${BOLD}./gravity start${NC} to start the platform"
-  ok "Run ${BOLD}./gravity doctor${NC} to verify everything"
+  echo -e "  ${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "  ${GREEN}${BOLD}  ✓ Setup Complete!${NC} ${DIM}($(timer_elapsed))${NC}"
+  echo -e "  ${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo ""
+  echo -e "  ${BOLD}Next steps:${NC}"
+  echo ""
+  echo -e "    ${GREEN}1.${NC} ${BOLD}./gravity start${NC}   Start the platform"
+  echo -e "    ${GREEN}2.${NC} ${BOLD}./gravity open${NC}    Open Canvas in your browser"
+  echo -e "    ${GREEN}3.${NC} ${BOLD}./gravity dev${NC}     Set up dev environment"
+  echo ""
+  info "Run ${BOLD}./gravity doctor${NC} anytime to check health"
   echo ""
 }
 
@@ -205,15 +272,35 @@ cmd_login() {
 # ─── START ──────────────────────────────────────────────────────────────────
 
 cmd_start() {
+  check_first_run
   banner "Starting Gravity Platform"
+  timer_start
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d
+
+  # Wait a moment then check health
+  sleep 2
+  local running
+  running=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" --filter "status=running" 2>/dev/null | wc -l | tr -d ' ')
+  local total
+  total=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" 2>/dev/null | wc -l | tr -d ' ')
+
   echo ""
-  ok "Canvas:       http://localhost:3001"
-  ok "API:          http://localhost:4100"
-  ok "Grafana:      http://localhost:3000"
+  if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
+    echo -e "  ${GREEN}${BOLD}All $running services running${NC} ${DIM}($(timer_elapsed))${NC}"
+  else
+    echo -e "  ${YELLOW}${BOLD}$running/$total services up${NC} ${DIM}($(timer_elapsed))${NC}"
+    info "Some services may still be starting. Run ${BOLD}./gravity status${NC} to check."
+  fi
+
   echo ""
-  info "Run ${BOLD}./gravity status${NC} to check services"
-  info "Run ${BOLD}./gravity logs${NC}   to stream logs"
+  echo -e "  ${WHITE}${BOLD}Your platform is ready:${NC}"
+  echo ""
+  echo -e "  ${CYAN}Canvas${NC}  ${DIM}(Workflow Builder)${NC}   ${UNDERLINE}http://localhost:3001${NC}"
+  echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4100${NC}"
+  echo -e "  ${CYAN}Grafana${NC} ${DIM}(Logs & Metrics)${NC}     ${UNDERLINE}http://localhost:3000${NC}"
+  echo ""
+  info "Run ${BOLD}./gravity logs${NC}    to stream logs"
+  info "Run ${BOLD}./gravity open${NC}    to open Canvas in your browser"
   echo ""
 }
 
@@ -221,8 +308,10 @@ cmd_start() {
 
 cmd_stop() {
   banner "Stopping Gravity Platform"
+  timer_start
   docker compose -f "$ROOT/docker-compose.yml" down
-  ok "Platform stopped"
+  echo ""
+  ok "Platform stopped ${DIM}($(timer_elapsed))${NC}"
   echo ""
 }
 
@@ -277,12 +366,15 @@ cmd_logs() {
 
 cmd_update() {
   banner "Updating Gravity Platform"
+  timer_start
   echo "  Pulling latest images..."
   docker compose -f "$ROOT/docker-compose.yml" pull
   ok "Images updated"
   echo "  Restarting services..."
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d
-  ok "Platform restarted with latest images"
+  echo ""
+  ok "Platform updated ${DIM}($(timer_elapsed))${NC}"
+  info "Run ${BOLD}./gravity status${NC} to verify"
   echo ""
 }
 
@@ -383,7 +475,8 @@ cmd_doctor() {
 
   # Images
   local image_count
-  image_count=$(docker compose -f "$ROOT/docker-compose.yml" images --format "{{.Repository}}" 2>/dev/null | grep -c . || echo "0")
+  image_count=$(docker compose -f "$ROOT/docker-compose.yml" images --format "{{.Repository}}" 2>/dev/null | grep -c . 2>/dev/null || true)
+  image_count=${image_count:-0}
   if [ "$image_count" -ge 5 ]; then
     ok "$image_count images available"
   else
@@ -533,9 +626,110 @@ cmd_dev() {
   echo ""
 }
 
+# ─── OPEN ────────────────────────────────────────────────────────────────────
+
+cmd_open() {
+  local target="${1:-canvas}"
+  local url
+
+  case "$target" in
+    canvas)  url="http://localhost:3001" ;;
+    api)     url="http://localhost:4100" ;;
+    grafana) url="http://localhost:3000" ;;
+    *)
+      fail "Unknown target: $target"
+      info "Options: canvas, api, grafana"
+      return
+      ;;
+  esac
+
+  ok "Opening $target → ${UNDERLINE}$url${NC}"
+
+  # Cross-platform open
+  if command -v open &>/dev/null; then
+    open "$url"
+  elif command -v xdg-open &>/dev/null; then
+    xdg-open "$url"
+  else
+    info "Open in your browser: $url"
+  fi
+}
+
+# ─── HELP ────────────────────────────────────────────────────────────────────
+
+cmd_help() {
+  echo ""
+  echo -e "  ${BOLD}${CYAN}⬡ Gravity Platform CLI${NC} ${DIM}v${GRAVITY_VERSION}${NC}"
+  echo ""
+  echo -e "  ${BOLD}Setup${NC}"
+  echo -e "    ${GREEN}init${NC}        Interactive setup wizard"
+  echo -e "    ${GREEN}doctor${NC}      Diagnose environment issues"
+  echo ""
+  echo -e "  ${BOLD}Platform${NC}"
+  echo -e "    ${GREEN}start${NC}       Start all services"
+  echo -e "    ${GREEN}stop${NC}        Stop all services"
+  echo -e "    ${GREEN}status${NC}      Show service health"
+  echo -e "    ${GREEN}logs${NC}        Stream logs ${DIM}(./gravity logs <service>)${NC}"
+  echo -e "    ${GREEN}update${NC}      Pull latest images and restart"
+  echo -e "    ${GREEN}open${NC}        Open Canvas in browser ${DIM}(./gravity open grafana)${NC}"
+  echo ""
+  echo -e "  ${BOLD}Development${NC}"
+  echo -e "    ${GREEN}dev${NC}         Install deps, gen nodes, start platform"
+  echo -e "    ${GREEN}build${NC}       Build and restart ${DIM}(./gravity build <package>)${NC}"
+  echo -e "    ${GREEN}gendesign${NC}   Generate design system nodes + restart"
+  echo ""
+}
+
+# ─── DASHBOARD ───────────────────────────────────────────────────────────────
+
+cmd_dashboard() {
+  echo ""
+  echo -e "  ${BOLD}${CYAN}⬡ Gravity Platform${NC} ${DIM}v${GRAVITY_VERSION}${NC}"
+  echo -e "  ${DIM}─────────────────────────────────${NC}"
+
+  # Check if .env exists
+  if [ ! -f "$ROOT/.env" ]; then
+    echo ""
+    echo -e "  ${YELLOW}${BOLD}First time?${NC} Run ${GREEN}${BOLD}./gravity init${NC} to get started."
+    echo ""
+    return
+  fi
+
+  # Quick status
+  local ps
+  ps=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}\t{{.Status}}" 2>/dev/null) || true
+
+  if [ -n "$ps" ]; then
+    local total running
+    total=$(echo "$ps" | wc -l | tr -d ' ')
+    running=$(echo "$ps" | grep -ci "up" || echo "0")
+
+    echo ""
+    if [ "$running" -eq "$total" ]; then
+      echo -e "  ${GREEN}●${NC} ${BOLD}Platform running${NC} ${DIM}— $running services${NC}"
+    else
+      echo -e "  ${YELLOW}●${NC} ${BOLD}$running/$total services up${NC}"
+    fi
+
+    echo ""
+    echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
+    echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
+    echo -e "  ${CYAN}Grafana${NC} ${UNDERLINE}http://localhost:3000${NC}"
+  else
+    echo ""
+    echo -e "  ${DIM}●${NC} ${BOLD}Platform stopped${NC}"
+    echo ""
+    echo -e "  Run ${GREEN}${BOLD}./gravity start${NC} to launch"
+  fi
+
+  echo ""
+  echo -e "  ${DIM}Run ${NC}${BOLD}./gravity help${NC}${DIM} for all commands${NC}"
+  echo ""
+}
+
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
-case "${1:-help}" in
+case "${1:-}" in
   init)   cmd_init ;;
   start)  cmd_start ;;
   stop)   cmd_stop ;;
@@ -547,26 +741,9 @@ case "${1:-help}" in
   dev)    cmd_dev ;;
   build)    cmd_build "$2" ;;
   gendesign) cmd_gendesign ;;
-  help|--help|-h)
-    echo ""
-    echo "  Gravity Platform CLI"
-    echo ""
-    echo "  Usage: ./gravity <command>"
-    echo ""
-    echo "  Commands:"
-    echo "    init      Interactive setup wizard"
-    echo "    start     Start the platform"
-    echo "    stop      Stop the platform"
-    echo "    status    Show service health"
-    echo "    logs      Stream all logs (or: ./gravity logs <service>)"
-    echo "    update    Pull latest images and restart"
-    echo "    pull      Pull images only"
-    echo "    doctor    Diagnose issues"
-    echo "    dev       Install deps, generate nodes, start dev environment"
-    echo "    build     Build packages and restart (or: ./gravity build <package>)"
-    echo "    gendesign Generate workflow nodes from design system + restart"
-    echo ""
-    ;;
+  open)      cmd_open "$2" ;;
+  help|--help|-h) cmd_help ;;
+  "")        cmd_dashboard ;;
   *)
     echo "Unknown command: $1"
     echo "Run ./gravity help for usage"
