@@ -33,7 +33,6 @@ npm install
 
 - **Canvas** (Workflow Builder): http://localhost:3001
 - **API**: http://localhost:4100
-- **Grafana** (Logs): http://localhost:3000
 
 ## Development
 

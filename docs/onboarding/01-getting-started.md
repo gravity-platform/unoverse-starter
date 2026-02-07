@@ -100,18 +100,17 @@ All services should show green:
   ● gravity-canvas                Up
   ● gravity-node-service          Up
   ● gravity-umap                  Up
-  ● gravity-grafana               Up
+  ● gravity-mcp-server            Up
 ```
 
 ---
 
 ## Step 6: Access Services
 
-| Service     | URL                   | Description      |
-| ----------- | --------------------- | ---------------- |
-| **Canvas**  | http://localhost:3001 | Workflow Builder |
-| **Grafana** | http://localhost:3000 | Logs & Metrics   |
-| **API**     | http://localhost:4100 | REST API         |
+| Service    | URL                   | Description      |
+| ---------- | --------------------- | ---------------- |
+| **Canvas** | http://localhost:3001 | Workflow Builder |
+| **API**    | http://localhost:4100 | REST API         |
 
 ---
 

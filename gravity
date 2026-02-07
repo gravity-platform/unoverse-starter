@@ -314,21 +314,50 @@ cmd_start() {
   check_first_run
   banner "Starting Gravity Platform"
   timer_start
-  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d
 
-  # Wait a moment then check health
-  sleep 2
-  local running
-  running=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" --filter "status=running" 2>/dev/null | wc -l | tr -d ' ')
-  local total
-  total=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" 2>/dev/null | wc -l | tr -d ' ')
+  # Auto-start Redis if needed and not running
+  local redis_host
+  redis_host=$(grep "^REDIS_HOST=" "$ROOT/.env" 2>/dev/null | cut -d'=' -f2-)
+  if [ "$redis_host" = "host.docker.internal" ] || [ "$redis_host" = "localhost" ]; then
+    if ! docker ps --format "{{.Names}}" 2>/dev/null | grep -qi redis; then
+      echo -e "  ${DIM}Starting Redis...${NC}"
+      docker start gravity-redis 2>/dev/null || \
+        docker run -d --name gravity-redis -p 6379:6379 redis:alpine &>/dev/null || true
+    fi
+  fi
+
+  # Start services silently, show our own progress
+  echo -ne "  ${DIM}Starting services...${NC}"
+  if ! docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans &>/dev/null; then
+    echo ""
+    warn "Some services had issues starting. Checking status..."
+  else
+    echo -e "\r  ${DIM}Starting services...${NC} done"
+  fi
+
+  # Wait for services to be healthy
+  echo -ne "  ${DIM}Waiting for health checks...${NC}"
+  local attempts=0
+  local running=0
+  local total=0
+  while [ $attempts -lt 15 ]; do
+    running=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" --filter "status=running" 2>/dev/null | wc -l | tr -d ' ')
+    total=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
+      break
+    fi
+    echo -ne "."
+    sleep 2
+    ((attempts++))
+  done
+  echo ""
 
   echo ""
   if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
     echo -e "  ${GREEN}${BOLD}All $running services running${NC} ${DIM}($(timer_elapsed))${NC}"
   else
     echo -e "  ${YELLOW}${BOLD}$running/$total services up${NC} ${DIM}($(timer_elapsed))${NC}"
-    info "Some services may still be starting. Run ${BOLD}./gravity status${NC} to check."
+    info "Run ${BOLD}gravity status${NC} to check."
   fi
 
   echo ""
@@ -336,10 +365,9 @@ cmd_start() {
   echo ""
   echo -e "  ${CYAN}Canvas${NC}  ${DIM}(Workflow Builder)${NC}   ${UNDERLINE}http://localhost:3001${NC}"
   echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4100${NC}"
-  echo -e "  ${CYAN}Grafana${NC} ${DIM}(Logs & Metrics)${NC}     ${UNDERLINE}http://localhost:3000${NC}"
   echo ""
-  info "Run ${BOLD}./gravity logs${NC}    to stream logs"
-  info "Run ${BOLD}./gravity open${NC}    to open Canvas in your browser"
+  info "Run ${BOLD}gravity logs${NC}    to stream logs"
+  info "Run ${BOLD}gravity open${NC}    to open Canvas in your browser"
   echo ""
 }
 
@@ -421,7 +449,7 @@ cmd_update() {
 
 cmd_pull() {
   echo ""
-  read -p "  Pull platform images now? (~2GB first time) [Y/n] " -n 1 -r
+  read -p "  Pull platform images now? (~1.2GB first time) [Y/n] " -n 1 -r
   echo ""
   if [[ $REPLY =~ ^[Nn]$ ]]; then
     info "Skipped. Run ${BOLD}./gravity start${NC} later."
@@ -429,28 +457,22 @@ cmd_pull() {
   fi
 
   echo "  Pulling images from DOCR..."
-  # Clean up dangling images to avoid "No such image" errors
-  docker image prune -f &>/dev/null || true
-  docker system prune -f &>/dev/null || true
+  echo ""
+  docker compose -f "$ROOT/docker-compose.yml" pull
+  echo ""
 
-  # Pull each service individually to handle failures gracefully
-  local services
-  services=$(docker compose -f "$ROOT/docker-compose.yml" config --services 2>/dev/null)
-  local total=0
-  local success=0
-  for svc in $services; do
-    ((total++))
-    if docker compose -f "$ROOT/docker-compose.yml" pull "$svc" 2>/dev/null; then
-      ((success++))
-    else
-      warn "Failed to pull $svc"
-    fi
-  done
+  # Count how many gravity images we have now
+  local pulled
+  pulled=$(docker images -a --format "{{.Repository}}" | grep -c "gravity-repo" || true)
+  pulled=$(echo "$pulled" | tr -d '[:space:]')
+  pulled=${pulled:-0}
 
-  if [ "$success" -eq "$total" ]; then
-    ok "All $success images pulled"
-  elif [ "$success" -gt 0 ]; then
-    warn "$success/$total images pulled (run ${BOLD}gravity pull${NC} to retry)"
+  echo ""
+  if [ "$pulled" -ge 6 ]; then
+    ok "All $pulled images pulled"
+  elif [ "$pulled" -gt 0 ]; then
+    warn "$pulled images pulled (some may need retry)"
+    info "Run ${BOLD}gravity pull${NC} to retry"
   else
     fail "No images pulled — check your DOCR token and network"
     exit 1
@@ -492,7 +514,7 @@ cmd_doctor() {
   if [ -f "$ROOT/.env" ]; then
     ok ".env file exists"
   else
-    fail ".env file missing — run ${BOLD}./gravity init${NC}"
+    fail ".env file missing — run ${BOLD}gravity init${NC}"
     ((issues++))
     print_summary $issues
     return
@@ -532,18 +554,20 @@ cmd_doctor() {
   if [ -f "$docker_config" ] && grep -q "$DOCR_REGISTRY" "$docker_config" 2>/dev/null; then
     ok "Logged in to DigitalOcean Container Registry"
   else
-    fail "Not logged in to DOCR — run ${BOLD}./gravity init${NC}"
+    fail "Not logged in to DOCR — run ${BOLD}gravity init${NC}"
     ((issues++))
   fi
 
   # Images
   local image_count
-  image_count=$(docker compose -f "$ROOT/docker-compose.yml" images --format "{{.Repository}}" 2>/dev/null | grep -c . 2>/dev/null || true)
+  image_count=$(docker images -a --format "{{.Repository}}" 2>/dev/null | grep -c "gravity-repo" || true)
+  image_count=${image_count:-0}
+  image_count=$(echo "$image_count" | tr -d '[:space:]')
   image_count=${image_count:-0}
   if [ "$image_count" -ge 5 ]; then
     ok "$image_count images available"
   else
-    warn "Images not pulled yet — run ${BOLD}./gravity start${NC}"
+    warn "Images not pulled yet — run ${BOLD}gravity pull${NC}"
     ((issues++))
   fi
 
@@ -561,7 +585,7 @@ cmd_doctor() {
       ((issues++))
     fi
   else
-    info "No services running (run ${BOLD}./gravity start${NC})"
+    info "No services running (run ${BOLD}gravity start${NC})"
   fi
 
   # Redis
@@ -698,10 +722,9 @@ cmd_open() {
   case "$target" in
     canvas)  url="http://localhost:3001" ;;
     api)     url="http://localhost:4100" ;;
-    grafana) url="http://localhost:3000" ;;
     *)
       fail "Unknown target: $target"
-      info "Options: canvas, api, grafana"
+      info "Options: canvas, api"
       return
       ;;
   esac
@@ -777,7 +800,6 @@ cmd_dashboard() {
     echo ""
     echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
     echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
-    echo -e "  ${CYAN}Grafana${NC} ${UNDERLINE}http://localhost:3000${NC}"
   else
     echo ""
     echo -e "  ${DIM}●${NC} ${BOLD}Platform stopped${NC}"
