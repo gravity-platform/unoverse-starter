@@ -30,6 +30,8 @@ Install these on your machine:
 | **Node.js** | 20+     | https://nodejs.org/ or `nvm install 20` |
 | **Git**     | 2.x     | https://git-scm.com/                    |
 
+> **Mac (Apple Silicon) users:** Open Docker Desktop → Settings → General → enable **"Use Rosetta for x86_64/amd64 emulation on Apple Silicon"**. This is required to run the platform images.
+
 ---
 
 ## Step 1: Get Access
