@@ -42,14 +42,6 @@ services:
       - "com.docker.compose.service=server"
     # depends_on: redis - removed, services connect to REDIS_HOST from .env
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
-        reservations:
-          memory: 256M
-          cpus: "0.25"
 
   # Workflow Engine - XState orchestration (heavy - manages state machines)
   workflow:
@@ -73,14 +65,6 @@ services:
       - "com.docker.compose.service=workflow"
     # depends_on: redis - removed, services connect to REDIS_HOST from .env
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: "2.0"
-        reservations:
-          memory: 512M
-          cpus: "0.5"
 
   # Canvas UI - React frontend (lightweight - static files via nginx)
   # Runtime config injected via docker-entrypoint.sh at container start
@@ -99,14 +83,6 @@ services:
       - server
       - node-service
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: "0.25"
-        reservations:
-          memory: 64M
-          cpus: "0.1"
 
   # UMAP Service - Python ML service
   umap:
@@ -117,14 +93,6 @@ services:
     volumes:
       - umap_models:/app/models
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: "1.0"
-        reservations:
-          memory: 512M
-          cpus: "0.5"
 
   # Node Service - plugin execution (heavy - runs AI nodes, external API calls)
   # DOCR image with packages mounted at runtime for auto-discovery
@@ -155,14 +123,6 @@ services:
       - "com.docker.compose.service=node-service"
     # depends_on: redis - removed, services connect to REDIS_HOST from .env
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1.0"
-        reservations:
-          memory: 512M
-          cpus: "0.25"
 
   # MCP Server - OpenAI Apps integration (lightweight - HTTP server)
   mcp-server:
@@ -182,14 +142,6 @@ services:
       - server
       - workflow
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: "0.25"
-        reservations:
-          memory: 128M
-          cpus: "0.1"
 
   # ===========================================================================
   # OBSERVABILITY STACK (Logs, Traces, Metrics)
@@ -204,11 +156,6 @@ services:
     volumes:
       - loki_data:/loki
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
 
   promtail:
     platform: linux/amd64
@@ -219,11 +166,6 @@ services:
     depends_on:
       - loki
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: "0.25"
 
   grafana:
     platform: linux/amd64
@@ -236,11 +178,6 @@ services:
     depends_on:
       - loki
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: "0.25"
 
 volumes:
   umap_models:
