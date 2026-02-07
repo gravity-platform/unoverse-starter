@@ -106,11 +106,16 @@ The complete node documentation is in `packages/docs/nodes/`. Point your IDE's A
 ## Step 5: Build & Deploy
 
 ```bash
-npm run build -w @gravity-platform/my-node
-docker compose restart node-service workflow
+gravity update nodes
 ```
 
-> **Tip:** If you haven't run `make dev` yet, do that first — it installs all workspace dependencies.
+Or build just your package:
+
+```bash
+gravity build @gravity-platform/my-node
+```
+
+> **Tip:** If you haven't run `gravity dev` yet, do that first — it installs all workspace dependencies.
 
 Your node now appears in Canvas!
 

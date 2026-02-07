@@ -52,6 +52,7 @@ For detailed step-by-step guides, see the [Runbooks](../runbooks/README.md):
 | [05-caddy](../runbooks/05-caddy.md)                 | TLS + reverse proxy            |
 | [06-test](../runbooks/06-test.md)                   | Verify connectivity and health |
 | [07-observability](../runbooks/07-observability.md) | Grafana/Loki (POC only)        |
+| [08-update-nodes](../runbooks/08-update-nodes.md)   | Update custom nodes/components |
 
 ## Deploying Custom Code
 

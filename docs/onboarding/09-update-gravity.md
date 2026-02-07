@@ -28,9 +28,24 @@ This pulls the latest Docker images and restarts all services.
 ### 3. Verify
 
 ```bash
-gravity status
-gravity doctor
+gravity check
 ```
+
+All 14 checks should pass — services running, health endpoints, packages built, plugins loaded, and Canvas accessible.
+
+---
+
+## Updating Only Nodes
+
+If you've changed packages but don't need new platform images:
+
+```bash
+gravity update nodes
+```
+
+This rebuilds packages, generates nodes, and restarts only the node-service — much faster than a full `gravity update`.
+
+---
 
 ## ✅ Onboarding Complete!
 

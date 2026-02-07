@@ -69,8 +69,10 @@ The Gravity CLI handles everything — Docker login, environment config, and ima
 
 ```bash
 cd ~/gravity
-gravity init
+./gravity init
 ```
+
+> **Note:** Use `./gravity` (with `./`) the first time — the CLI isn't on your PATH yet. After init completes, it installs itself to your PATH so you can use `gravity` directly.
 
 The wizard will ask for your DOCR token, database URL, Redis, and auth credentials. It generates your `.env` file, logs into the registry, and pulls all platform images.
 
@@ -93,18 +95,32 @@ This single command does everything:
 ## Step 5: Verify
 
 ```bash
-gravity status
+gravity check
 ```
 
-All services should show green:
+All checks should pass:
 
 ```
-  ● gravity-server                Up
-  ● gravity-workflow              Up
-  ● gravity-canvas                Up
-  ● gravity-node-service          Up
-  ● gravity-umap                  Up
-  ● gravity-mcp-server            Up
+  Gravity Platform Health Check
+
+  ✓ server
+  ✓ workflow
+  ✓ node-service
+  ✓ canvas
+  ✓ umap
+  ✓ mcp-server
+
+  ✓ server health :4100
+  ✓ workflow health :4101
+  ✓ node-service health :4102
+  ✓ umap health :5001
+
+  ✓ 12/12 packages built
+  ✓ 12 plugins loaded
+  ✓ Component bundles served
+  ✓ Canvas http://localhost:3001
+
+  All 14 checks passed
 ```
 
 ---
@@ -175,21 +191,23 @@ gravity update           # Pull latest images and restart
 
 ## Platform Commands
 
-| Command               | Purpose                                             |
-| --------------------- | --------------------------------------------------- |
-| `gravity init`        | Interactive setup wizard (first time)               |
-| `gravity start`       | Start the platform                                  |
-| `gravity stop`        | Stop the platform                                   |
-| `gravity status`      | Show service health                                 |
-| `gravity logs`        | Stream logs                                         |
-| `gravity update`      | Pull latest images and restart                      |
-| `gravity doctor`      | Diagnose issues                                     |
-| `gravity dev`         | Install deps, generate nodes, start dev environment |
-| `gravity build`       | Build all packages + gen:nodes + restart services   |
-| `gravity build <pkg>` | Build one package + restart services                |
-| `gravity gendesign`   | Generate design system nodes + restart              |
-| `gravity open`        | Open Canvas in browser (`gravity open grafana`)     |
-| `gravity help`        | Show all commands                                   |
+| Command                | Purpose                                             |
+| ---------------------- | --------------------------------------------------- |
+| `gravity init`         | Interactive setup wizard (first time)               |
+| `gravity start`        | Start the platform                                  |
+| `gravity stop`         | Stop the platform                                   |
+| `gravity status`       | Show service health                                 |
+| `gravity logs`         | Stream logs                                         |
+| `gravity update`       | Pull latest images and restart                      |
+| `gravity update nodes` | Rebuild packages and restart node-service           |
+| `gravity check`        | Run full health check                               |
+| `gravity doctor`       | Diagnose issues                                     |
+| `gravity dev`          | Install deps, generate nodes, start dev environment |
+| `gravity build`        | Build all packages + gen:nodes + restart services   |
+| `gravity build <pkg>`  | Build one package + restart services                |
+| `gravity gendesign`    | Generate design system nodes + restart              |
+| `gravity open`         | Open Canvas in browser (`gravity open grafana`)     |
+| `gravity help`         | Show all commands                                   |
 
 ---
 
@@ -199,7 +217,7 @@ Run the doctor to diagnose issues:
 
 ```bash
 cd ~/gravity
-./gravity init
+gravity doctor
 ```
 
 ### "unauthorized" when pulling images
