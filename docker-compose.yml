@@ -105,6 +105,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4102
+      - PACKAGES_PATH=/app/packages
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
