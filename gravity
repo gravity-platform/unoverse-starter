@@ -470,6 +470,14 @@ cmd_update() {
   printf "\r"
   if $git_ok; then ok "Code updated"; else warn "Code update failed — continuing"; fi
 
+  # Safety: restore production.yml from example if missing
+  local inv="$ROOT/ansible/inventory/production.yml"
+  local inv_ex="$ROOT/ansible/inventory/production.yml.example"
+  if [ ! -f "$inv" ] && [ -f "$inv_ex" ]; then
+    cp "$inv_ex" "$inv"
+    warn "production.yml was missing — restored from example. Edit with your VM details."
+  fi
+
   # Step 2: Images
   printf "  ${DIM}●${NC} Pulling images..."
   if docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1; then
