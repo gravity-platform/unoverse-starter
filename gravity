@@ -463,7 +463,7 @@ cmd_update() {
   echo ""
   timer_start
 
-  # Step 1: Code
+  # Step 1: Code — pull from customer's fork
   printf "  ${DIM}●${NC} Pulling latest code..."
   local git_ok=true
   (cd "$ROOT" && git pull --rebase --autostash --quiet 2>/dev/null) || git_ok=false
