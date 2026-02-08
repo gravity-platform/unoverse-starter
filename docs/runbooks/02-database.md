@@ -13,6 +13,7 @@ The `DATABASE_URL` is configured in `ansible/files/.env` and deployed with `inst
 - [ ] Core services deployed ([01-core.md](./01-core.md))
 - [ ] `DATABASE_URL` configured in `ansible/files/.env`
 - [ ] PostgreSQL instance accessible from VM (firewall allows port 5432)
+- [ ] **Required extensions enabled** (see Step 1 below)
 
 ## Database Requirements
 
@@ -34,14 +35,60 @@ The `DATABASE_URL` is configured in `ansible/files/.env` and deployed with `inst
 
 ## Steps
 
-### 1. Run Database Setup
+### 1. Enable Required PostgreSQL Extensions
+
+**You must enable these extensions before running db-setup.** The playbook cannot install them — they must be enabled at the database provider level.
+
+| Extension            | Required By               | Purpose                         |
+| -------------------- | ------------------------- | ------------------------------- |
+| `vector`             | GravityMemory, Dictionary | Vector embeddings (pgvector)    |
+| `postgis`            | Dictionary                | Spatial/UMAP coordinate storage |
+| `pg_stat_statements` | Executions                | Query performance monitoring    |
+
+#### DigitalOcean Managed Database
+
+1. Go to **DigitalOcean Dashboard** → **Databases** → select your database
+2. Click **Settings** tab
+3. Scroll to **Allowed Extensions** (or **Extensions**)
+4. Search and enable: `postgis`, `vector`, `pg_stat_statements`
+5. Wait for the database to apply changes (~1 minute)
+
+#### AWS RDS
+
+Connect to your database and run:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+```
+
+#### Self-hosted
+
+```bash
+sudo apt install postgresql-14-postgis-3 postgresql-14-pgvector
+sudo -u postgres psql -d gravity -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+sudo -u postgres psql -d gravity -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+sudo -u postgres psql -d gravity -c 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements;'
+```
+
+### 2. Run Database Setup
 
 ```bash
 cd ansible
 ansible-playbook -i inventory/production.yml playbooks/db-setup.yml
 ```
 
-### 2. Verify
+This creates all required tables:
+
+- **workflows** — workflow definitions
+- **executions** — workflow execution history and node traces
+- **credentials** — encrypted credential storage
+- **token_usage** — LLM token tracking
+- **gravity_memory** — vector memory store
+- **dictionary** — spatial dictionary with UMAP coordinates (requires PostGIS)
+
+### 3. Verify
 
 ```bash
 # Check service health
