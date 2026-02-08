@@ -16,10 +16,10 @@ all:
       hosts:
         app-vm-1:
           ansible_host: 10.0.1.10
-          ansible_user: gravity
+          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
         app-vm-2:
           ansible_host: 10.0.1.11
-          ansible_user: gravity
+          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
       vars:
         # Services to run on app VMs
         gravity_services:
@@ -33,7 +33,7 @@ all:
       hosts:
         ml-vm-1:
           ansible_host: 10.0.1.20
-          ansible_user: gravity
+          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
       vars:
         # Services to run on ML VMs
         gravity_services:
