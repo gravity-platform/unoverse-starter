@@ -466,11 +466,7 @@ cmd_update() {
   # Step 1: Code
   printf "  ${DIM}●${NC} Pulling latest code..."
   local git_ok=true
-  if (cd "$ROOT" && git diff --quiet 2>/dev/null); then
-    (cd "$ROOT" && git pull --quiet 2>/dev/null) || git_ok=false
-  else
-    (cd "$ROOT" && git stash --quiet && git pull --quiet 2>/dev/null && git stash pop --quiet) || git_ok=false
-  fi
+  (cd "$ROOT" && git pull --rebase --autostash --quiet 2>/dev/null) || git_ok=false
   printf "\r"
   if $git_ok; then ok "Code updated"; else warn "Code update failed — continuing"; fi
 
