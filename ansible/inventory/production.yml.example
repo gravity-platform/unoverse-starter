@@ -1,40 +1,52 @@
 # Gravity Platform Production Inventory
 # Copy to production.yml and update with your values
+#
+# POC:        Single VM — use the default config below
+# Enterprise: Uncomment the multi-VM section at the bottom
 
+# =============================================================================
+# POC — Single VM (all services on one host)
+# =============================================================================
 all:
   vars:
-    # ==========================================================================
-    # CUSTOMER'S GRAVITY REPO (fork of gravity-starter)
-    # ==========================================================================
-    # Customer forks gravity-starter to their own GitHub, customizes packages/
-    # This repo is cloned on the VM - contains packages/, docker-compose.yml, etc.
     starter_repo: "https://github.com/your-org/your-gravity.git"
     starter_branch: main
-    
-  children:
-    app_vms:
-      hosts:
-        app-vm-1:
-          ansible_host: 10.0.1.10
-          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
-        app-vm-2:
-          ansible_host: 10.0.1.11
-          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
-      vars:
-        # Services to run on app VMs
-        gravity_services:
-          - server
-          - workflow
-          - node-service
-          - mcp-server
-          - canvas
-    
-    ml_vms:
-      hosts:
-        ml-vm-1:
-          ansible_host: 10.0.1.20
-          ansible_user: root  # Use root for initial setup; harden.yml creates a dedicated user
-      vars:
-        # Services to run on ML VMs
-        gravity_services:
-          - umap
+
+  hosts:
+    gravity-prod:
+      ansible_host: <YOUR_VM_IP>
+      ansible_user: root
+
+# =============================================================================
+# ENTERPRISE — Multi-VM (uncomment below, remove the POC section above)
+# =============================================================================
+# all:
+#   vars:
+#     starter_repo: "https://github.com/your-org/your-gravity.git"
+#     starter_branch: main
+#
+#   children:
+#     app_vms:
+#       hosts:
+#         app-vm-1:
+#           ansible_host: 10.0.1.10
+#           ansible_user: root
+#         app-vm-2:
+#           ansible_host: 10.0.1.11
+#           ansible_user: root
+#       vars:
+#         gravity_services:
+#           - server
+#           - workflow
+#           - node-service
+#           - mcp-server
+#           - canvas
+#
+#     ml_vms:
+#       hosts:
+#         ml-vm-1:
+#           ansible_host: 10.0.1.20
+#           ansible_user: root
+#       vars:
+#         gravity_services:
+#           - umap

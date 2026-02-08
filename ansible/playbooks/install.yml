@@ -115,6 +115,12 @@
       debug:
         msg: "Docker images pulled successfully"
 
+    - name: "[10/10] Stop any existing Gravity services"
+      command: docker compose down --remove-orphans
+      args:
+        chdir: "{{ gravity_dir }}"
+      ignore_errors: yes
+
     - name: "[10/10] Start core Gravity services"
       command: docker compose up -d {{ core_services }}
       args:
