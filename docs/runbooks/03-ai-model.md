@@ -42,7 +42,7 @@ UMAP is included in the standard `install.yml` playbook. No additional steps nee
 
 ```yaml
 # ansible/inventory/production.yml
-gravity_ml_vms:
+ml_vms:
   hosts:
     ml-1:
       ansible_host: <ML_VM_PRIVATE_IP>
@@ -53,7 +53,7 @@ gravity_ml_vms:
 
 ```bash
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l gravity_ml_vms
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
 ```
 
 #### 3. Configure App VMs to Use ML VM
@@ -67,7 +67,7 @@ UMAP_SERVICE_URL=http://<ML_VM_PRIVATE_IP>:5001
 Then restart services:
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/upgrade.yml -l gravity_app_vms
+ansible-playbook -i inventory/production.yml playbooks/upgrade.yml -l app_vms
 ```
 
 ### 4. Verify

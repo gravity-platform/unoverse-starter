@@ -56,7 +56,7 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 
 # 2. Database connection
-ansible-playbook -i inventory/production.yml playbooks/configure-db.yml \
+ansible-playbook -i inventory/production.yml playbooks/db-setup.yml \
   -e "database_url=postgresql://user:pass@host:5432/gravity"
 
 # 3. AI model
@@ -76,18 +76,18 @@ ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 ### Enterprise App VM
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/install.yml -l gravity_app_vms
-ansible-playbook -i inventory/production.yml playbooks/configure-db.yml -l gravity_app_vms \
+ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
+ansible-playbook -i inventory/production.yml playbooks/db-setup.yml -l app_vms \
   -e "database_url=postgresql://..."
-ansible-playbook -i inventory/production.yml playbooks/harden.yml -l gravity_app_vms
-ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml -l gravity_app_vms
+ansible-playbook -i inventory/production.yml playbooks/harden.yml -l app_vms
+ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml -l app_vms
 ```
 
 ### Enterprise ML VM
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l gravity_ml_vms
-ansible-playbook -i inventory/production.yml playbooks/harden.yml -l gravity_ml_vms
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
+ansible-playbook -i inventory/production.yml playbooks/harden.yml -l ml_vms
 ```
 
 ## Prerequisites
