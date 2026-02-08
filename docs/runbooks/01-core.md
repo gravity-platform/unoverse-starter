@@ -31,19 +31,35 @@ Deploy the core Gravity Platform services to a VM.
 
 ### 1. Configure Ansible Inventory
 
-Edit `ansible/inventory/production.yml` with your VM details:
+Copy the example inventory and fill in your VM details:
+
+```bash
+cp ansible/inventory/production.yml.example ansible/inventory/production.yml
+```
+
+Then edit `ansible/inventory/production.yml`:
 
 ```yaml
 all:
-  hosts:
-    gravity-prod:
-      ansible_host: <YOUR_VM_IP>
-      ansible_user: root
+  children:
+    app_vms:
+      hosts:
+        app-vm-1:
+          ansible_host: <YOUR_VM_IP>
+          ansible_user: root
 ```
+
+> **Note:** `production.yml` is gitignored — it will not be overwritten when you run `gravity update`. Only the `.example` file is tracked in git.
 
 ### 2. Configure Environment File
 
-Copy `ansible/files/.env.example` to `ansible/files/.env` and configure:
+Copy the example and fill in your values:
+
+```bash
+cp ansible/files/.env.example ansible/files/.env
+```
+
+Edit `ansible/files/.env` with your credentials:
 
 ```bash
 # DOCR - DigitalOcean Container Registry
