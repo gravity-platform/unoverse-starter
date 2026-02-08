@@ -325,8 +325,8 @@ cmd_start() {
   if [ ! -d "$ROOT/node_modules" ]; then
     printf "  ${DIM}●${NC} Installing dependencies..."
     (cd "$ROOT" && npm install --silent >/dev/null 2>&1) || true
-    printf "\r"
-    ok "Dependencies installed            "
+    printf "\r\033[2K"
+    ok "Dependencies installed"
   fi
 
   # Auto-start Redis if needed and not running
@@ -402,7 +402,7 @@ cmd_start() {
 cmd_stop() {
   banner "Stopping Gravity Platform"
   timer_start
-  docker compose -f "$ROOT/docker-compose.yml" down
+  docker compose -f "$ROOT/docker-compose.yml" down --remove-orphans >/dev/null 2>&1
   echo ""
   ok "Platform stopped ${DIM}($(timer_elapsed))${NC}"
   echo ""
@@ -458,17 +458,39 @@ cmd_logs() {
 # ─── UPDATE ─────────────────────────────────────────────────────────────────
 
 cmd_update() {
-  echo ""
-  echo -e "  ${BOLD}Updating Gravity Platform${NC}"
-  echo ""
-  timer_start
+  local continuing=false
+  if [ "${1:-}" = "--continue" ]; then
+    continuing=true
+  fi
 
-  # Step 1: Code — pull from customer's fork
-  printf "  ${DIM}●${NC} Pulling latest code..."
-  local git_ok=true
-  (cd "$ROOT" && git pull --rebase --autostash --quiet 2>/dev/null) || git_ok=false
-  printf "\r"
-  if $git_ok; then ok "Code updated"; else warn "Code update failed — continuing"; fi
+  if ! $continuing; then
+    echo ""
+    echo -e "  ${BOLD}Updating Gravity Platform${NC}"
+    echo ""
+    timer_start
+
+    # Step 1: Code — pull from customer's fork
+    printf "  ${DIM}●${NC} Pulling latest code..."
+    local git_ok=true
+    (cd "$ROOT" && git pull --rebase --autostash --quiet >/dev/null 2>&1) || git_ok=false
+    printf "\r\033[2K"
+    if $git_ok; then
+      ok "Code updated"
+      # Re-exec with updated script so remaining steps use new code
+      exec "$SCRIPT_DIR/$(basename "$0")" update --continue
+    else
+      warn "Code update failed — continuing"
+    fi
+  fi
+
+  # If we got here via --continue, restore timer and header
+  if $continuing; then
+    echo ""
+    echo -e "  ${BOLD}Updating Gravity Platform${NC}"
+    echo ""
+    timer_start
+    ok "Code updated"
+  fi
 
   # Safety: restore production.yml from example if missing
   local inv="$ROOT/ansible/inventory/production.yml"
@@ -478,42 +500,78 @@ cmd_update() {
     warn "production.yml was missing — restored from example. Edit with your VM details."
   fi
 
-  # Step 2: Images
-  printf "  ${DIM}●${NC} Pulling images..."
-  if docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1; then
-    printf "\r"
-    ok "Images pulled                    "
+  # Step 2: Images — pull in background with animated spinner
+  local pull_ok=true
+  docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1 &
+  local pull_pid=$!
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local si=0
+  local pull_start=$(date +%s)
+  while kill -0 "$pull_pid" 2>/dev/null; do
+    local c="${spin:si++%${#spin}:1}"
+    local elapsed=$(( $(date +%s) - pull_start ))
+    printf "\r  ${CYAN}%s${NC} Pulling images... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
+    sleep 0.1
+  done
+  wait "$pull_pid" 2>/dev/null || pull_ok=false
+  printf "\r\033[2K"
+  if $pull_ok; then
+    ok "Images pulled"
   else
-    printf "\r"
-    warn "Pull failed — retrying in 5s...  "
+    warn "Pull failed — retrying in 5s..."
     sleep 5
-    printf "  ${DIM}●${NC} Pulling images (retry)..."
-    if docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1; then
-      printf "\r"
-      ok "Images pulled (retry succeeded)  "
+    pull_ok=true
+    docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1 &
+    pull_pid=$!
+    pull_start=$(date +%s)
+    while kill -0 "$pull_pid" 2>/dev/null; do
+      local c="${spin:si++%${#spin}:1}"
+      local elapsed=$(( $(date +%s) - pull_start ))
+      printf "\r  ${CYAN}%s${NC} Pulling images (retry)... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
+      sleep 0.1
+    done
+    wait "$pull_pid" 2>/dev/null || pull_ok=false
+    printf "\r\033[2K"
+    if $pull_ok; then
+      ok "Images pulled (retry succeeded)"
     else
-      printf "\r"
       fail "Image pull failed — check network/registry and run ${BOLD}gravity update${NC} again"
     fi
   fi
 
-  # Step 3: Build
-  printf "  ${DIM}●${NC} Building packages..."
-  (cd "$ROOT" && npm install --silent >/dev/null 2>&1) || true
-  (cd "$ROOT" && npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1) || true
-  local build_output
-  build_output=$(cd "$ROOT" && npm run build --workspaces --if-present 2>&1) || true
-  local pkg_count
-  pkg_count=$(echo "$build_output" | grep -c '> .* build' || echo "0")
-  (cd "$ROOT" && npm run gen:nodes >/dev/null 2>&1) || true
-  printf "\r"
-  ok "${pkg_count} packages built                "
+  # Step 3: Build — run in background with animated spinner
+  (
+    cd "$ROOT"
+    npm install --silent >/dev/null 2>&1 || true
+    npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1 || true
+    npm run build --workspaces --if-present >/dev/null 2>&1 || true
+    npm run gen:nodes >/dev/null 2>&1 || true
+  ) &
+  local build_pid=$!
+  local build_start=$(date +%s)
+  while kill -0 "$build_pid" 2>/dev/null; do
+    local c="${spin:si++%${#spin}:1}"
+    local elapsed=$(( $(date +%s) - build_start ))
+    printf "\r  ${CYAN}%s${NC} Building packages... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
+    sleep 0.1
+  done
+  wait "$build_pid" 2>/dev/null
+  printf "\r\033[2K"
+  ok "Packages built"
 
-  # Step 4: Restart
-  printf "  ${DIM}●${NC} Restarting services..."
-  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1
-  printf "\r"
-  ok "Services restarted               "
+  # Step 4: Restart — with spinner
+  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1 &
+  local restart_pid=$!
+  local restart_start=$(date +%s)
+  while kill -0 "$restart_pid" 2>/dev/null; do
+    local c="${spin:si++%${#spin}:1}"
+    local elapsed=$(( $(date +%s) - restart_start ))
+    printf "\r  ${CYAN}%s${NC} Restarting services... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
+    sleep 0.1
+  done
+  wait "$restart_pid" 2>/dev/null
+  printf "\r\033[2K"
+  ok "Services restarted"
 
   # Summary
   echo ""
@@ -535,8 +593,8 @@ cmd_update_nodes() {
   # Step 1: Dependencies
   printf "  ${DIM}●${NC} Installing dependencies..."
   (cd "$ROOT" && npm install --silent >/dev/null 2>&1) || true
-  printf "\r"
-  ok "Dependencies installed            "
+  printf "\r\033[2K"
+  ok "Dependencies installed"
 
   # Step 2: Build
   printf "  ${DIM}●${NC} Building packages..."
@@ -545,20 +603,20 @@ cmd_update_nodes() {
   build_output=$(cd "$ROOT" && npm run build --workspaces --if-present 2>&1) || true
   local pkg_count
   pkg_count=$(echo "$build_output" | grep -c '> .* build' || echo "0")
-  printf "\r"
-  ok "${pkg_count} packages built                "
+  printf "\r\033[2K"
+  ok "${pkg_count} packages built"
 
   # Step 3: Generate nodes
   printf "  ${DIM}●${NC} Generating nodes..."
   (cd "$ROOT" && npm run gen:nodes >/dev/null 2>&1) || true
-  printf "\r"
-  ok "Nodes generated                  "
+  printf "\r\033[2K"
+  ok "Nodes generated"
 
   # Step 4: Restart
   printf "  ${DIM}●${NC} Restarting node-service..."
   docker compose -f "$ROOT/docker-compose.yml" restart node-service >/dev/null 2>&1 || true
-  printf "\r"
-  ok "Node-service restarted           "
+  printf "\r\033[2K"
+  ok "Node-service restarted"
 
   # Summary
   echo ""
@@ -1103,7 +1161,7 @@ case "${1:-}" in
     if [ "${2:-}" = "nodes" ]; then
       cmd_update_nodes
     else
-      cmd_update
+      cmd_update "${2:-}"
     fi
     ;;
   pull)   cmd_pull ;;
