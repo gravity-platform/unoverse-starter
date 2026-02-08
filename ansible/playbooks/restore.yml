@@ -3,11 +3,11 @@
 # Restores UMAP models from backup (database restore is customer responsibility)
 
 - name: Restore Gravity Platform
-  hosts: ml_vms
+  hosts: all
   become: yes
 
   vars:
-    backup_path: ""  # Required: path to backup file
+    backup_path: "" # Required: path to backup file
     restore_umap: true
 
   pre_tasks:
@@ -38,7 +38,7 @@
       file:
         path: /opt/gravity/restore
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Copy backup file to server
       copy:
@@ -64,7 +64,7 @@
       file:
         path: /opt/gravity/umap/models
         state: directory
-        mode: '0755'
+        mode: "0755"
       when: restore_umap
 
     - name: Extract backup
@@ -102,7 +102,7 @@
           Restore completed:
           - UMAP models restored from: {{ backup_path }}
           - Service health: OK
-          
+
           Next steps:
           1. Restore PostgreSQL database (customer responsibility)
           2. Run health check: ansible-playbook playbooks/health-check.yml

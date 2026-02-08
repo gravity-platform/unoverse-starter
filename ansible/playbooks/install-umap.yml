@@ -3,7 +3,8 @@
 # Deploys UMAP to dedicated ML VM(s)
 #
 # Usage:
-#   ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
+#   POC:        ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
+#   Enterprise: ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
 #
 # Prerequisites:
 #   - ML VM provisioned and accessible via SSH
@@ -13,7 +14,7 @@
 #   UMAP_SERVICE_URL=http://<ML_VM_PRIVATE_IP>:5001
 
 - name: Install UMAP Service on ML VM
-  hosts: ml_vms
+  hosts: all
   become: yes
 
   pre_tasks:

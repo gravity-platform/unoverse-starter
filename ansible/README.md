@@ -1,25 +1,15 @@
 # Gravity Platform Ansible Automation
 
-Ansible playbooks for enterprise deployment, upgrades, and operations.
+Ansible playbooks for deployment, upgrades, and operations.
 
 ## Structure
 
 ```
 ansible/
 ├── inventory/
+│   ├── production.yml.example  # Copy this to get started
 │   └── production.yml          # Your inventory (gitignored)
-├── playbooks/
-│   ├── install.yml             # Fresh installation
-│   ├── install-caddy.yml       # Install Caddy reverse proxy with TLS
-│   ├── install-umap.yml        # Install UMAP service
-│   ├── upgrade.yml             # Rolling upgrade
-│   ├── rollback.yml            # Rollback to previous version
-│   ├── health-check.yml        # Verify all services healthy
-│   ├── backup.yml              # Backup database
-│   ├── restore.yml             # Restore from backup
-│   ├── db-migrate.yml          # Database migrations
-│   ├── harden.yml              # Security hardening
-│   └── uninstall-caddy.yml     # Remove Caddy
+├── playbooks/                  # All playbooks use hosts: all
 ├── files/
 │   ├── .env.example            # Environment template
 │   └── .env                    # Your secrets (gitignored)
@@ -33,55 +23,49 @@ ansible/
 ```bash
 # 1. Configure inventory
 cp inventory/production.yml.example inventory/production.yml
-vim inventory/production.yml  # Set your VM IPs
+vim inventory/production.yml  # Set your VM IP
 
 # 2. Configure environment
 cp files/.env.example files/.env
-vim files/.env  # Set DATABASE_URL, REDIS_*, AUTH_*, DOMAIN
+vim files/.env  # Set DATABASE_URL, REDIS_*, AUTH_*, DOCR_TOKEN
 
-# 3. Install Gravity services
+# 3. Install
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 
-# 4. Install Caddy (TLS)
-ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=yourdomain.com"
-
-# 5. Verify
+# 4. Verify
 ansible-playbook -i inventory/production.yml playbooks/health-check.yml
 ```
 
 ## Playbooks
 
-| Playbook              | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| `install.yml`         | Fresh installation (Docker, services, health checks) |
-| `install-caddy.yml`   | Install Caddy reverse proxy with automatic TLS       |
-| `install-umap.yml`    | Install UMAP service (optional, for spatial search)  |
-| `upgrade.yml`         | Pull new images and restart (rolling upgrade)        |
-| `rollback.yml`        | Rollback to previous version                         |
-| `health-check.yml`    | Verify all services are healthy                      |
-| `backup.yml`          | Backup PostgreSQL database                           |
-| `restore.yml`         | Restore database from backup                         |
-| `db-migrate.yml`      | Run database migrations                              |
-| `harden.yml`          | Security hardening (SSH, firewall, fail2ban)         |
-| `uninstall-caddy.yml` | Remove Caddy                                         |
+All playbooks target `hosts: all`. For enterprise multi-VM setups, use `-l` to limit to a group.
 
-## Common Operations
+| Playbook                | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| `install.yml`           | Fresh install (Docker, images, services)     |
+| `install-umap.yml`      | Install UMAP service (spatial search)        |
+| `install-caddy.yml`     | Caddy reverse proxy with automatic TLS       |
+| `upgrade.yml`           | Pull new images and restart                  |
+| `rollback.yml`          | Rollback to previous version                 |
+| `health-check.yml`      | Verify all services healthy                  |
+| `db-setup.yml`          | Database setup and migrations                |
+| `deploy-packages.yml`   | Deploy customer packages                     |
+| `backup.yml`            | Backup UMAP models                           |
+| `restore.yml`           | Restore UMAP models from backup              |
+| `harden.yml`            | Security hardening (SSH, firewall, fail2ban) |
+| `test-connectivity.yml` | Test VM connectivity and ports               |
+| `uninstall-caddy.yml`   | Remove Caddy                                 |
+
+## POC vs Enterprise
 
 ```bash
-# Upgrade to latest version (after CI build completes)
-ansible-playbook -i inventory/production.yml playbooks/upgrade.yml
+# POC (single VM) — just run the playbook
+ansible-playbook -i inventory/production.yml playbooks/install.yml
 
-# Check health
-ansible-playbook -i inventory/production.yml playbooks/health-check.yml
-
-# Backup database
-ansible-playbook -i inventory/production.yml playbooks/backup.yml
-
-# Install Caddy with your domain
-ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=example.com"
-
-# Install UMAP (optional)
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
+# Enterprise (multi-VM) — use -l to target a group
+ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
+ansible-playbook -i inventory/production.yml playbooks/upgrade.yml -l app_vms
 ```
 
 ## Requirements
