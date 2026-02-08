@@ -90,6 +90,60 @@ ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vm
 ansible-playbook -i inventory/production.yml playbooks/harden.yml -l ml_vms
 ```
 
+## Environment Files — Two `.env` Files, Two Purposes
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  .env  (project root)                                            │
+│                                                                  │
+│  Purpose: LOCAL DEVELOPMENT ONLY                                 │
+│  Read by: docker compose (automatically reads root .env)         │
+│  Contains: localhost Redis, local DB, no TLS, no DOMAIN          │
+│                                                                  │
+│  Example values:                                                 │
+│    REDIS_HOST=host.docker.internal                               │
+│    REDIS_PORT=6379                                               │
+│    REDIS_PASSWORD=                                               │
+│    REDIS_TLS=false                                               │
+│    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/... │
+│    # DOMAIN is unset — Canvas defaults to localhost:4100         │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  ansible/files/.env                                              │
+│                                                                  │
+│  Purpose: PRODUCTION DEPLOYMENT                                  │
+│  Read by: Ansible (copies to /opt/gravity/.env on the server)    │
+│  Contains: real Redis, real DB, TLS enabled, DOMAIN set          │
+│                                                                  │
+│  Example values:                                                 │
+│    REDIS_HOST=your-redis.db.ondigitalocean.com                   │
+│    REDIS_PORT=25061                                              │
+│    REDIS_PASSWORD=your-password                                  │
+│    REDIS_TLS=true                                                │
+│    DATABASE_URL=postgresql://user:pass@db-host:25060/defaultdb   │
+│    DOMAIN=yourdomain.com                                         │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Key rules:**
+
+- **Never** copy `ansible/files/.env` values into the root `.env` (or vice versa)
+- The root `.env` is gitignored — each developer configures their own
+- `ansible/files/.env` is also gitignored — it contains production secrets
+- `ansible/files/.env.example` is the template for production config
+- On the server, Ansible places `.env` at `/opt/gravity/.env` where `docker compose` reads it
+
+**How `DOMAIN` drives Canvas URLs:**
+When `DOMAIN=yourdomain.com` is set in `.env`, `docker-compose.yml` automatically derives:
+
+- `VITE_API_URL=https://api.yourdomain.com`
+- `VITE_SERVER_WS_URL=wss://api.yourdomain.com`
+
+When `DOMAIN` is unset (local dev), Canvas falls back to `http://localhost:4100`.
+
+---
+
 ## Prerequisites
 
 - SSH access to target VMs

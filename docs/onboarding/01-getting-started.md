@@ -76,6 +76,22 @@ cd ~/gravity
 
 The wizard will ask for your DOCR token, database URL, Redis, and auth credentials. It generates your `.env` file, logs into the registry, and pulls all platform images.
 
+### Understanding the Two `.env` Files
+
+Your project has **two separate** `.env` files for different purposes:
+
+| File                      | Purpose                   | Used By                                                |
+| ------------------------- | ------------------------- | ------------------------------------------------------ |
+| **`.env`** (project root) | **Local development**     | `docker compose` on your machine                       |
+| **`ansible/files/.env`**  | **Production deployment** | Ansible copies it to `/opt/gravity/.env` on the server |
+
+- The root `.env` points to **local** services (Redis on `localhost`, local DB, no TLS, no `DOMAIN`)
+- `ansible/files/.env` points to **production** services (managed Redis with TLS, managed DB, `DOMAIN` set)
+- Both files are **gitignored** — they contain secrets and are never committed
+- Use `ansible/files/.env.example` as the template when setting up production config
+
+> **Do not mix them up.** The root `.env` is for your laptop. `ansible/files/.env` is for the server.
+
 ---
 
 ## Step 4: Set Up and Start
