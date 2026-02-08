@@ -483,13 +483,9 @@ cmd_update() {
     fi
   fi
 
-  # If we got here via --continue, restore timer and header
+  # If we got here via --continue, just restore timer and show code updated
   if $continuing; then
-    echo ""
-    echo -e "  ${BOLD}Updating Gravity Platform${NC}"
-    echo ""
     timer_start
-    ok "Code updated"
   fi
 
   # Safety: restore production.yml from example if missing
