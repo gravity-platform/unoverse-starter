@@ -546,59 +546,25 @@ cmd_update() {
     fi
   fi
 
-  # Step 3: Build packages
-  # Detect whether npm is available on the host (local dev) or we need Docker (server)
-  local build_ok=true
-  if command -v npm >/dev/null 2>&1; then
-    # Host has npm — build directly (local dev / monorepo)
-    (
-      cd "$ROOT"
-      npm install --silent >/dev/null 2>&1 || true
-      npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1 || true
-      npm run build --workspaces --if-present >/dev/null 2>&1 || true
-      npm run gen:nodes >/dev/null 2>&1 || true
-    ) &
-    local build_pid=$!
-    local build_start=$(date +%s)
-    while kill -0 "$build_pid" 2>/dev/null; do
-      local c="${spin:si++%${#spin}:1}"
-      local elapsed=$(( $(date +%s) - build_start ))
-      printf "\r  ${CYAN}%s${NC} Building packages... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
-      sleep 0.1
-    done
-    wait "$build_pid" 2>/dev/null
-    printf "\r\033[2K"
-    ok "Packages built (host npm)"
-  else
-    # No npm on host — build inside a temporary Node container with full workspace mounted
-    (
-      cd "$ROOT"
-      docker run --rm \
-        -v "$ROOT:/workspace" \
-        -w /workspace \
-        node:20-slim sh -c '
-          npm install --silent 2>/dev/null
-          npm run build -w @gravity-platform/plugin-base 2>/dev/null
-          npm run build --workspaces --if-present 2>/dev/null
-          npm run gen:nodes 2>/dev/null
-        ' 2>/dev/null
-    ) &
-    local build_pid=$!
-    local build_start=$(date +%s)
-    while kill -0 "$build_pid" 2>/dev/null; do
-      local c="${spin:si++%${#spin}:1}"
-      local elapsed=$(( $(date +%s) - build_start ))
-      printf "\r  ${CYAN}%s${NC} Building packages (Docker)... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
-      sleep 0.1
-    done
-    wait "$build_pid" 2>/dev/null || build_ok=false
-    printf "\r\033[2K"
-    if $build_ok; then
-      ok "Packages built (Docker)"
-    else
-      warn "Package build had errors — plugins may not load. Check with: gravity update"
-    fi
-  fi
+  # Step 3: Build packages (requires Node.js — installed by install.yml)
+  (
+    cd "$ROOT"
+    npm install --silent >/dev/null 2>&1 || true
+    npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1 || true
+    npm run build --workspaces --if-present >/dev/null 2>&1 || true
+    npm run gen:nodes >/dev/null 2>&1 || true
+  ) &
+  local build_pid=$!
+  local build_start=$(date +%s)
+  while kill -0 "$build_pid" 2>/dev/null; do
+    local c="${spin:si++%${#spin}:1}"
+    local elapsed=$(( $(date +%s) - build_start ))
+    printf "\r  ${CYAN}%s${NC} Building packages... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
+    sleep 0.1
+  done
+  wait "$build_pid" 2>/dev/null
+  printf "\r\033[2K"
+  ok "Packages built"
 
   # Step 4: Restart — with spinner
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1 &

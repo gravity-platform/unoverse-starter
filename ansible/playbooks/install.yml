@@ -61,7 +61,23 @@
         append: yes
 
   tasks:
-    - name: "[5/10] Read DOCR token from local .env"
+    - name: "[5/12] Install Node.js 20 LTS"
+      shell: |
+        if command -v node &> /dev/null; then
+          echo "Node.js already installed: $(node --version)"
+        else
+          echo "Installing Node.js 20 LTS..."
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+          echo "Installed: $(node --version)"
+        fi
+      register: node_install
+
+    - name: "[5/12] Node.js version"
+      debug:
+        msg: "{{ node_install.stdout_lines | default(['Node.js already present']) }}"
+
+    - name: "[6/12] Read DOCR token from local .env"
       shell: grep '^DOCR_TOKEN=' {{ env_file | default('../files/.env') }} | cut -d= -f2
       register: docr_token_result
       delegate_to: localhost
@@ -69,65 +85,65 @@
       changed_when: false
       ignore_errors: yes
 
-    - name: "[5/10] Set DOCR credentials"
+    - name: "[6/12] Set DOCR credentials"
       set_fact:
         docr_token: "{{ docr_token_result.stdout | default('') }}"
 
-    - name: "[6/10] Create gravity directory"
+    - name: "[7/12] Create gravity directory"
       file:
         path: "{{ gravity_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         mode: "0755"
 
-    - name: "[6/10] Copy docker-compose.yml"
+    - name: "[7/12] Copy docker-compose.yml"
       copy:
         src: "{{ playbook_dir }}/../../docker-compose.yml"
         dest: "{{ gravity_dir }}/docker-compose.yml"
         owner: "{{ ansible_user }}"
         mode: "0644"
 
-    - name: "[7/10] Copy .env file"
+    - name: "[8/12] Copy .env file"
       copy:
         src: "{{ env_file | default('../files/.env') }}"
         dest: /opt/gravity/.env
         owner: "{{ ansible_user }}"
         mode: "0600"
 
-    - name: "[8/10] Login to DOCR"
+    - name: "[9/12] Login to DOCR"
       shell: echo "{{ docr_token }}" | docker login registry.digitalocean.com -u "{{ docr_token }}" --password-stdin
       when: docr_token != ""
       no_log: true
       register: docr_login
 
-    - name: "[8/10] DOCR login status"
+    - name: "[9/12] DOCR login status"
       debug:
         msg: "Logged in to DigitalOcean Container Registry"
       when: docr_token != ""
 
-    - name: "[9/10] Pull Gravity images"
+    - name: "[10/12] Pull Gravity images"
       command: docker compose pull
       args:
         chdir: /opt/gravity
       register: pull_result
 
-    - name: "[9/10] Images pulled"
+    - name: "[10/12] Images pulled"
       debug:
         msg: "Docker images pulled successfully"
 
-    - name: "[10/10] Stop any existing Gravity services"
+    - name: "[11/12] Stop any existing Gravity services"
       command: docker compose down --remove-orphans
       args:
         chdir: "{{ gravity_dir }}"
       ignore_errors: yes
 
-    - name: "[10/10] Start core Gravity services"
+    - name: "[11/12] Start core Gravity services"
       command: docker compose up -d {{ core_services }}
       args:
         chdir: "{{ gravity_dir }}"
       register: start_result
 
-    - name: "[10/10] Services started"
+    - name: "[11/12] Services started"
       debug:
         msg: "{{ start_result.stdout_lines | default(['Services starting...']) }}"
 
