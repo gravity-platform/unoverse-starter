@@ -42,7 +42,7 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 | [05-caddy](./05-caddy.md)                                                                                            | TLS + reverse proxy (optional)                                                   | `install-caddy.yml`         |
 | [06-test](./06-test.md)                                                                                              | Verify connectivity and health                                                   | `test-connectivity.yml`     |
 | [07-observability](./07-observability.md)                                                                            | Grafana/Loki/Prometheus (POC only)                                               | `install-observability.yml` |
-| [08-update-nodes](./08-update-nodes.md)                                                                              | Update packages and components                                                   | `deploy-packages.yml`       |
+| [08-deploy-packages](./08-deploy-packages.md)                                                                        | Deploy customer packages to server                                               | `deploy-packages.yml`       |
 | [Architecture Diagrams](https://gravity-platform.github.io/gravity-starter/docs/runbooks/architecture-diagrams.html) | Interactive system architecture diagrams ([local](./architecture-diagrams.html)) | —                           |
 
 ---
