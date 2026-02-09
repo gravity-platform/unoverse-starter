@@ -472,7 +472,18 @@ cmd_update() {
     # Step 1: Code — pull from customer's fork
     printf "  ${DIM}●${NC} Pulling latest code..."
     local git_ok=true
-    (cd "$ROOT" && git pull --rebase --autostash --quiet >/dev/null 2>&1) || git_ok=false
+    (
+      cd "$ROOT"
+      # Abort any stuck rebase/merge from a previous failed pull
+      git rebase --abort >/dev/null 2>&1 || true
+      git merge --abort >/dev/null 2>&1 || true
+      # Reset generated files (e.g. design-system templates from deploy.sh rebuild)
+      # This is safe: .env, production.yml, node_modules, package-lock.json are gitignored
+      git reset HEAD -- . >/dev/null 2>&1 || true
+      git checkout -- . >/dev/null 2>&1 || true
+      # Now pull cleanly
+      git pull --quiet >/dev/null 2>&1
+    ) || git_ok=false
     printf "\r\033[2K"
     if $git_ok; then
       ok "Code updated"

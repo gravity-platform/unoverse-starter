@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figure 4b: Outbound, Subdomain Routing &amp; Security</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head>
+<body class="bg-white">
+  <div id="root"></div>
+  <script type="text/babel">
+    const Icon = ({ paths, size = 24, className = "", strokeWidth = 2 }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
+        strokeLinejoin="round" className={className}>
+        {paths.map((d, i) => <path key={i} d={d} />)}
+      </svg>
+    );
+    const Cloud = (p) => <Icon {...p} paths={["M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"]} />;
+    const Shield = (p) => <Icon {...p} paths={["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"]} />;
+
+    const App = () => (
+      <div className="max-w-6xl mx-auto p-8">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-gray-300 pb-3">
+          Figure 4b: Outbound, Subdomain Routing &amp; Security
+        </h2>
+
+        <div className="space-y-6">
+          {/* Outbound */}
+          <div className="border-2 border-purple-400 rounded-lg p-5 bg-purple-50">
+            <h3 className="font-bold text-purple-800 mb-4 text-lg flex items-center gap-2">
+              <Cloud size={24} /> Outbound (Platform VMs &rarr; Internet)
+            </h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-white p-3 rounded shadow">
+                <p className="font-bold text-gray-800">registry.digitalocean.com:443</p>
+                <p className="text-xs text-gray-600 mt-1">Docker image pulls (Gravity registry)</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="font-bold text-gray-800">api.openai.com:443</p>
+                <p className="text-xs text-gray-600 mt-1">OpenAI API (if configured)</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="font-bold text-gray-800">bedrock.*.amazonaws.com:443</p>
+                <p className="text-xs text-gray-600 mt-1">AWS Bedrock (if configured)</p>
+              </div>
+              <div className="bg-white p-3 rounded shadow">
+                <p className="font-bold text-gray-800">Customer IdP:443</p>
+                <p className="text-xs text-gray-600 mt-1">OIDC / SAML authentication</p>
+              </div>
+            </div>
+            <div className="mt-4 bg-purple-100 rounded p-3">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left">
+                    <th className="p-1 font-semibold text-purple-900">Destination</th>
+                    <th className="p-1 font-semibold text-purple-900 text-center">Port</th>
+                    <th className="p-1 font-semibold text-purple-900">Purpose</th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs text-gray-700">
+                  {[
+                    ["registry.digitalocean.com", "443", "DOCR image pulls"],
+                    ["api.openai.com", "443", "OpenAI API (if used)"],
+                    ["bedrock.*.amazonaws.com", "443", "AWS Bedrock (if used)"],
+                    ["Customer IdP", "443", "OIDC authentication"],
+                  ].map(([dest, port, purpose], i) => (
+                    <tr key={i} className={i % 2 === 0 ? "" : "bg-purple-50"}>
+                      <td className="p-1 font-mono">{dest}</td>
+                      <td className="p-1 text-center">{port}</td>
+                      <td className="p-1">{purpose}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Subdomain Routing + Security side by side */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-indigo-50 border-2 border-indigo-300 p-5 rounded-lg">
+              <h4 className="font-semibold text-indigo-800 mb-4 text-lg">Subdomain Routing</h4>
+              <div className="space-y-3 text-sm">
+                <div className="bg-white p-3 rounded shadow border-l-4 border-indigo-500">
+                  <p className="font-bold text-gray-800">domain.com</p>
+                  <p className="text-xs text-gray-600">&rarr; Canvas UI (port 3001)</p>
+                  <p className="text-xs text-gray-500">Internal admin interface</p>
+                </div>
+                <div className="bg-white p-3 rounded shadow border-l-4 border-indigo-500">
+                  <p className="font-bold text-gray-800">api.domain.com</p>
+                  <p className="text-xs text-gray-600">&rarr; API Server (port 4100)</p>
+                  <p className="text-xs text-gray-500">REST API, WebSocket hub</p>
+                </div>
+                <div className="bg-white p-3 rounded shadow border-l-4 border-indigo-500">
+                  <p className="font-bold text-gray-800">mcp.domain.com</p>
+                  <p className="text-xs text-gray-600">&rarr; MCP Server (port 4103)</p>
+                  <p className="text-xs text-gray-500">OpenAI Apps integration</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 border-2 border-gray-300 p-5 rounded-lg">
+              <h4 className="font-semibold text-gray-800 mb-4 text-lg flex items-center gap-2">
+                <Shield size={20} /> Security Notes
+              </h4>
+              <ul className="text-sm text-gray-700 space-y-3">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
+                  <span>All internal VM-to-VM traffic over private network only</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
+                  <span>No direct internet access to App or ML VMs (egress via NAT gateway)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
+                  <span>TLS required for PostgreSQL and Redis connections</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
+                  <span>Firewall rules restrict outbound to required endpoints only</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
+                  <span>TLS 1.2+ with 2048-bit RSA minimum for all external traffic</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 text-right mt-6">Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL</p>
+      </div>
+    );
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
