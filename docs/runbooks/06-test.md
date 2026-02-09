@@ -98,8 +98,16 @@ No recent errors
 ── Caddy ──
   - Port 80: OK
   - Port 443: OK
+
+── Public Domain ──
+Domain: yourdomain.com
+  - https://yourdomain.com/: HTTP 200
+  - https://api.yourdomain.com/health: HTTP 200
+  - https://mcp.yourdomain.com/health: HTTP 200
 ============================================
 ```
+
+> **Note:** The domain check reads `DOMAIN=` from `/opt/gravity/.env`. If set to `example.com` or empty, domain checks are skipped.
 
 ## Service Health Endpoints
 

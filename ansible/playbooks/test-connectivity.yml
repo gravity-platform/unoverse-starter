@@ -156,8 +156,8 @@
       register: log_errors
       ignore_errors: yes
 
-    # ── Caddy ───────────────────────────────────────────────────
-    - name: "[13/13] Test external connectivity (if Caddy installed)"
+    # ── Caddy / Domain ────────────────────────────────────────────
+    - name: "[13/15] Test external connectivity (if Caddy installed)"
       wait_for:
         host: localhost
         port: "{{ item }}"
@@ -165,6 +165,24 @@
       loop: [80, 443]
       register: caddy_ports
       ignore_errors: yes
+
+    - name: "[14/15] Read DOMAIN from .env"
+      shell: grep '^DOMAIN=' /opt/gravity/.env 2>/dev/null | cut -d'=' -f2-
+      register: domain_value
+      ignore_errors: yes
+
+    - name: "[15/15] Test public domain endpoints (if DOMAIN set)"
+      shell: |
+        RESULT=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -k https://{{ item.sub }}{{ domain_value.stdout }}{{ item.path }} 2>/dev/null)
+        echo "HTTP $RESULT"
+        [ "$RESULT" -ge 200 ] && [ "$RESULT" -lt 500 ]
+      loop:
+        - { name: "Canvas", sub: "", path: "/" }
+        - { name: "API Server", sub: "api.", path: "/health" }
+        - { name: "MCP Server", sub: "mcp.", path: "/health" }
+      register: domain_checks
+      ignore_errors: yes
+      when: domain_value.stdout | default('') | length > 0 and domain_value.stdout != 'example.com'
 
   post_tasks:
     - name: "=== PLATFORM HEALTH CHECK ==="
@@ -221,4 +239,16 @@
           ── Caddy ──
             - Port 80: {{ 'OK' if not caddy_ports.results[0].failed else 'CLOSED' }}
             - Port 443: {{ 'OK' if not caddy_ports.results[1].failed else 'CLOSED' }}
+
+          ── Public Domain ──
+          {% if domain_value.stdout | default('') | length > 0 and domain_value.stdout != 'example.com' %}
+          Domain: {{ domain_value.stdout }}
+          {% if domain_checks is defined and domain_checks.results is defined %}
+          {% for result in domain_checks.results %}
+            - https://{{ result.item.sub }}{{ domain_value.stdout }}{{ result.item.path }}: {{ result.stdout | default('SKIPPED') if not result.failed | default(true) else 'FAILED' }}
+          {% endfor %}
+          {% endif %}
+          {% else %}
+          Domain: NOT SET (set DOMAIN= in .env to enable public URL checks)
+          {% endif %}
           ============================================
