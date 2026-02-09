@@ -55,7 +55,7 @@
         force: yes
       no_log: "{{ (packages_token | length) > 0 }}"
 
-    - name: "[3/7] Copy workspace config files"
+    - name: "[3/7] Copy turbo and tsconfig"
       copy:
         src: "/tmp/gravity-packages/{{ item }}"
         dest: "{{ gravity_dir }}/{{ item }}"
@@ -63,10 +63,36 @@
         owner: "{{ ansible_user }}"
         mode: "0644"
       loop:
-        - package.json
         - turbo.json
         - tsconfig.base.json
       ignore_errors: yes
+
+    - name: "[3/7] Generate server package.json (packages only, not full monorepo)"
+      shell: |
+        cd /tmp/gravity-packages
+        node -e "
+          const pkg = require('./package.json');
+          const serverPkg = {
+            name: pkg.name + '-server',
+            version: pkg.version,
+            private: true,
+            workspaces: ['packages/*', 'apps/design-system'],
+            scripts: {
+              build: pkg.scripts.build || 'turbo run build',
+              'gen:nodes': pkg.scripts['gen:nodes'] || ''
+            },
+            dependencies: pkg.dependencies || {},
+            devDependencies: pkg.devDependencies || {},
+            engines: pkg.engines || {},
+            packageManager: pkg.packageManager || ''
+          };
+          console.log(JSON.stringify(serverPkg, null, 2));
+        " > {{ gravity_dir }}/package.json
+      register: pkgjson_result
+
+    - name: "[3/7] Server package.json"
+      debug:
+        msg: "Generated server package.json with workspaces: packages/*, apps/design-system"
 
     - name: "[4/7] Sync packages to server"
       shell: |
@@ -91,18 +117,42 @@
         fi
       register: ds_result
 
-    - name: "[5/7] Build packages"
+    - name: "[5/7] npm install"
       shell: |
         cd {{ gravity_dir }}
-        npm install --silent 2>&1
-        npm run build -w @gravity-platform/plugin-base 2>&1
-        npm run build --workspaces --if-present 2>&1
-        npm run gen:nodes 2>&1
+        echo "Starting npm install at $(date)"
+        npm install --no-audit --no-fund 2>&1 | tail -20
+        echo "npm install done at $(date)"
+      register: npm_install_result
+      timeout: 300
+
+    - name: "[5/7] npm install output"
+      debug:
+        msg: "{{ npm_install_result.stdout_lines[-10:] | default(['done']) }}"
+
+    - name: "[5/7] Build workspaces"
+      shell: |
+        cd {{ gravity_dir }}
+        npm run build -w @gravity-platform/plugin-base 2>&1 | tail -10
+        npm run build --workspaces --if-present 2>&1 | tail -10
       register: build_result
+      timeout: 300
 
     - name: "[5/7] Build output"
       debug:
-        msg: "{{ build_result.stdout_lines[-5:] | default(['Build completed']) }}"
+        msg: "{{ build_result.stdout_lines[-10:] | default(['done']) }}"
+
+    - name: "[5/7] Generate nodes"
+      shell: |
+        cd {{ gravity_dir }}
+        npm run gen:nodes 2>&1 | tail -10
+      register: gen_result
+      timeout: 120
+      ignore_errors: yes
+
+    - name: "[5/7] gen:nodes output"
+      debug:
+        msg: "{{ gen_result.stdout_lines[-5:] | default(['done']) }}"
 
     - name: "[6/7] Cleanup"
       file:
