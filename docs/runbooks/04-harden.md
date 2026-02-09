@@ -56,8 +56,8 @@ ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 
 ### Fail2ban
 
-- Bans IPs after 5 failed SSH attempts
-- 10 minute ban duration
+- Bans IPs after 3 failed SSH attempts
+- 1 hour ban duration (3600 seconds)
 - Protects against brute-force attacks
 
 ## Expected Output
@@ -80,7 +80,7 @@ Applied:
 | --------------------- | ------------------------ | -------------------------------------------------- |
 | Locked out of SSH     | Firewall too strict      | Use DO Console to access VM                        |
 | Services unreachable  | Ports not opened         | Check UFW rules: `ufw status`                      |
-| Fail2ban blocking you | Too many failed attempts | Wait 10 min or unban: `fail2ban-client unban <IP>` |
+| Fail2ban blocking you | Too many failed attempts | Wait 1 hour or unban: `fail2ban-client unban <IP>` |
 
 ## Rollback
 

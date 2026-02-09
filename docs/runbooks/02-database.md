@@ -12,7 +12,7 @@ The `DATABASE_URL` is configured in `ansible/files/.env` and deployed with `inst
 
 - [ ] Core services deployed ([01-core.md](./01-core.md))
 - [ ] `DATABASE_URL` configured in `ansible/files/.env`
-- [ ] PostgreSQL instance accessible from VM (firewall allows port 5432)
+- [ ] PostgreSQL instance accessible from VM (firewall allows database port — typically 25060 for DO Managed, 5432 for self-hosted)
 - [ ] **Required extensions enabled** (see Step 1 below)
 
 ## Database Requirements
@@ -84,6 +84,9 @@ curl https://your-domain.com/api/health
 
 # Or via Ansible
 ansible-playbook -i inventory/production.yml playbooks/health-check.yml
+
+# Full connectivity test (includes DB, Redis, API endpoints)
+ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 ```
 
 ## Expected Output
@@ -92,7 +95,16 @@ ansible-playbook -i inventory/production.yml playbooks/health-check.yml
 DATABASE MIGRATION
 ============================================
 Host: gravity-prod (<YOUR_VM_IP>)
+Extensions: OK
 Migration: OK
+
+Tables created:
+  - Workflows: OK
+  - Executions: OK
+  - Credentials: OK
+  - TokenUsage: OK
+  - GravityMemory: OK
+  - Dictionary: OK
 ```
 
 ## Troubleshooting

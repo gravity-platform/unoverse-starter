@@ -16,12 +16,12 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 
 ### External Dependencies
 
-| Component      | Requirement                 | Notes                                                  |
-| -------------- | --------------------------- | ------------------------------------------------------ |
-| **PostgreSQL** | 14+                         | Customer-managed (DO Managed, AWS RDS, or self-hosted) |
-| **Redis**      | 7+                          | Bundled for POC, customer-managed for Enterprise       |
-| **Domain**     | DNS A records               | Point to VM IP or Load Balancer IP                     |
-| **TLS**        | Caddy (auto) or customer LB | Caddy auto-provisions Let's Encrypt certs              |
+| Component      | Requirement                 | Notes                                                                |
+| -------------- | --------------------------- | -------------------------------------------------------------------- |
+| **PostgreSQL** | 14+                         | Customer-managed (DO Managed, AWS RDS, or self-hosted)               |
+| **Redis**      | 7+                          | Customer-managed (DO Managed Redis, AWS ElastiCache, or self-hosted) |
+| **Domain**     | DNS A records               | Point to VM IP or Load Balancer IP                                   |
+| **TLS**        | Caddy (auto) or customer LB | Caddy auto-provisions Let's Encrypt certs                            |
 
 ### Supported Platforms
 
@@ -55,9 +55,8 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 # 1. Core services
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 
-# 2. Database connection
-ansible-playbook -i inventory/production.yml playbooks/db-setup.yml \
-  -e "database_url=postgresql://user:pass@host:5432/gravity"
+# 2. Database tables (reads DATABASE_URL from ansible/files/.env)
+ansible-playbook -i inventory/production.yml playbooks/db-setup.yml
 
 # 3. AI model
 ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
@@ -77,8 +76,7 @@ ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 
 ```bash
 ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
-ansible-playbook -i inventory/production.yml playbooks/db-setup.yml -l app_vms \
-  -e "database_url=postgresql://..."
+ansible-playbook -i inventory/production.yml playbooks/db-setup.yml -l app_vms
 ansible-playbook -i inventory/production.yml playbooks/harden.yml -l app_vms
 ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml -l app_vms
 ```

@@ -43,29 +43,57 @@ docker compose logs --tail=50 workflow
 ## Expected Output
 
 ```
-CONNECTIVITY TEST RESULTS
+PLATFORM HEALTH CHECK
 ============================================
 Host: gravity-prod (<YOUR_VM_IP>)
 
+── Infrastructure ──
 Docker: OK
 
-Port Status:
+Containers:
+  gravity-server running Up 2 hours
+  gravity-workflow running Up 2 hours
+  gravity-node-service running Up 2 hours
+  gravity-mcp-server running Up 2 hours
+  gravity-canvas running Up 2 hours
+  gravity-umap running Up 2 hours
+
+Restarting: NONE
+
+── Ports ──
   - Canvas (3001): OK
   - Server (4100): OK
   - Workflow (4101): OK
   - Node Service (4102): OK
   - MCP Server (4103): OK
-  - Redis (6379): OK
 
-Health Endpoints:
+── External Dependencies ──
+Redis: REACHABLE
+  host=your-redis.db.ondigitalocean.com port=25061
+Database: REACHABLE
+  host=your-db.db.ondigitalocean.com port=25060
+
+── Health Endpoints ──
   - Server: OK
   - Workflow: OK
   - Node Service: OK
   - MCP Server: OK
 
-Caddy (external):
+── API Endpoints (read) ──
+  - GET /api/workflows: HTTP 200
+  - GET /api/nodes: HTTP 200
+  - GET /api/prompt-blocks: HTTP 200
+
+── API Write Test ──
+  - POST /api/workflows: HTTP 200
+
+── Recent Errors in Logs ──
+No recent errors
+
+── Caddy ──
   - Port 80: OK
   - Port 443: OK
+============================================
 ```
 
 ## Service Health Endpoints

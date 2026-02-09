@@ -68,7 +68,7 @@ DOCR_TOKEN=dop_v1_your_token_here
 # Database and Redis
 DATABASE_URL=postgresql://user:pass@host:5432/gravity
 REDIS_HOST=your-redis-host
-REDIS_PORT=6379
+REDIS_PORT=25061  # DO Managed Redis uses 25061; local Redis uses 6379
 REDIS_PASSWORD=your-redis-password
 ```
 
@@ -93,20 +93,30 @@ ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml \
 ### 5. Verify
 
 ```bash
+# Quick health check
 ansible-playbook -i inventory/production.yml playbooks/health-check.yml
+
+# Full connectivity test (includes DB, Redis, API endpoints)
+ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 ```
 
 ## Expected Output
 
 ```
-GRAVITY PLATFORM DEPLOYED SUCCESSFULLY
+GRAVITY PLATFORM DEPLOYED
 ============================================
 Host: gravity-prod (<YOUR_VM_IP>)
 
 Service Health:
   - Server:       OK
-  - Workflow:     OK
-  - Node Service: OK
+  - Workflow:      OK
+  - Node Service:  OK
+  - MCP Server:    OK
+  - Canvas:        OK
+
+Access URLs:
+  - Canvas:  http://<YOUR_VM_IP>:3001
+  - API:     http://<YOUR_VM_IP>:4100
 ```
 
 ## Troubleshooting

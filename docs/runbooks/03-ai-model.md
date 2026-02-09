@@ -34,7 +34,9 @@ UMAP (Uniform Manifold Approximation and Projection) provides:
 
 ### POC (Same VM)
 
-UMAP is included in the standard `install.yml` playbook. No additional steps needed.
+UMAP is included in `docker-compose.yml` and starts automatically with `docker compose up -d`. No additional steps needed after `install.yml`.
+
+> **Note:** Do NOT run `install-umap.yml` on a POC VM — it creates a standalone container that conflicts with the docker-compose UMAP service on port 5001. Use `install-umap.yml` only for dedicated Enterprise ML VMs.
 
 ### Enterprise (Dedicated ML VM)
 
