@@ -50,15 +50,30 @@
         msg: "target_db is required. Pass with -e target_db='postgres://...'"
       when: target_db is not defined or target_db == ""
 
-    - name: "[1/6] Install postgresql-client"
-      apt:
-        name: postgresql-client
-        state: present
-        update_cache: yes
+    - name: "[1/6] Add PostgreSQL 17 APT repository"
+      shell: |
+        if ! dpkg -l postgresql-client-17 2>/dev/null | grep -q '^ii'; then
+          apt-get install -y curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg 2>/dev/null || true
+          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+          apt-get update
+          apt-get install -y postgresql-client-17
+        else
+          echo "postgresql-client-17 already installed"
+        fi
+      register: pg_install
+
+    - name: "[1/6] PostgreSQL client version"
+      shell: /usr/lib/postgresql/17/bin/pg_dump --version
+      register: pg_version
+
+    - name: "[1/6] Version"
+      debug:
+        msg: "{{ pg_version.stdout }}"
 
     - name: "[2/6] Dump source database"
       shell: |
-        pg_dump "{{ source_db }}" --no-owner --no-acl -Fc -f /tmp/gravity.dump
+        /usr/lib/postgresql/17/bin/pg_dump "{{ source_db }}" --no-owner --no-acl -Fc -f /tmp/gravity.dump
       register: dump_result
 
     - name: "[2/6] Dump size"
@@ -71,8 +86,8 @@
 
     - name: "[3/6] Enable extensions on target"
       shell: |
-        psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
-        psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>&1
+        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
+        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>&1
       register: ext_result
       ignore_errors: yes
 
@@ -82,7 +97,7 @@
 
     - name: "[4/6] Restore to target database"
       shell: |
-        pg_restore --no-owner --no-acl --clean --if-exists \
+        /usr/lib/postgresql/17/bin/pg_restore --no-owner --no-acl --clean --if-exists \
           -d "{{ target_db }}" /tmp/gravity.dump 2>&1 || true
       register: restore_result
 
@@ -92,7 +107,7 @@
 
     - name: "[5/6] Verify tables exist on target"
       shell: |
-        psql "{{ target_db }}" -c "\dt" 2>&1 | head -30
+        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "\dt" 2>&1 | head -30
       register: tables_check
 
     - name: "[5/6] Tables on target"
@@ -102,7 +117,7 @@
     - name: "[6/6] Update .env with new DATABASE_URL"
       lineinfile:
         path: /opt/gravity/.env
-        regexp: '^DATABASE_URL='
+        regexp: "^DATABASE_URL="
         line: "DATABASE_URL={{ target_db }}"
       when: env_file_check.stat.exists | default(true)
 
