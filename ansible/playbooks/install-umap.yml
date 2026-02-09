@@ -59,7 +59,39 @@
         append: yes
 
   tasks:
-    - name: "[5/7] Create UMAP directories"
+    # ── Detect mode: POC (same VM) vs Enterprise (separate ML VM) ──
+    - name: "[5/7] Check if platform is on this VM (POC mode)"
+      stat:
+        path: /opt/gravity/docker-compose.yml
+      register: compose_file
+
+    # ══════════════════════════════════════════════════════════════
+    # POC MODE: UMAP runs inside docker compose (same network)
+    # ══════════════════════════════════════════════════════════════
+    - name: "[5b/7] POC — Remove standalone UMAP container (if exists)"
+      shell: |
+        docker stop gravity-umap 2>/dev/null || true
+        docker rm gravity-umap 2>/dev/null || true
+      when: compose_file.stat.exists
+      ignore_errors: yes
+
+    - name: "[6/7] POC — Start UMAP via docker compose"
+      shell: |
+        cd /opt/gravity
+        docker compose pull umap
+        docker compose up -d umap
+      register: poc_result
+      when: compose_file.stat.exists
+
+    - name: "[6/7] POC — UMAP started via compose"
+      debug:
+        msg: "UMAP started as part of docker compose project (same Docker network as workflow)"
+      when: compose_file.stat.exists
+
+    # ══════════════════════════════════════════════════════════════
+    # ENTERPRISE MODE: Standalone container on dedicated ML VM
+    # ══════════════════════════════════════════════════════════════
+    - name: "[5/7] Enterprise — Create UMAP directories"
       file:
         path: "{{ item }}"
         state: directory
@@ -69,35 +101,28 @@
       loop:
         - /opt/gravity-umap
         - /opt/gravity-umap/models
+      when: not compose_file.stat.exists
 
-    - name: "[6/7] Login to DOCR"
+    - name: "[6/7] Enterprise — Login to DOCR"
       shell: echo "{{ docr_token }}" | docker login registry.digitalocean.com -u "{{ docr_token }}" --password-stdin
-      when: docr_token is defined and docr_token != ""
+      when: not compose_file.stat.exists and docr_token is defined and docr_token != ""
       no_log: true
-      register: docr_login
 
-    - name: "[6/7] DOCR login status"
-      debug:
-        msg: "Logged in to DigitalOcean Container Registry"
-      when: docr_token is defined and docr_token != ""
-
-    - name: "[6/7] Pull UMAP image"
+    - name: "[6/7] Enterprise — Pull UMAP image"
       command: docker pull registry.digitalocean.com/gravity-repo/gravity-umap:{{ gravity_version | default('latest') }}
-      register: pull_result
+      when: not compose_file.stat.exists
 
-    - name: "[6/7] Image pulled"
-      debug:
-        msg: "UMAP image pulled successfully"
-
-    - name: "[7/7] Stop existing UMAP container"
+    - name: "[7/7] Enterprise — Stop existing UMAP container"
       command: docker stop gravity-umap
       ignore_errors: yes
+      when: not compose_file.stat.exists
 
-    - name: "[7/7] Remove existing UMAP container"
+    - name: "[7/7] Enterprise — Remove existing UMAP container"
       command: docker rm gravity-umap
       ignore_errors: yes
+      when: not compose_file.stat.exists
 
-    - name: "[7/7] Start UMAP service"
+    - name: "[7/7] Enterprise — Start UMAP service"
       command: >
         docker run -d
         --name gravity-umap
@@ -107,11 +132,7 @@
         --memory=2g
         --cpus=1.0
         registry.digitalocean.com/gravity-repo/gravity-umap:{{ gravity_version | default('latest') }}
-      register: start_result
-
-    - name: "[7/7] Container started"
-      debug:
-        msg: "UMAP container started"
+      when: not compose_file.stat.exists
 
   post_tasks:
     - name: "Wait for UMAP to initialize"
