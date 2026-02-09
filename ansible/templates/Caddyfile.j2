@@ -20,6 +20,13 @@
     handle @mcp {
         reverse_proxy localhost:4103
     }
+    
+{% if caddy_include_umap %}
+    @umap host umap.{{ caddy_domain }}
+    handle @umap {
+        reverse_proxy localhost:5001
+    }
+{% endif %}
 }
 {% else %}
 # Direct mode - Caddy handles TLS via Let's Encrypt
@@ -38,6 +45,13 @@ api.{{ caddy_domain }} {
 mcp.{{ caddy_domain }} {
     reverse_proxy localhost:4103
 }
+
+{% if caddy_include_umap %}
+# UMAP Service (3D coordinate projections — POC only)
+umap.{{ caddy_domain }} {
+    reverse_proxy localhost:5001
+}
+{% endif %}
 {% endif %}
 
 # NOTE: SAB is deployed separately to CDN (Vercel/Netlify).

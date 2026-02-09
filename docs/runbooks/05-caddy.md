@@ -32,18 +32,25 @@ Caddy provides:
 
 Point these A records to your VM IP (or Load Balancer IP):
 
-| Hostname             | Value     |
-| -------------------- | --------- |
-| `yourdomain.com`     | `<VM_IP>` |
-| `api.yourdomain.com` | `<VM_IP>` |
-| `mcp.yourdomain.com` | `<VM_IP>` |
+| Hostname              | Value     |
+| --------------------- | --------- | -------- |
+| `yourdomain.com`      | `<VM_IP>` |
+| `api.yourdomain.com`  | `<VM_IP>` |
+| `mcp.yourdomain.com`  | `<VM_IP>` |
+| `umap.yourdomain.com` | `<VM_IP>` | POC only |
 
 ### 2. Install Caddy
 
 ```bash
 cd ansible
+
+# Standard (Canvas, API, MCP)
 ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
   -e "domain=yourdomain.com"
+
+# POC only — also expose UMAP on umap.yourdomain.com
+ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
+  -e "domain=yourdomain.com" -e "include_umap=true"
 ```
 
 ### 3. Verify
@@ -52,6 +59,7 @@ ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
 curl https://yourdomain.com
 curl https://api.yourdomain.com/health
 curl https://mcp.yourdomain.com/health
+curl https://umap.yourdomain.com/health  # POC only
 ```
 
 ## With Load Balancer (HTTPS Passthrough)
@@ -68,11 +76,12 @@ User → LB (HTTPS Passthrough) → VM → Caddy (TLS) → Services
 
 ## Configured Routes
 
-| Subdomain        | Service     | Port |
-| ---------------- | ----------- | ---- |
-| `domain.com`     | Canvas (UI) | 3001 |
-| `api.domain.com` | API Server  | 4100 |
-| `mcp.domain.com` | MCP Server  | 4103 |
+| Subdomain         | Service      | Port |
+| ----------------- | ------------ | ---- | -------- |
+| `domain.com`      | Canvas (UI)  | 3001 | Always   |
+| `api.domain.com`  | API Server   | 4100 | Always   |
+| `mcp.domain.com`  | MCP Server   | 4103 | Always   |
+| `umap.domain.com` | UMAP Service | 5001 | POC only |
 
 ## Expected Output
 
@@ -87,6 +96,7 @@ Configured routes:
   - https://yourdomain.com -> Canvas (port 3001)
   - https://api.yourdomain.com -> API Server (port 4100)
   - https://mcp.yourdomain.com -> MCP Server (port 4103)
+  - https://umap.yourdomain.com -> UMAP Service (port 5001)  # POC only
 ```
 
 ## Troubleshooting

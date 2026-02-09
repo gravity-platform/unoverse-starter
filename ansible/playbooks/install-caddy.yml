@@ -6,6 +6,9 @@
 #   Direct mode (Caddy handles TLS):
 #     ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai"
 #
+#   POC mode (includes UMAP subdomain):
+#     ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai" -e "include_umap=true"
+#
 #   Behind Load Balancer (LB terminates TLS):
 #     ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml -e "domain=whats-up.ai" -e "behind_lb=true"
 #
@@ -23,6 +26,7 @@
   vars:
     caddy_domain: "{{ domain | default('localhost') }}"
     caddy_behind_lb: "{{ behind_lb | default(false) }}"
+    caddy_include_umap: "{{ include_umap | default(false) }}"
 
   tasks:
     - name: "[1/5] Install prerequisites"
@@ -94,6 +98,9 @@
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://{{ caddy_domain }} -> Canvas (port 3001)
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://api.{{ caddy_domain }} -> API Server (port 4100)
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://mcp.{{ caddy_domain }} -> MCP Server (port 4103)
+{% if caddy_include_umap %}
+            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://umap.{{ caddy_domain }} -> UMAP Service (port 5001)
+{% endif %}
 
           TLS: {% if caddy_behind_lb %}Terminated at Load Balancer{% else %}Auto-provisioned via Lets Encrypt{% endif %}
 

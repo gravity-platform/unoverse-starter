@@ -69,7 +69,7 @@ ansible-playbook -i inventory/production.yml playbooks/harden.yml
 
 # 6. TLS (optional - if no external LB)
 ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
-  -e "domain=yourdomain.com"
+  -e "domain=yourdomain.com" -e "include_umap=true"
 
 # 7. Verify
 ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
