@@ -124,6 +124,34 @@ If the database doesn't exist:
 CREATE DATABASE gravity;
 ```
 
+## Database Migration
+
+To migrate data between database providers (e.g., Timescale → DigitalOcean):
+
+```bash
+cd ansible
+ansible-playbook -i inventory/production.yml playbooks/migrate-db.yml \
+  -e 'source_db=postgres://user:pass@source-host:port/db?sslmode=require' \
+  -e 'target_db=postgres://user:pass@target-host:port/db?sslmode=require'
+```
+
+This will:
+
+1. Install PostgreSQL 17 client tools (if needed)
+2. `pg_dump` the source database (read-only — source is not modified)
+3. Enable `vector` and `pg_stat_statements` extensions on target
+4. `pg_restore` to the target database
+5. Update `/opt/gravity/.env` with the new `DATABASE_URL`
+6. Restart workflow and server services
+
+**Note:** Timescale-specific errors (continuous_agg, bgw_job) during restore are expected and harmless — all application tables migrate correctly.
+
+After migration, verify with:
+
+```bash
+ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
+```
+
 ## Next Steps
 
 - [03-ai-model.md](./03-ai-model.md) - Deploy UMAP AI service

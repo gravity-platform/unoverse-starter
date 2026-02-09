@@ -1,14 +1,16 @@
 # Runbook: AI Model (UMAP)
 
-Deploy the UMAP AI service for semantic search and spatial embeddings.
+Deploy the UMAP AI service for spatial search and 3D dictionary visualization.
 
 ## Overview
 
-UMAP (Uniform Manifold Approximation and Projection) provides:
+UMAP (Uniform Manifold Approximation and Projection) converts 1536-dimensional OpenAI embeddings into 3D coordinates for:
 
-- Semantic search capabilities
-- Spatial embeddings for content similarity
-- Need-aware search (finds content by intent, not just keywords)
+- **Spatial search** — find dictionary entries near a query point in 3D space
+- **3D visualization** — render the dictionary as an explorable 3D map in Canvas
+- **MCP discovery** — spatial proximity for tool/capability matching
+
+UMAP is separate from **vector search** (which uses pgvector for direct 1536D similarity). Both search types serve different purposes and coexist.
 
 ## VM Requirements
 
@@ -23,24 +25,51 @@ UMAP (Uniform Manifold Approximation and Projection) provides:
 - [ ] Database configured ([02-database.md](./02-database.md))
 - [ ] For Enterprise: Dedicated ML VM provisioned
 
-## Deployment Options
+## Deployment Modes
 
-| Tier       | Where UMAP runs | Configuration                             |
-| ---------- | --------------- | ----------------------------------------- |
-| POC        | Same VM as core | `UMAP_SERVICE_URL=http://umap:5001`       |
-| Enterprise | Dedicated ML VM | `UMAP_SERVICE_URL=http://<ML_VM_IP>:5001` |
+The `install-umap.yml` playbook **auto-detects** the deployment mode:
+
+| Mode       | Detection                                | What happens                                    |
+| ---------- | ---------------------------------------- | ----------------------------------------------- |
+| POC        | `/opt/gravity/docker-compose.yml` exists | Runs `docker compose up -d umap` (same network) |
+| Enterprise | No `docker-compose.yml` on target        | Runs standalone container on dedicated ML VM    |
+
+| Mode       | UMAP_SERVICE_URL                       | Docker network                  |
+| ---------- | -------------------------------------- | ------------------------------- |
+| POC        | `http://umap:5001` (set in compose)    | Same network as workflow (auto) |
+| Enterprise | `http://<ML_VM_IP>:5001` (set in .env) | Host networking on ML VM        |
 
 ## Steps
 
-### POC (Same VM)
+### Install UMAP
 
-UMAP is included in `docker-compose.yml` and starts automatically with `docker compose up -d`. No additional steps needed after `install.yml`.
+```bash
+cd ansible
 
-> **Note:** Do NOT run `install-umap.yml` on a POC VM — it creates a standalone container that conflicts with the docker-compose UMAP service on port 5001. Use `install-umap.yml` only for dedicated Enterprise ML VMs.
+# POC (same VM as core services) — auto-detected
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
 
-### Enterprise (Dedicated ML VM)
+# Enterprise (dedicated ML VM)
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
+```
 
-#### 1. Add ML VM to Inventory
+The playbook will:
+
+1. Install Docker (if needed)
+2. Detect POC vs Enterprise mode
+3. **POC:** Remove any standalone UMAP container, then `docker compose pull umap && docker compose up -d umap`
+4. **Enterprise:** Pull image from DOCR, start standalone container with 2GB memory limit
+5. Health check on port 5001
+
+### Enterprise Only: Configure App VMs
+
+For Enterprise mode, update `.env` on App VMs:
+
+```
+UMAP_SERVICE_URL=http://<ML_VM_PRIVATE_IP>:5001
+```
+
+Add ML VM to inventory:
 
 ```yaml
 # ansible/inventory/production.yml
@@ -51,56 +80,58 @@ ml_vms:
       ansible_user: root
 ```
 
-#### 2. Deploy UMAP
+### Verify
 
 ```bash
-cd ansible
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
+# Health check
+curl http://localhost:5001/health
+
+# Full platform check (includes UMAP port, health, and Docker DNS)
+ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 ```
 
-#### 3. Configure App VMs to Use ML VM
+The `test-connectivity.yml` playbook checks:
 
-Update `.env` on App VMs:
-
-```
-UMAP_SERVICE_URL=http://<ML_VM_PRIVATE_IP>:5001
-```
-
-Then restart services:
-
-```bash
-ansible-playbook -i inventory/production.yml playbooks/upgrade.yml -l app_vms
-```
-
-### 4. Verify
-
-```bash
-# Test UMAP health
-curl http://<ML_VM_IP>:5001/health
-
-# Or from App VM
-curl http://localhost:5001/health  # POC
-curl http://<ML_VM_IP>:5001/health  # Enterprise
-```
+- UMAP port 5001 is open
+- UMAP `/health` endpoint returns 200
+- Workflow container can resolve `umap:5001` via Docker DNS (POC mode)
 
 ## Expected Output
 
 ```
 UMAP SERVICE DEPLOYED
 ============================================
-Host: ml-1 (10.0.1.20)
-Service: umap-service
-Port: 5001
+Host: gravity-prod (YOUR_VM_IP)
+
 Health: OK
+
+Internal URL: http://YOUR_VM_IP:5001
+============================================
 ```
+
+## How Spatial Search Works
+
+1. User submits a search query
+2. Server proxies to workflow service (`/dictionary/search`)
+3. Workflow generates a 1536D embedding via OpenAI
+4. Workflow sends embedding to UMAP service (`http://umap:5001/transform`)
+5. UMAP returns 3D coordinates `[x, y, z]`
+6. Workflow queries `dictionary_need_states` table using Euclidean distance:
+   ```sql
+   sqrt(pow(umap_x - $1, 2) + pow(umap_y - $2, 2) + pow(umap_z - $3, 2))
+   ```
+7. Results returned sorted by distance
 
 ## Troubleshooting
 
-| Issue                          | Cause            | Fix                                |
-| ------------------------------ | ---------------- | ---------------------------------- |
-| Model loading slow             | First startup    | Wait 2-3 minutes for model to load |
-| Out of memory                  | Insufficient RAM | Increase VM to 16GB+               |
-| Connection refused from App VM | Firewall         | Allow App VM → ML VM on port 5001  |
+| Issue                          | Cause                           | Fix                                                  |
+| ------------------------------ | ------------------------------- | ---------------------------------------------------- |
+| `getaddrinfo EAI_AGAIN umap`   | UMAP not on same Docker network | Run `install-umap.yml` (POC mode fixes this)         |
+| Model loading slow             | First startup                   | Wait 2-3 minutes for model to load                   |
+| Out of memory                  | Insufficient RAM                | Increase VM to 16GB+ or set `--memory=4g`            |
+| Connection refused from App VM | Firewall                        | Allow App VM → ML VM on port 5001                    |
+| 500 error on spatial search    | UMAP unreachable                | Check `docker compose logs workflow` for UMAP errors |
+| "Model may not be trained"     | No UMAP model for workflow      | Train model via Dictionary → Settings in Canvas      |
 
 ## Next Steps
 
