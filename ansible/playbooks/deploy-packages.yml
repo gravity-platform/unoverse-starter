@@ -39,7 +39,7 @@
 
     - name: "Set packages_token"
       set_fact:
-        packages_token: "{{ env_packages_token.stdout | default('') }}"
+        packages_token: "{{ env_packages_token.stdout | default('') | trim }}"
 
   tasks:
     - name: "[1/7] Install git"
@@ -49,11 +49,11 @@
 
     - name: "[2/7] Clone {{ starter_repo }} ({{ starter_branch | default('main') }})"
       git:
-        repo: "{{ 'https://' + packages_token + '@' + (starter_repo | regex_replace('^https?://', '')) if packages_token else starter_repo }}"
+        repo: "{{ 'https://' + packages_token + '@' + (starter_repo | regex_replace('^https?://', '')) if (packages_token | length > 0) else starter_repo }}"
         dest: /tmp/gravity-packages
         version: "{{ starter_branch | default('main') }}"
         force: yes
-      no_log: "{{ packages_token | default('') != '' }}"
+      no_log: "{{ (packages_token | length) > 0 }}"
 
     - name: "[3/7] Copy workspace config files"
       copy:
