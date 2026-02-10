@@ -17,7 +17,7 @@
 
   vars:
     gravity_dir: /opt/gravity
-    core_services: "server workflow node-service mcp-server canvas"
+    core_services: "server workflow node-service mcp-server canvas umap"
 
   pre_tasks:
     - name: "[1/10] Check current system"
