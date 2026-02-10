@@ -48,7 +48,8 @@ cd ansible
 ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
   -e "domain=yourdomain.com"
 
-# POC only — also expose UMAP on umap.yourdomain.com
+# With external UMAP access (required if local dev or external clients
+# need to call the UMAP service via UMAP_SERVICE_URL=https://umap.yourdomain.com)
 ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
   -e "domain=yourdomain.com" -e "include_umap=true"
 ```
