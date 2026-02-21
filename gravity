@@ -8,6 +8,7 @@ set -e
 #
 # Usage:
 #   ./gravity init      Interactive setup wizard
+#   ./gravity db-setup  Create database tables (safe to re-run)
 #   ./gravity start     Start the platform
 #   ./gravity stop      Stop the platform
 #   ./gravity status    Show service health
@@ -649,6 +650,7 @@ cmd_pull() {
     "registry.digitalocean.com/gravity-repo/gravity-umap:latest"
     "registry.digitalocean.com/gravity-repo/gravity-node-service:latest"
     "registry.digitalocean.com/gravity-repo/gravity-mcp-server:latest"
+    "registry.digitalocean.com/gravity-repo/gravity-memory:latest"
   )
 
   local total=${#IMAGES[@]}
@@ -991,7 +993,7 @@ cmd_check() {
   local pass=0 total=0
 
   # 1. Services
-  for svc in server workflow node-service canvas umap mcp-server; do
+  for svc in server workflow node-service canvas umap mcp-server memory; do
     total=$((total + 1))
     local status
     status=$(docker compose -f "$ROOT/docker-compose.yml" ps --format '{{.Status}}' "$svc" 2>/dev/null | head -1)
@@ -1188,7 +1190,7 @@ cmd_db_setup() {
     fi
 
     # Run table initialization
-    DATABASE_URL="$db_url" node -e "
+    NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" node -e "
       const db = require('$ROOT/apps/workflow/dist/db');
       (async () => {
         const steps = [

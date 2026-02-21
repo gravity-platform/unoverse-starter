@@ -1,0 +1,100 @@
+/* PrintPage - Base page wrapper for print documents
+ *
+ * Approach: Render content at fixed reference dimensions (96 DPI),
+ * then scale the entire page uniformly to fit the container.
+ * This is how PDF viewers work — content never reflows, just zooms.
+ *
+ * Structure:
+ *   .page (outer — sets aspect-ratio, overflow:hidden)
+ *     .scaleWrapper (inner — fixed ref size, transform:scale via JS)
+ *       children (pt-based content, pixel-perfect at ref size)
+ */
+@import "../../../styles/print-tokens.css";
+
+/* Outer container — fills parent width, aspect-ratio sets height */
+.page {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Inner wrapper — fixed reference dimensions, scaled by JS */
+.scaleWrapper {
+  transform-origin: top left;
+  background-color: var(--print-white);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  box-sizing: border-box;
+}
+
+/* ============================================
+ * SIZE CLASSES — aspect-ratio on .page,
+ * fixed px dimensions on .scaleWrapper
+ * Reference: 96 DPI
+ *   Letter  8.5×11"  = 816×1056px
+ *   Tabloid 11×17"   = 1056×1632px
+ *   A4      210×297mm = 794×1123px
+ * ============================================ */
+.letter {
+  aspect-ratio: 8.5 / 11;
+}
+.letterLandscape {
+  aspect-ratio: 11 / 8.5;
+}
+.tabloid {
+  aspect-ratio: 11 / 17;
+}
+.tabloidLandscape {
+  aspect-ratio: 17 / 11;
+}
+.a4 {
+  aspect-ratio: 210 / 297;
+}
+.a4Landscape {
+  aspect-ratio: 297 / 210;
+}
+
+/* Fixed dimensions for @media print — no scaling needed */
+@media print {
+  .page {
+    page-break-after: always;
+    width: auto;
+    overflow: visible;
+    aspect-ratio: unset;
+  }
+  .scaleWrapper {
+    transform: none !important;
+  }
+  .letter .scaleWrapper,
+  .letter.page {
+    width: var(--print-letter-w) !important;
+    height: var(--print-letter-h) !important;
+  }
+  .letterLandscape .scaleWrapper,
+  .letterLandscape.page {
+    width: var(--print-letter-h) !important;
+    height: var(--print-letter-w) !important;
+  }
+  .tabloid .scaleWrapper,
+  .tabloid.page {
+    width: var(--print-tabloid-w) !important;
+    height: var(--print-tabloid-h) !important;
+  }
+  .tabloidLandscape .scaleWrapper,
+  .tabloidLandscape.page {
+    width: var(--print-tabloid-h) !important;
+    height: var(--print-tabloid-w) !important;
+  }
+  .a4 .scaleWrapper,
+  .a4.page {
+    width: var(--print-a4-w) !important;
+    height: var(--print-a4-h) !important;
+  }
+  .a4Landscape .scaleWrapper,
+  .a4Landscape.page {
+    width: var(--print-a4-h) !important;
+    height: var(--print-a4-w) !important;
+  }
+}

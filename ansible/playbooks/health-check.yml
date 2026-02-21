@@ -19,6 +19,7 @@
         - { name: workflow, port: 4101 }
         - { name: node-service, port: 4102 }
         - { name: mcp-server, port: 4103 }
+        - { name: memory, port: 4104 }
         - { name: umap, port: 5001 }
       when: item.name in gravity_services
       ignore_errors: yes
@@ -34,6 +35,7 @@
         - { name: workflow, port: 4101 }
         - { name: node-service, port: 4102 }
         - { name: mcp-server, port: 4103 }
+        - { name: memory, port: 4104 }
         - { name: umap, port: 5001 }
       when: item.name in gravity_services
       ignore_errors: yes

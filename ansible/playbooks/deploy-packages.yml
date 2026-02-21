@@ -46,10 +46,17 @@
         packages_token: "{{ env_packages_token.stdout | default('') | trim }}"
 
   tasks:
-    - name: "[1/5] Install git"
+    - name: "[1/5] Install git (Debian/Ubuntu)"
       apt:
         name: git
         state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: "[1/5] Install git (RHEL/Amazon Linux)"
+      dnf:
+        name: git
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
 
     - name: "[2/5] Clone {{ starter_repo }} ({{ starter_branch | default('main') }})"
       git:

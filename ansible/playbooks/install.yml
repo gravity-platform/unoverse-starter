@@ -17,7 +17,7 @@
 
   vars:
     gravity_dir: /opt/gravity
-    core_services: "server workflow node-service mcp-server canvas umap"
+    core_services: "server workflow node-service mcp-server memory canvas umap"
 
   pre_tasks:
     - name: "[1/10] Check current system"
@@ -61,7 +61,7 @@
         append: yes
 
   tasks:
-    - name: "[5/12] Install Node.js 20 LTS"
+    - name: "[5/12] Install Node.js 20 LTS (Debian/Ubuntu)"
       shell: |
         if command -v node &> /dev/null; then
           echo "Node.js already installed: $(node --version)"
@@ -72,10 +72,24 @@
           echo "Installed: $(node --version)"
         fi
       register: node_install
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: "[5/12] Install Node.js 20 LTS (RHEL/Amazon Linux)"
+      shell: |
+        if command -v node &> /dev/null; then
+          echo "Node.js already installed: $(node --version)"
+        else
+          echo "Installing Node.js 20 LTS..."
+          curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+          dnf install -y nodejs
+          echo "Installed: $(node --version)"
+        fi
+      register: node_install_rhel
+      when: ansible_facts['os_family'] == "RedHat"
 
     - name: "[5/12] Node.js version"
       debug:
-        msg: "{{ node_install.stdout_lines | default(['Node.js already present']) }}"
+        msg: "{{ (node_install.stdout_lines | default(node_install_rhel.stdout_lines | default(['Node.js already present']))) }}"
 
     - name: "[6/12] Read DOCR token from local .env"
       shell: grep '^DOCR_TOKEN=' {{ env_file | default('../files/.env') }} | cut -d= -f2
@@ -182,6 +196,16 @@
       delay: 2
       ignore_errors: yes
 
+    - name: "Health check - Memory (port 4104)"
+      uri:
+        url: "http://localhost:4104/health"
+        status_code: 200
+      register: memory_health
+      until: memory_health.status == 200
+      retries: 30
+      delay: 2
+      ignore_errors: yes
+
     - name: "=== DEPLOYMENT SUMMARY ==="
       debug:
         msg: |
@@ -194,8 +218,10 @@
             - Server:       {{ 'OK' if (server_health.status | default(0)) == 200 else 'FAILED' }}
             - Workflow:     {{ 'OK' if (workflow_health.status | default(0)) == 200 else 'FAILED' }}
             - Node Service: {{ 'OK' if (node_health.status | default(0)) == 200 else 'FAILED' }}
+            - Memory:       {{ 'OK' if (memory_health.status | default(0)) == 200 else 'FAILED' }}
 
           Access URLs:
-            - Canvas:   http://{{ ansible_host }}:3001
-            - API:      http://{{ ansible_host }}:4100
+            - Canvas:    http://{{ ansible_host }}:3001
+            - API:       http://{{ ansible_host }}:4100
+            - Memory:    http://{{ ansible_host }}:4104/dashboard
           ============================================

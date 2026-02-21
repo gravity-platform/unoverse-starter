@@ -13,6 +13,9 @@ export function generateNodeIndex(metadata: ComponentMetadata): string {
     ? `    nodeSize: { width: ${metadata.workflowSize.width}, height: ${metadata.workflowSize.height} },\n`
     : "";
 
+  const templateType = metadata.isPrintPage ? "printComponent" : "uiComponent";
+  const category = metadata.isPrintPage ? "Print" : "Design System";
+
   return `/**
  * ${metadata.name} Node Definition
  * Auto-generated from Storybook component
@@ -29,14 +32,14 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
     packageVersion: "1.0.0",
     type: NODE_TYPE,
     name: "${metadata.name}",
-    description: "${metadata.name} UI component from design system",
-    category: "Design System",
-    color: "#10b981",
-    template: "uiComponent",
+    description: "${metadata.name} ${metadata.isPrintPage ? "print document" : "UI component"} from design system",
+    category: "${category}",
+    color: "${metadata.isPrintPage ? "#8b5cf6" : "#10b981"}",
+    template: "${templateType}",
     componentTemplate: loadDefaultTemplate(),
     logoUrl: "https://res.cloudinary.com/sonik/image/upload/v1751366180/gravity/icons/gravityIcon.png",
 ${nodeSizeLine}    inputs: [{ name: "signal", type: NodeInputType.OBJECT, description: "Signal" }],
-    outputs: [{ name: "output", type: NodeInputType.OBJECT, description: "Response object" }],
+    outputs: [{ name: "componentSpec", type: NodeInputType.OBJECT, description: "Component spec for downstream nodes" }],
     configSchema: ${JSON.stringify(configSchema, null, 6)},
     credentials: [],
   };

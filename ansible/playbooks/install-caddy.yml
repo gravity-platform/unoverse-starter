@@ -29,7 +29,7 @@
     caddy_include_umap: "{{ include_umap | default(false) }}"
 
   tasks:
-    - name: "[1/5] Install prerequisites"
+    - name: "[1/5] Install prerequisites (Debian/Ubuntu)"
       apt:
         name:
           - debian-keyring
@@ -38,24 +38,50 @@
           - curl
         state: present
         update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: "[2/5] Add Caddy GPG key"
+    - name: "[1/5] Install prerequisites (RHEL/Amazon Linux)"
+      dnf:
+        name:
+          - curl
+          - yum-utils
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: "[2/5] Add Caddy GPG key (Debian/Ubuntu)"
       shell: |
         curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
       args:
         creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: "[2/5] Add Caddy repository"
+    - name: "[2/5] Add Caddy repository (Debian/Ubuntu)"
       shell: |
         curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
       args:
         creates: /etc/apt/sources.list.d/caddy-stable.list
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: "[3/5] Install Caddy"
+    - name: "[2/5] Add Caddy repository (RHEL/Amazon Linux)"
+      shell: |
+        dnf install -y 'dnf-command(copr)'
+        dnf copr enable -y @caddy/caddy
+      args:
+        creates: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:group_caddy:caddy.repo
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: "[3/5] Install Caddy (Debian/Ubuntu)"
       apt:
         name: caddy
         state: present
         update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: "[3/5] Install Caddy (RHEL/Amazon Linux)"
+      dnf:
+        name: caddy
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
 
     - name: "[4/5] Configure Caddyfile"
       template:

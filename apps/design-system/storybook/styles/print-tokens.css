@@ -1,0 +1,63 @@
+/**
+ * Print Design Tokens
+ * CSS Custom Properties for print document components
+ * Uses pt (points) for print accuracy, not px
+ * Defined on :root and :host for Shadow DOM compatibility
+ */
+
+:root, :host {
+  /* ============================================
+   * PRINT FONT FAMILIES
+   * ============================================ */
+  --print-font-serif: "Georgia", "Times New Roman", serif;
+  --print-font-sans: "Helvetica Neue", "Arial", sans-serif;
+  --print-font-mono: "Courier New", "Courier", monospace;
+  --print-font-display: "Old English Text MT", "UnifrakturMaguntia", serif;
+  --print-font-typewriter: "American Typewriter", "Courier New", monospace;
+  --print-font-stencil: "Stencil Std", "Impact", sans-serif;
+
+  /* ============================================
+   * PRINT FONT SIZES (pt for print accuracy)
+   * ============================================ */
+  --print-text-xs: 7pt;
+  --print-text-sm: 8pt;
+  --print-text-base: 10pt;
+  --print-text-md: 11pt;
+  --print-text-lg: 14pt;
+  --print-text-xl: 18pt;
+  --print-text-2xl: 24pt;
+  --print-text-3xl: 36pt;
+  --print-text-headline: 48pt;
+
+  /* ============================================
+   * PRINT SPACING
+   * ============================================ */
+  --print-gutter: 12pt;
+  --print-margin: 36pt;
+  --print-margin-sm: 24pt;
+  --print-column-gap: 18pt;
+
+  /* ============================================
+   * PRINT COLORS (CMYK-safe)
+   * ============================================ */
+  --print-black: #1a1a1a;
+  --print-gray-dark: #4a4a4a;
+  --print-gray: #808080;
+  --print-gray-light: #c0c0c0;
+  --print-gray-rule: #999999;
+  --print-cream: #f5f0e8;
+  --print-cream-dark: #e8e0d0;
+  --print-red-stamp: #cc0000;
+  --print-blue-ink: #000066;
+  --print-white: #ffffff;
+
+  /* ============================================
+   * PAGE SIZES
+   * ============================================ */
+  --print-letter-w: 8.5in;
+  --print-letter-h: 11in;
+  --print-tabloid-w: 11in;
+  --print-tabloid-h: 17in;
+  --print-a4-w: 210mm;
+  --print-a4-h: 297mm;
+}

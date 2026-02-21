@@ -10,6 +10,7 @@ Deploy the core Gravity Platform services to a VM.
 | **workflow**     | 4101 | XState orchestration engine         |
 | **node-service** | 4102 | Node execution service              |
 | **mcp-server**   | 4103 | MCP (Model Context Protocol) server |
+| **memory**       | 4104 | Evidence-based user memory          |
 | **canvas**       | 3001 | Web UI                              |
 
 ## VM Requirements
@@ -79,7 +80,7 @@ cd ansible
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 ```
 
-This installs Docker, Node.js, pulls DOCR images, and starts **core platform** (server, workflow, node-service, mcp-server, canvas).
+This installs Docker, Node.js, pulls DOCR images, and starts **core platform** (server, workflow, node-service, mcp-server, memory, canvas).
 
 ### 4. Deploy Customer Packages
 
@@ -111,12 +112,18 @@ Service Health:
   - Workflow:      OK
   - Node Service:  OK
   - MCP Server:    OK
+  - Memory:        OK
   - Canvas:        OK
 
 Access URLs:
   - Canvas:  http://<YOUR_VM_IP>:3001
   - API:     http://<YOUR_VM_IP>:4100
+
+Internal Only (SSH tunnel required):
+  - Memory:  http://localhost:4104/dashboard
 ```
+
+> **Memory dashboard is internal-only.** Access via SSH tunnel: `ssh -L 4104:localhost:4104 root@<VM_IP>` then open `http://localhost:4104/dashboard`. It is NOT exposed via Caddy.
 
 ## Troubleshooting
 

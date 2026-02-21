@@ -50,7 +50,7 @@
         msg: "target_db is required. Pass with -e target_db='postgres://...'"
       when: target_db is not defined or target_db == ""
 
-    - name: "[1/6] Add PostgreSQL 17 APT repository"
+    - name: "[1/6] Install PostgreSQL 17 client (Debian/Ubuntu)"
       shell: |
         if ! dpkg -l postgresql-client-17 2>/dev/null | grep -q '^ii'; then
           apt-get install -y curl ca-certificates gnupg
@@ -62,9 +62,25 @@
           echo "postgresql-client-17 already installed"
         fi
       register: pg_install
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: "[1/6] Install PostgreSQL 17 client (RHEL/Amazon Linux)"
+      shell: |
+        if ! command -v pg_dump &> /dev/null; then
+          dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-$(rpm -E %{rhel})-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+          dnf install -y postgresql17
+        else
+          echo "postgresql client already installed"
+        fi
+      register: pg_install_rhel
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: "[1/6] Set PostgreSQL binary path"
+      set_fact:
+        pg_bin: "{{ '/usr/lib/postgresql/17/bin' if ansible_facts['os_family'] == 'Debian' else '/usr/pgsql-17/bin' }}"
 
     - name: "[1/6] PostgreSQL client version"
-      shell: /usr/lib/postgresql/17/bin/pg_dump --version
+      shell: "{{ pg_bin }}/pg_dump --version"
       register: pg_version
 
     - name: "[1/6] Version"
@@ -73,7 +89,7 @@
 
     - name: "[2/6] Dump source database"
       shell: |
-        /usr/lib/postgresql/17/bin/pg_dump "{{ source_db }}" --no-owner --no-acl -Fc -f /tmp/gravity.dump
+        {{ pg_bin }}/pg_dump "{{ source_db }}" --no-owner --no-acl -Fc -f /tmp/gravity.dump
       register: dump_result
 
     - name: "[2/6] Dump size"
@@ -86,8 +102,8 @@
 
     - name: "[3/6] Enable extensions on target"
       shell: |
-        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
-        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>&1
+        {{ pg_bin }}/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
+        {{ pg_bin }}/psql "{{ target_db }}" -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" 2>&1
       register: ext_result
       ignore_errors: yes
 
@@ -97,7 +113,7 @@
 
     - name: "[4/6] Restore to target database"
       shell: |
-        /usr/lib/postgresql/17/bin/pg_restore --no-owner --no-acl --clean --if-exists \
+        {{ pg_bin }}/pg_restore --no-owner --no-acl --clean --if-exists \
           -d "{{ target_db }}" /tmp/gravity.dump 2>&1 || true
       register: restore_result
 
@@ -107,7 +123,7 @@
 
     - name: "[5/6] Verify tables exist on target"
       shell: |
-        /usr/lib/postgresql/17/bin/psql "{{ target_db }}" -c "\dt" 2>&1 | head -30
+        {{ pg_bin }}/psql "{{ target_db }}" -c "\dt" 2>&1 | head -30
       register: tables_check
 
     - name: "[5/6] Tables on target"

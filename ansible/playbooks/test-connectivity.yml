@@ -42,6 +42,7 @@
         - { name: "Workflow", port: 4101 }
         - { name: "Node Service", port: 4102 }
         - { name: "MCP Server", port: 4103 }
+        - { name: "Memory", port: 4104 }
         - { name: "UMAP", port: 5001 }
       register: port_checks
       ignore_errors: yes
@@ -85,6 +86,7 @@
         - { name: "Workflow", port: 4101 }
         - { name: "Node Service", port: 4102 }
         - { name: "MCP Server", port: 4103 }
+        - { name: "Memory", port: 4104 }
         - { name: "UMAP", port: 5001 }
       register: health_checks
       ignore_errors: yes

@@ -1,190 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Figure 2: Standard Enterprise Deployment Architecture</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  </style>
-</head>
-<body class="bg-white">
-  <div id="root"></div>
-  <script type="text/babel">
-    const Icon = ({ paths, size = 24, className = "", strokeWidth = 2 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
-        strokeLinejoin="round" className={className}>
-        {paths.map((d, i) => <path key={i} d={d} />)}
-      </svg>
-    );
-    const Users = (p) => <Icon {...p} paths={["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2","M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z","M22 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75"]} />;
-    const Cloud = (p) => <Icon {...p} paths={["M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"]} />;
-    const ArrowDown = (p) => <Icon {...p} paths={["M12 5v14","M19 12l-7 7-7-7"]} />;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figure 2: Standard Enterprise Deployment Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <div id="root"></div>
+    <script type="text/babel">
+      const Icon = ({ paths, size = 24, className = "", strokeWidth = 2 }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          {paths.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </svg>
+      );
+      const Users = (p) => (
+        <Icon
+          {...p}
+          paths={[
+            "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",
+            "M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+            "M22 21v-2a4 4 0 0 0-3-3.87",
+            "M16 3.13a4 4 0 0 1 0 7.75",
+          ]}
+        />
+      );
+      const Cloud = (p) => <Icon {...p} paths={["M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"]} />;
+      const ArrowDown = (p) => <Icon {...p} paths={["M12 5v14", "M19 12l-7 7-7-7"]} />;
 
-    const App = () => (
-      <div className="max-w-6xl mx-auto p-8">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-gray-300 pb-3">
-          Figure 2: Standard Enterprise Deployment Architecture
-        </h2>
+      const App = () => (
+        <div className="max-w-6xl mx-auto p-4">
+          <h2 className="text-xl font-bold mb-3 text-gray-800 border-b-2 border-gray-300 pb-2">
+            Figure 2: Standard Enterprise Deployment Architecture
+          </h2>
 
-        <div className="border-4 border-gray-400 rounded-lg p-6 bg-gray-50">
-          <p className="text-center font-bold text-gray-700 mb-6 text-lg">CUSTOMER NETWORK</p>
+          <div className="border-3 border-gray-400 rounded-lg p-4 bg-gray-50">
+            <p className="text-center font-bold text-gray-700 mb-3 text-sm">CUSTOMER NETWORK</p>
 
-          {/* Client App */}
-          <div className="mb-5 bg-gradient-to-r from-sky-100 to-sky-50 border-2 border-sky-400 rounded-lg p-4">
-            <div className="flex items-center justify-center gap-3">
-              <Users size={28} className="text-sky-600" />
-              <div className="text-center">
-                <p className="font-bold text-sky-800 text-lg">Client App (SPA) - Customer-Hosted</p>
-                <div className="text-xs text-gray-700 mt-2 space-y-1">
-                  <p>- <strong>Azure:</strong> Static Web Apps, App Service, Blob Storage + CDN</p>
-                  <p>- <strong>AWS:</strong> S3 + CloudFront, Amplify, Elastic Beanstalk</p>
-                  <p>- <strong>On-premises:</strong> Customer web servers (nginx / IIS / Apache)</p>
+            {/* Client App */}
+            <div className="mb-3 bg-gradient-to-r from-sky-100 to-sky-50 border border-sky-400 rounded-lg p-2">
+              <div className="flex items-center justify-center gap-2">
+                <Users size={20} className="text-sky-600" />
+                <div className="text-center">
+                  <p className="font-bold text-sky-800 text-sm">Client App (SPA) - Customer-Hosted</p>
+                  <p className="text-xs text-gray-600">Azure Static Web Apps / AWS S3+CloudFront / On-premises nginx</p>
+                  <p className="text-xs text-blue-600 font-semibold mt-1">Public-facing | Customer infrastructure</p>
                 </div>
-                <p className="text-xs text-blue-600 font-semibold mt-2">Public-facing for end users | Within customer's infrastructure</p>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-center mb-5"><ArrowDown size={32} className="text-gray-500" /></div>
-
-          {/* Load Balancer */}
-          <div className="mb-5">
-            <div className="bg-blue-600 text-white p-4 rounded-lg text-center max-w-2xl mx-auto">
-              <div className="flex items-center justify-center gap-3">
-                <Cloud size={28} />
-                <div>
-                  <p className="font-bold text-lg">Customer Load Balancer</p>
-                  <p className="text-sm">F5 / HAProxy / AWS ALB / DigitalOcean LB</p>
-                  <p className="text-xs mt-1">HTTPS:443 (TLS termination or passthrough)</p>
-                </div>
-              </div>
-              <div className="mt-4 bg-blue-700 rounded-lg p-3">
-                <p className="text-xs font-semibold mb-2">Subdomain Routing:</p>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="bg-blue-800 p-2 rounded"><p className="font-bold">domain.com</p><p className="text-blue-200">Canvas :3001</p></div>
-                  <div className="bg-blue-800 p-2 rounded"><p className="font-bold">api.domain.com</p><p className="text-blue-200">Server :4100</p></div>
-                  <div className="bg-blue-800 p-2 rounded"><p className="font-bold">mcp.domain.com</p><p className="text-blue-200">MCP :4103</p></div>
-                </div>
-              </div>
+            <div className="flex justify-center mb-2">
+              <ArrowDown size={24} className="text-gray-500" />
             </div>
-          </div>
 
-          <div className="flex justify-center mb-5"><ArrowDown size={40} className="text-gray-400" strokeWidth={3} /></div>
-
-          {/* App VMs */}
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            {[1, 2].map(n => (
-              <div key={n} className="border-4 border-green-500 rounded-lg p-5 bg-green-50">
-                <div className="bg-green-600 text-white p-3 rounded-lg mb-4 text-center">
-                  <h3 className="font-bold text-lg">APP-VM-{n}</h3>
-                  <p className="text-sm">8 vCPU | 32 GB RAM | 200 GB SSD</p>
-                  <p className="text-xs mt-1">Active/Active</p>
-                </div>
-                <div className="space-y-2 text-sm">
-                  {[
-                    ["server:4100", "API Gateway, WebSocket hub (2GB / 1 CPU)"],
-                    ["workflow:4101", "XState orchestration engine (8GB / 4 CPU)"],
-                    ["node-service:4102", "Plugin execution, sandboxed (4GB / 2 CPU)"],
-                    ["mcp-server:4103", "OpenAI Apps integration (1GB / 0.5 CPU)"],
-                  ].map(([name, desc]) => (
-                    <div key={name} className="bg-white p-2 rounded border-l-4 border-green-600">
-                      <p className="font-semibold">{name}</p>
-                      <p className="text-xs text-gray-600">{desc}</p>
-                    </div>
-                  ))}
-                  <div className="bg-indigo-100 p-2 rounded border-l-4 border-indigo-600">
-                    <p className="font-semibold">canvas:3001</p>
-                    <p className="text-xs text-gray-600">Locode AI Agent builder UI (512MB / 0.25 CPU)</p>
+            {/* Load Balancer */}
+            <div className="mb-3">
+              <div className="bg-blue-600 text-white p-3 rounded-lg text-center max-w-2xl mx-auto">
+                <div className="flex items-center justify-center gap-2">
+                  <Cloud size={20} />
+                  <div>
+                    <p className="font-bold text-sm">Customer Load Balancer</p>
+                    <p className="text-xs">F5 / HAProxy / AWS ALB | HTTPS:443</p>
                   </div>
                 </div>
-                <div className="mt-3 bg-green-100 p-2 rounded text-xs text-center text-gray-600">
-                  ~16 GB allocated / 32 GB total (50% utilization target)
+                <div className="mt-2 grid grid-cols-3 gap-1 text-xs">
+                  <div className="bg-blue-800 p-1.5 rounded">
+                    <p className="font-bold">domain.com</p>
+                    <p className="text-blue-200">Canvas :3001</p>
+                  </div>
+                  <div className="bg-blue-800 p-1.5 rounded">
+                    <p className="font-bold">api.domain.com</p>
+                    <p className="text-blue-200">Server :4100</p>
+                  </div>
+                  <div className="bg-blue-800 p-1.5 rounded">
+                    <p className="font-bold">mcp.domain.com</p>
+                    <p className="text-blue-200">MCP :4103</p>
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="flex justify-center mb-2">
+              <ArrowDown size={28} className="text-gray-400" strokeWidth={3} />
+            </div>
+
+            {/* App VMs */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {[1, 2].map((n) => (
+                <div key={n} className="border-2 border-green-500 rounded-lg p-3 bg-green-50">
+                  <div className="bg-green-600 text-white p-2 rounded-lg mb-2 text-center">
+                    <h3 className="font-bold text-sm">APP-VM-{n}</h3>
+                    <p className="text-xs">8 vCPU | 32 GB RAM | 200 GB SSD | Active/Active</p>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    {[
+                      ["server:4100", "API Gateway, WebSocket hub (2GB / 1 CPU)"],
+                      ["workflow:4101", "Agent Orchestration engine (8GB / 4 CPU)"],
+                      ["node-service:4102", "Plugin execution, sandboxed (4GB / 2 CPU)"],
+                      ["mcp-server:4103", "MCP integration (1GB / 0.5 CPU)"],
+                    ].map(([name, desc]) => (
+                      <div
+                        key={name}
+                        className="bg-white p-1.5 rounded border-l-3 border-green-600 flex justify-between items-center"
+                      >
+                        <p className="font-semibold">{name}</p>
+                        <p className="text-gray-500">{desc}</p>
+                      </div>
+                    ))}
+                    <div className="bg-indigo-100 p-1.5 rounded border-l-3 border-indigo-600 flex justify-between items-center">
+                      <p className="font-semibold">canvas:3001</p>
+                      <p className="text-gray-500">Locode AI Agent builder (512MB / 0.25 CPU)</p>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 bg-green-100 p-1 rounded text-xs text-center text-gray-600">
+                    ~16 GB / 32 GB (50% utilization)
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom row: ML VM, PostgreSQL, Redis */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="border-2 border-purple-500 rounded-lg p-3 bg-purple-50">
+                <div className="bg-purple-600 text-white p-2 rounded-lg mb-2 text-center">
+                  <h3 className="font-bold text-sm">ML-VM-1</h3>
+                  <p className="text-xs">4 vCPU | 16 GB RAM | Dedicated</p>
+                </div>
+                <div className="bg-white p-2 rounded border-l-3 border-purple-600 text-xs">
+                  <p className="font-semibold">umap-service:5001</p>
+                  <p className="text-gray-600">ML models in memory (4GB / 2 CPU)</p>
+                </div>
+                <p className="mt-1.5 text-xs text-purple-800 font-semibold text-center">Single instance only</p>
+              </div>
+
+              <div className="border-2 border-orange-500 rounded-lg p-3 bg-orange-50">
+                <div className="bg-orange-600 text-white p-2 rounded-lg mb-2 text-center">
+                  <h3 className="font-bold text-sm">PostgreSQL 14+</h3>
+                  <p className="text-xs font-bold">Customer-Managed</p>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="bg-white p-1.5 rounded">
+                    <p className="text-gray-600">8 vCPU | 32 GB | 500 GB SSD | Multi-AZ</p>
+                  </div>
+                  <div className="bg-orange-100 p-1.5 rounded">
+                    <p className="font-semibold">:5432 (TLS)</p>
+                    <p className="text-gray-600">Workflows, users, execution history</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-2 border-red-500 rounded-lg p-3 bg-red-50">
+                <div className="bg-red-600 text-white p-2 rounded-lg mb-2 text-center">
+                  <h3 className="font-bold text-sm">Redis 6.0+</h3>
+                  <p className="text-xs font-bold">Customer-Managed</p>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="bg-white p-1.5 rounded">
+                    <p className="text-gray-600">8 GB Memory | Multi-AZ clustering</p>
+                  </div>
+                  <div className="bg-red-100 p-1.5 rounded">
+                    <p className="font-semibold">:6379 (TLS)</p>
+                    <p className="text-gray-600">Sessions, cache, pub/sub cross-VM</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Bottom row: ML VM, PostgreSQL, Redis */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="border-4 border-purple-500 rounded-lg p-5 bg-purple-50">
-              <div className="bg-purple-600 text-white p-3 rounded-lg mb-4 text-center">
-                <h3 className="font-bold text-lg">ML-VM-1</h3>
-                <p className="text-sm">4 vCPU | 16 GB RAM | 100 GB SSD</p>
-                <p className="text-xs mt-1">Dedicated (single instance)</p>
-              </div>
-              <div className="bg-white p-3 rounded border-l-4 border-purple-600">
-                <p className="font-semibold text-sm">umap-service:5001</p>
-                <p className="text-xs text-gray-600 mt-1">ML models in memory (500MB-2GB)</p>
-                <p className="text-xs text-gray-600 mt-1">Semantic search, dimensionality reduction</p>
-              </div>
-              <div className="mt-3 bg-purple-100 p-2 rounded text-xs">
-                <p className="font-semibold text-purple-800">Cannot be duplicated across App VMs</p>
-                <p className="text-gray-700">Model consistency requires single instance</p>
-              </div>
-            </div>
-
-            <div className="border-4 border-orange-500 rounded-lg p-5 bg-orange-50">
-              <div className="bg-orange-600 text-white p-3 rounded-lg mb-4 text-center">
-                <h3 className="font-bold text-lg">PostgreSQL 14+</h3>
-                <p className="text-sm font-bold">Customer-Managed</p>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="bg-white p-2 rounded">
-                  <p className="font-semibold">Recommended:</p>
-                  <p className="text-xs text-gray-600">8 vCPU | 32 GB RAM</p>
-                  <p className="text-xs text-gray-600">500 GB SSD | Multi-AZ</p>
-                </div>
-                <div className="bg-orange-100 p-2 rounded">
-                  <p className="font-semibold text-xs">Port: 5432 (TLS)</p>
-                  <p className="text-xs text-gray-600 mt-1">Workflows, users, execution history</p>
-                  <p className="text-xs text-gray-600">Embeddings metadata, audit logs</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-4 border-red-500 rounded-lg p-5 bg-red-50">
-              <div className="bg-red-600 text-white p-3 rounded-lg mb-4 text-center">
-                <h3 className="font-bold text-lg">Redis 6.0+</h3>
-                <p className="text-sm font-bold">Customer-Managed</p>
-              </div>
-              <div className="text-sm space-y-2">
-                <div className="bg-white p-2 rounded">
-                  <p className="font-semibold">Recommended:</p>
-                  <p className="text-xs text-gray-600">8 GB Memory</p>
-                  <p className="text-xs text-gray-600">Multi-AZ with clustering</p>
-                </div>
-                <div className="bg-red-100 p-2 rounded">
-                  <p className="font-semibold text-xs">Port: 6379 (TLS)</p>
-                  <p className="text-xs text-gray-600 mt-1">Sessions, cache</p>
-                  <p className="text-xs text-gray-600">Pub/sub for cross-VM messaging</p>
-                </div>
-              </div>
+          {/* Key Points */}
+          <div className="mt-4 bg-blue-50 border border-blue-300 rounded-lg p-3">
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm">Key Architecture Points:</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-700">
+              <p>
+                <strong className="text-blue-600">Client App:</strong> Customer-hosted (Azure/AWS/on-prem), NOT on
+                platform VMs
+              </p>
+              <p>
+                <strong className="text-indigo-600">Canvas UI:</strong> Internal admin/builder on App VMs (:3001)
+              </p>
+              <p>
+                <strong className="text-green-600">App VMs:</strong> Active/Active, stateless, Redis pub/sub
+                cross-instance
+              </p>
+              <p>
+                <strong className="text-purple-600">ML VM:</strong> Single dedicated UMAP instance, cannot be duplicated
+              </p>
+              <p className="col-span-2">
+                <strong className="text-orange-600">Total: 3 VMs</strong> (2 App + 1 ML) + customer-managed PostgreSQL
+                &amp; Redis
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Key Points */}
-        <div className="mt-6 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">Key Architecture Points:</h3>
-          <ul className="text-sm text-gray-700 space-y-2">
-            <li className="flex items-start gap-2"><span className="text-blue-600 font-bold">-</span><span><strong>Client App (SPA):</strong> Customer-hosted (Azure/AWS/on-premises), NOT on platform VMs. Public-facing for end users.</span></li>
-            <li className="flex items-start gap-2"><span className="text-indigo-600 font-bold">-</span><span><strong>Canvas UI:</strong> Internal admin/builder tool on App VMs (port 3001). Used by administrators only.</span></li>
-            <li className="flex items-start gap-2"><span className="text-green-600 font-bold">-</span><span><strong>App VMs:</strong> Active/Active load balanced. All services stateless. Redis pub/sub for cross-instance messaging.</span></li>
-            <li className="flex items-start gap-2"><span className="text-purple-600 font-bold">-</span><span><strong>ML VM:</strong> Single dedicated instance for UMAP. Trained models in memory. Cannot be duplicated.</span></li>
-            <li className="flex items-start gap-2"><span className="text-orange-600 font-bold">-</span><span><strong>Total: 3 VMs</strong> (2 App + 1 ML) + customer-managed PostgreSQL &amp; Redis</span></li>
-          </ul>
+          <p className="text-xs text-gray-400 text-right mt-2">
+            Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL
+          </p>
         </div>
-
-        <p className="text-xs text-gray-400 text-right mt-4">Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL</p>
-      </div>
-    );
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
-</body>
+      );
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
 </html>

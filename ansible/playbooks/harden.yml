@@ -32,14 +32,21 @@
     # =========================================================================
     # SYSTEM UPDATES
     # =========================================================================
-    - name: Update all packages
+    - name: Update all packages (Debian/Ubuntu)
       apt:
         upgrade: safe
         update_cache: yes
         cache_valid_time: 3600
       when: ansible_facts['os_family'] == "Debian"
 
-    - name: Install security packages
+    - name: Update all packages (RHEL/Amazon Linux)
+      dnf:
+        name: "*"
+        state: latest
+        security: yes
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Install security packages (Debian/Ubuntu)
       apt:
         name:
           - ufw
@@ -48,6 +55,17 @@
           - logrotate
         state: present
       when: ansible_facts['os_family'] == "Debian"
+
+    - name: Install security packages (RHEL/Amazon Linux)
+      dnf:
+        name:
+          - firewalld
+          - fail2ban
+          - dnf-automatic
+          - logrotate
+          - audit
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
 
     # =========================================================================
     # SSH HARDENING
@@ -88,47 +106,90 @@
       notify: Restart SSH
 
     # =========================================================================
-    # FIREWALL (UFW)
+    # FIREWALL (UFW - Debian/Ubuntu)
     # =========================================================================
     - name: Reset UFW to default
       ufw:
         state: reset
+      when: ansible_facts['os_family'] == "Debian"
 
     - name: Set UFW default policy - deny incoming
       ufw:
         direction: incoming
         policy: deny
+      when: ansible_facts['os_family'] == "Debian"
 
     - name: Set UFW default policy - allow outgoing
       ufw:
         direction: outgoing
         policy: allow
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: Allow SSH
+    - name: Allow SSH (UFW)
       ufw:
         rule: allow
         port: "{{ ssh_port }}"
         proto: tcp
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: Allow public ports
+    - name: Allow public ports (UFW)
       ufw:
         rule: allow
         port: "{{ item.port }}"
         proto: "{{ item.proto }}"
       loop: "{{ allowed_ports }}"
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: Allow internal ports from private network
+    - name: Allow internal ports from private network (UFW)
       ufw:
         rule: allow
         port: "{{ item.port }}"
         proto: "{{ item.proto }}"
         from_ip: "10.0.0.0/8"
       loop: "{{ internal_ports }}"
-      when: restrict_internal_ports | default(true)
+      when: ansible_facts['os_family'] == "Debian" and (restrict_internal_ports | default(true))
 
     - name: Enable UFW
       ufw:
         state: enabled
+      when: ansible_facts['os_family'] == "Debian"
+
+    # =========================================================================
+    # FIREWALL (firewalld - RHEL/Amazon Linux)
+    # =========================================================================
+    - name: Start firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Allow SSH (firewalld)
+      firewalld:
+        port: "{{ ssh_port }}/tcp"
+        permanent: yes
+        state: enabled
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Allow public ports (firewalld)
+      firewalld:
+        port: "{{ item.port }}/{{ item.proto }}"
+        permanent: yes
+        state: enabled
+      loop: "{{ allowed_ports }}"
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Allow internal ports from private network (firewalld)
+      firewalld:
+        rich_rule: 'rule family="ipv4" source address="10.0.0.0/8" port port="{{ item.port }}" protocol="{{ item.proto }}" accept'
+        permanent: yes
+        state: enabled
+      loop: "{{ internal_ports }}"
+      when: ansible_facts['os_family'] == "RedHat" and (restrict_internal_ports | default(true))
+
+    - name: Reload firewalld
+      command: firewall-cmd --reload
+      when: ansible_facts['os_family'] == "RedHat"
 
     # =========================================================================
     # FAIL2BAN (Brute force protection)
@@ -153,7 +214,7 @@
     # =========================================================================
     # AUTOMATIC SECURITY UPDATES
     # =========================================================================
-    - name: Enable automatic security updates
+    - name: Enable automatic security updates (Debian/Ubuntu)
       copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades
         content: |
@@ -161,6 +222,13 @@
           APT::Periodic::Unattended-Upgrade "1";
           APT::Periodic::AutocleanInterval "7";
       when: ansible_facts['os_family'] == "Debian"
+
+    - name: Enable automatic security updates (RHEL/Amazon Linux)
+      service:
+        name: dnf-automatic.timer
+        state: started
+        enabled: yes
+      when: ansible_facts['os_family'] == "RedHat"
 
     # =========================================================================
     # SYSTEM LIMITS
@@ -196,11 +264,18 @@
     # =========================================================================
     # AUDIT LOGGING
     # =========================================================================
-    - name: Install auditd
+    - name: Install auditd (Debian/Ubuntu)
       apt:
         name: auditd
         state: present
       when: ansible_facts['os_family'] == "Debian"
+
+    - name: Ensure auditd running (RHEL/Amazon Linux)
+      service:
+        name: auditd
+        state: started
+        enabled: yes
+      when: ansible_facts['os_family'] == "RedHat"
 
     - name: Configure audit rules for Docker
       copy:

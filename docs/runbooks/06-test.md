@@ -55,6 +55,7 @@ Containers:
   gravity-workflow running Up 2 hours
   gravity-node-service running Up 2 hours
   gravity-mcp-server running Up 2 hours
+  gravity-memory running Up 2 hours
   gravity-canvas running Up 2 hours
   gravity-umap running Up 2 hours
 
@@ -66,6 +67,7 @@ Restarting: NONE
   - Workflow (4101): OK
   - Node Service (4102): OK
   - MCP Server (4103): OK
+  - Memory (4104): OK
 
 ── External Dependencies ──
 Redis: REACHABLE
@@ -78,6 +80,7 @@ Database: REACHABLE
   - Workflow: OK
   - Node Service: OK
   - MCP Server: OK
+  - Memory: OK
 
 ── API Endpoints (read) ──
   - GET /api/workflows: HTTP 200
@@ -117,6 +120,7 @@ Domain: yourdomain.com
 | Workflow     | `http://localhost:4101/health` | 200 OK   |
 | Node Service | `http://localhost:4102/health` | 200 OK   |
 | MCP Server   | `http://localhost:4103/health` | 200 OK   |
+| Memory       | `http://localhost:4104/health` | 200 OK   |
 | UMAP         | `http://localhost:5001/health` | 200 OK   |
 
 ## Troubleshooting
@@ -156,7 +160,7 @@ echo ""
 
 # 1. Services running
 echo "1. Services"
-for svc in server workflow node-service canvas umap mcp-server; do
+for svc in server workflow node-service canvas umap mcp-server memory; do
   status=$(docker compose ps --format '{{.Status}}' $svc 2>/dev/null | head -1)
   if echo "$status" | grep -q "Up"; then
     echo "   ✓ $svc — $status"
@@ -168,7 +172,7 @@ echo ""
 
 # 2. Health endpoints
 echo "2. Health Endpoints"
-for url in http://localhost:4100/health http://localhost:4101/health http://localhost:4102/health http://localhost:5001/health; do
+for url in http://localhost:4100/health http://localhost:4101/health http://localhost:4102/health http://localhost:4104/health http://localhost:5001/health; do
   code=$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null)
   name=$(echo "$url" | grep -oE '[0-9]+' | head -1)
   if [ "$code" = "200" ]; then
@@ -242,11 +246,13 @@ echo "=== Done ==="
    ✓ canvas — Up 2 minutes
    ✓ umap — Up 2 minutes
    ✓ mcp-server — Up 2 minutes
+   ✓ memory — Up 2 minutes
 
 2. Health Endpoints
    ✓ :4100 — 200 OK
    ✓ :4101 — 200 OK
    ✓ :4102 — 200 OK
+   ✓ :4104 — 200 OK
    ✓ :5001 — 200 OK
 
 3. Packages (dist/index.js)

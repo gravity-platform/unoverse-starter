@@ -15,10 +15,12 @@ import { generatePublishComponent } from "./generators/PublishComponentGenerator
 export class FileGenerator {
   private outputDir: string;
   private converter: ReactSSRConverter;
+  private appRoot?: string;
 
-  constructor(outputDir: string) {
+  constructor(outputDir: string, appRoot?: string) {
     this.outputDir = outputDir;
     this.converter = new ReactSSRConverter();
+    this.appRoot = appRoot;
   }
 
   /**
@@ -69,7 +71,7 @@ export class FileGenerator {
     componentUrl: string;
   }> {
     // Bundle React component to components/
-    const result = await this.converter.convertToHTML(metadata.componentPath, isTemplate);
+    const result = await this.converter.convertToHTML(metadata.componentPath, isTemplate, this.appRoot);
 
     return {
       html: result.html,

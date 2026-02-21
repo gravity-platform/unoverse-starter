@@ -21,7 +21,7 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
     componentTemplate: loadDefaultTemplate(),
     logoUrl: "https://res.cloudinary.com/sonik/image/upload/v1751366180/gravity/icons/gravityIcon.png",
     inputs: [{ name: "signal", type: NodeInputType.OBJECT, description: "Signal" }],
-    outputs: [{ name: "output", type: NodeInputType.OBJECT, description: "Response object" }],
+    outputs: [{ name: "componentSpec", type: NodeInputType.OBJECT, description: "Component spec for downstream nodes" }],
     configSchema: {
       "type": "object",
       "properties": {

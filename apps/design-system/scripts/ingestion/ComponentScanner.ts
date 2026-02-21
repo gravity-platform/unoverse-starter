@@ -9,6 +9,7 @@ export interface ComponentMetadata {
   argTypes: Record<string, any>;
   storyDefaults?: Record<string, any>;
   workflowSize?: { width: number; height: number };
+  isPrintPage?: boolean;
 }
 
 export class ComponentScanner {
@@ -66,7 +67,7 @@ export class ComponentScanner {
   private async extractMetadata(
     name: string,
     storiesPath: string,
-    componentDir: string
+    componentDir: string,
   ): Promise<ComponentMetadata | null> {
     try {
       // Read the stories file
@@ -79,7 +80,7 @@ export class ComponentScanner {
 
       if (!argTypes || Object.keys(argTypes).length === 0) {
         console.warn(
-          `⚠️  [ComponentScanner] SKIPPING "${name}" - no argTypes found in stories file. Add argTypes to include this template in the build.`
+          `⚠️  [ComponentScanner] SKIPPING "${name}" - no argTypes found in stories file. Add argTypes to include this template in the build.`,
         );
         return null;
       }
@@ -257,7 +258,11 @@ export class ComponentScanner {
               declaration.initializer.properties.forEach((prop) => {
                 if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === "args") {
                   // Case 1: args: ImportedDefaultsName (direct reference)
-                  if (ts.isIdentifier(prop.initializer) && prop.initializer.text === importedDefaultsName) {
+                  // Unwrap AsExpression (e.g. "PoliceReportDefaults as any")
+                  const argsInitializer = ts.isAsExpression(prop.initializer)
+                    ? prop.initializer.expression
+                    : prop.initializer;
+                  if (ts.isIdentifier(argsInitializer) && argsInitializer.text === importedDefaultsName) {
                     const defaultsPath = path.join(componentDir, "defaults.ts");
                     if (fs.existsSync(defaultsPath)) {
                       const defaultsCode = fs.readFileSync(defaultsPath, "utf-8");
@@ -317,23 +322,61 @@ export class ComponentScanner {
   private extractDefaultsFromFile(code: string, exportName: string): Record<string, any> | undefined {
     const sourceFile = ts.createSourceFile("defaults.ts", code, ts.ScriptTarget.Latest, true);
 
-    let defaults: Record<string, any> | undefined;
-
-    const visit = (node: ts.Node) => {
+    // First pass: collect all top-level variable declarations so we can resolve identifier references
+    const declarations = new Map<string, ts.Expression>();
+    const collectDeclarations = (node: ts.Node) => {
       if (ts.isVariableStatement(node)) {
         node.declarationList.declarations.forEach((declaration) => {
-          if (ts.isIdentifier(declaration.name) && declaration.name.text === exportName) {
-            if (declaration.initializer && ts.isObjectLiteralExpression(declaration.initializer)) {
-              defaults = this.parseObjectLiteral(declaration.initializer);
-            }
+          if (ts.isIdentifier(declaration.name) && declaration.initializer) {
+            declarations.set(declaration.name.text, declaration.initializer);
           }
         });
       }
-      ts.forEachChild(node, visit);
+      ts.forEachChild(node, collectDeclarations);
     };
+    collectDeclarations(sourceFile);
 
-    visit(sourceFile);
+    // Second pass: parse the target export, resolving identifier references
+    let defaults: Record<string, any> | undefined;
+    const targetInit = declarations.get(exportName);
+    if (targetInit && ts.isObjectLiteralExpression(targetInit)) {
+      defaults = this.parseObjectLiteralWithScope(targetInit, declarations);
+    }
+
     return defaults;
+  }
+
+  /**
+   * Parse ObjectLiteralExpression, resolving identifier references from scope
+   */
+  private parseObjectLiteralWithScope(
+    node: ts.ObjectLiteralExpression,
+    scope: Map<string, ts.Expression>,
+  ): Record<string, any> {
+    const result: Record<string, any> = {};
+
+    node.properties.forEach((prop) => {
+      if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {
+        const name = prop.name.text;
+        let value: any;
+
+        // If the value is an identifier, resolve it from scope
+        if (ts.isIdentifier(prop.initializer) && scope.has(prop.initializer.text)) {
+          const resolved = scope.get(prop.initializer.text)!;
+          value = ts.isObjectLiteralExpression(resolved)
+            ? this.parseObjectLiteral(resolved)
+            : this.parseExpression(resolved);
+        } else {
+          value = this.parseExpression(prop.initializer);
+        }
+
+        if (value !== undefined) {
+          result[name] = value;
+        }
+      }
+    });
+
+    return result;
   }
 
   /**

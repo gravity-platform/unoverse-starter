@@ -17,21 +17,35 @@
         enabled: no
       ignore_errors: yes
 
-    - name: "[2/3] Remove Caddy package"
+    - name: "[2/3] Remove Caddy package (Debian/Ubuntu)"
       apt:
         name: caddy
         state: absent
         purge: yes
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: "[3/3] Remove Caddy repository"
+    - name: "[2/3] Remove Caddy package (RHEL/Amazon Linux)"
+      dnf:
+        name: caddy
+        state: absent
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: "[3/3] Remove Caddy repository (Debian/Ubuntu)"
       file:
         path: /etc/apt/sources.list.d/caddy-stable.list
         state: absent
+      when: ansible_facts['os_family'] == "Debian"
 
-    - name: "[3/3] Remove Caddy GPG key"
+    - name: "[3/3] Remove Caddy GPG key (Debian/Ubuntu)"
       file:
         path: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
         state: absent
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: "[3/3] Remove Caddy COPR repo (RHEL/Amazon Linux)"
+      command: dnf copr remove -y @caddy/caddy
+      ignore_errors: yes
+      when: ansible_facts['os_family'] == "RedHat"
 
   post_tasks:
     - name: "=== CADDY UNINSTALLATION COMPLETE ==="
@@ -41,9 +55,9 @@
           CADDY REMOVED
           ============================================
           Host: {{ inventory_hostname }} ({{ ansible_host }})
-          
+
           Caddy has been uninstalled.
-          
+
           Configure your load balancer to route:
             - Port 443 → Canvas (3001)
             - Port 443 → API (4100) 

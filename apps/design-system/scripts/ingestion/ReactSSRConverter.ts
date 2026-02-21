@@ -13,6 +13,7 @@ export class ReactSSRConverter {
   async convertToHTML(
     componentPath: string,
     isTemplate: boolean = false,
+    appRoot?: string,
   ): Promise<{
     html: string;
     css: string;
@@ -25,7 +26,10 @@ export class ReactSSRConverter {
       const componentName = path.basename(componentPath, ".tsx");
 
       // Setup paths - output to packages/design-system (runtime package)
-      const appRoot = path.join(path.dirname(componentPath), "../../../");
+      // appRoot should be apps/design-system/storybook/ — passed from caller or inferred for backwards compat
+      if (!appRoot) {
+        appRoot = path.join(path.dirname(componentPath), "../../../");
+      }
       const packagesRoot = path.resolve(appRoot, "../../packages/design-system");
       const distDir = path.join(packagesRoot, "components");
       if (!fs.existsSync(distDir)) {

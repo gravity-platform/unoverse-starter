@@ -1,171 +1,213 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Figure 7: Observability Strategy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  </style>
-</head>
-<body class="bg-white">
-  <div id="root"></div>
-  <script type="text/babel">
-    const Icon = ({ paths, size = 24, className = "", strokeWidth = 2 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
-        strokeLinejoin="round" className={className}>
-        {paths.map((d, i) => <path key={i} d={d} />)}
-      </svg>
-    );
-    const ArrowRight = (p) => <Icon {...p} paths={["M5 12h14","M12 5l7 7-7 7"]} />;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figure 7: Observability Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <div id="root"></div>
+    <script type="text/babel">
+      const Icon = ({ paths, size = 24, className = "", strokeWidth = 2 }) => (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+        >
+          {paths.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </svg>
+      );
+      const ArrowRight = (p) => <Icon {...p} paths={["M5 12h14", "M12 5l7 7-7 7"]} />;
 
-    const App = () => (
-      <div className="max-w-6xl mx-auto p-8">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-gray-300 pb-3">
-          Figure 7: Observability Strategy
-        </h2>
+      const Section = ({ title, children }) => (
+        <div className="mb-6">
+          <div className="bg-slate-800 text-white px-4 py-2 rounded-t-lg">
+            <h3 className="font-semibold text-sm">{title}</h3>
+          </div>
+          <div className="border border-slate-200 border-t-0 rounded-b-lg p-4 bg-white">{children}</div>
+        </div>
+      );
 
-        {/* Two-column: POC vs Production */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          {/* POC */}
-          <div className="border-2 border-yellow-400 rounded-lg overflow-hidden">
-            <div className="bg-yellow-500 text-white p-4">
-              <h3 className="font-bold text-lg">Pilot / POC Phase</h3>
-              <p className="text-sm opacity-90">Bundled Stack</p>
-            </div>
-            <div className="p-5 bg-yellow-50">
-              <p className="text-sm text-gray-700 mb-4">Full observability stack included for rapid debugging and demo purposes.</p>
-              <div className="space-y-2">
-                {[
-                  ["Grafana", "Dashboards, visualization", ":3000", "bg-orange-500"],
-                  ["Prometheus", "Metrics collection", ":9090", "bg-red-500"],
-                  ["Loki", "Log aggregation", ":3100", "bg-yellow-600"],
-                  ["Tempo", "Distributed tracing", ":3200", "bg-blue-500"],
-                  ["Promtail", "Log shipping", "-", "bg-gray-500"],
-                ].map(([name, purpose, port, color]) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <div className={`${color} text-white px-3 py-1.5 rounded text-xs font-bold w-28 text-center`}>{name}</div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-700">{purpose}</p>
+      const App = () => (
+        <div className="max-w-5xl mx-auto p-8">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-gray-300 pb-3">
+            Figure 7: Observability Strategy
+          </h2>
+
+          {/* Two-column: POC vs Production */}
+          <div className="grid grid-cols-2 gap-5 mb-6">
+            {/* POC */}
+            <div className="rounded-lg overflow-hidden border border-green-300">
+              <div className="bg-green-600 text-white px-4 py-2">
+                <h3 className="font-semibold text-sm">Pilot / POC - Bundled Stack</h3>
+              </div>
+              <div className="p-4 bg-green-50">
+                <p className="text-xs text-gray-600 mb-3">
+                  Log aggregation stack included for rapid debugging and demo visibility.
+                </p>
+                <div className="space-y-1.5">
+                  {[
+                    ["Grafana", "Dashboards, log querying", "3000"],
+                    ["Loki", "Log aggregation and storage", "3100"],
+                    ["Promtail", "Scrapes Docker logs, pushes to Loki", "-"],
+                  ].map(([name, purpose, port]) => (
+                    <div
+                      key={name}
+                      className="bg-white p-2 rounded border-l-3 border-green-500 flex justify-between items-center text-xs"
+                    >
+                      <span className="font-semibold text-green-800">{name}</span>
+                      <span className="text-gray-600 flex-1 ml-3">{purpose}</span>
+                      <span className="font-mono text-gray-400">{port}</span>
                     </div>
-                    <span className="text-xs font-mono text-gray-500">{port}</span>
+                  ))}
+                </div>
+                <p className="text-xs text-green-700 mt-3 pt-2 border-t border-green-200">
+                  Customers can immediately see centralized logs without integration work.
+                </p>
+              </div>
+            </div>
+
+            {/* Production */}
+            <div className="rounded-lg overflow-hidden border border-blue-300">
+              <div className="bg-blue-600 text-white px-4 py-2">
+                <h3 className="font-semibold text-sm">Production - Export Only</h3>
+              </div>
+              <div className="p-4 bg-blue-50">
+                <p className="text-xs text-gray-600 mb-3">
+                  No bundled observability. Services output structured JSON logs to stdout.
+                </p>
+                <div className="space-y-1.5 mb-3">
+                  {["Grafana", "Loki", "Promtail"].map((name) => (
+                    <div key={name} className="bg-white p-2 rounded flex items-center gap-3 text-xs">
+                      <span className="text-gray-400 line-through font-semibold w-20">{name}</span>
+                      <span className="text-gray-400">POC only</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-blue-700 pt-2 border-t border-blue-200">
+                  Enterprise customers use existing observability (Splunk, Datadog, Elastic, Dynatrace). Bundling
+                  creates security review overhead and duplicate tooling.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* What Services Output */}
+          <div className="rounded-lg overflow-hidden border border-indigo-300 mb-6">
+            <div className="bg-indigo-600 text-white px-4 py-2">
+              <h3 className="font-semibold text-sm">What Services Output</h3>
+            </div>
+            <div className="p-4 bg-indigo-50">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-3 border border-indigo-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-indigo-800 text-sm">Logs</h4>
+                    <span className="text-xs font-semibold text-green-700 bg-green-100 rounded px-2 py-0.5">
+                      Current
+                    </span>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 bg-yellow-100 rounded p-3">
-                <p className="text-xs text-yellow-900"><strong>Why:</strong> Customers can immediately see logs, metrics, and traces without any integration work. Accelerates POC validation.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Production */}
-          <div className="border-2 border-green-400 rounded-lg overflow-hidden">
-            <div className="bg-green-600 text-white p-4">
-              <h3 className="font-bold text-lg">Production Phase</h3>
-              <p className="text-sm opacity-90">Export Only</p>
-            </div>
-            <div className="p-5 bg-green-50">
-              <p className="text-sm text-gray-700 mb-4">No bundled observability stack. All services export telemetry in standard formats.</p>
-              <div className="space-y-2 mb-4">
-                {[
-                  ["Prometheus server", "bg-red-200 text-red-800"],
-                  ["Grafana", "bg-red-200 text-red-800"],
-                  ["Loki", "bg-red-200 text-red-800"],
-                  ["Tempo", "bg-red-200 text-red-800"],
-                  ["AlertManager", "bg-red-200 text-red-800"],
-                ].map(([name, cls]) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <span className={`${cls} px-3 py-1.5 rounded text-xs font-bold w-28 text-center line-through`}>{name}</span>
-                    <p className="text-xs text-gray-500">Not included</p>
+                  <p className="text-xs text-gray-500 mb-2">Structured JSON via stdout (Pino)</p>
+                  <div className="bg-gray-50 rounded p-2 font-mono text-xs text-gray-600 leading-relaxed">
+                    <p>{`{`}</p>
+                    <p className="ml-2">"service": "workflow",</p>
+                    <p className="ml-2">"level": "info",</p>
+                    <p className="ml-2">"executionId": "exec_789",</p>
+                    <p className="ml-2">"message": "Node completed",</p>
+                    <p className="ml-2">"durationMs": 1250</p>
+                    <p>{`}`}</p>
                   </div>
-                ))}
-              </div>
-              <div className="bg-green-100 rounded p-3">
-                <p className="text-xs text-green-900"><strong>Why:</strong> Enterprise customers have existing observability (Splunk, Datadog, Elastic, Dynatrace). Bundling creates security review overhead, duplicate tooling, and additional attack surface.</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Customer collects via Fluentd, Splunk forwarder, Datadog agent, etc.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm opacity-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-700 text-sm">Metrics</h4>
+                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 rounded px-2 py-0.5">Planned</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">Prometheus format at GET /metrics</p>
+                  <div className="bg-gray-50 rounded p-2 font-mono text-xs text-gray-400 leading-relaxed">
+                    <p># gravity_workflow_</p>
+                    <p># executions_total</p>
+                    <p>{`{status="success"}`} 15234</p>
+                    <p>{`{status="error"}`} 42</p>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Add when services expose /metrics endpoints.</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm opacity-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-700 text-sm">Traces</h4>
+                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 rounded px-2 py-0.5">Planned</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">OpenTelemetry (OTLP)</p>
+                  <div className="bg-gray-50 rounded p-2 text-xs text-gray-400 leading-relaxed">
+                    <p>OTLP/gRPC or OTLP/HTTP</p>
+                    <p>Distributed tracing across</p>
+                    <p>server, workflow, node-service</p>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Add Tempo + OTel SDK when needed.</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* What We Export */}
-        <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 mb-8">
-          <h3 className="font-bold text-blue-800 mb-4 text-lg">What We Export (Production)</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 shadow border-t-4 border-blue-500">
-              <h4 className="font-bold text-gray-800 mb-2">Logs</h4>
-              <p className="text-xs text-gray-600 mb-2">Structured JSON via stdout</p>
-              <div className="bg-gray-100 rounded p-2 font-mono text-xs text-gray-700 overflow-hidden">
-                <p>{`{`}</p>
-                <p className="ml-2">"service": "workflow",</p>
-                <p className="ml-2">"level": "info",</p>
-                <p className="ml-2">"traceId": "abc123",</p>
-                <p className="ml-2">"executionId": "exec_789",</p>
-                <p className="ml-2">"message": "Node completed",</p>
-                <p className="ml-2">"durationMs": 1250</p>
-                <p>{`}`}</p>
-              </div>
+          {/* Customer Integration Flow */}
+          <div className="rounded-lg overflow-hidden border border-teal-300 mb-6">
+            <div className="bg-teal-600 text-white px-4 py-2">
+              <h3 className="font-semibold text-sm">Customer Integration (Production)</h3>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow border-t-4 border-green-500">
-              <h4 className="font-bold text-gray-800 mb-2">Metrics</h4>
-              <p className="text-xs text-gray-600 mb-2">Prometheus format at GET /metrics</p>
-              <div className="bg-gray-100 rounded p-2 font-mono text-xs text-gray-700 overflow-hidden">
-                <p># gravity_workflow_</p>
-                <p># executions_total</p>
-                <p>{`{status="success"}`} 15234</p>
-                <p>{`{status="error"}`} 42</p>
-                <p className="mt-1"># gravity_node_</p>
-                <p># execution_duration_</p>
-                <p># seconds_histogram</p>
+            <div className="p-4 bg-teal-50">
+              <div className="flex items-center justify-between gap-3">
+                <div className="bg-green-600 text-white p-3 rounded-lg text-center flex-1">
+                  <p className="font-semibold text-xs">Gravity Services</p>
+                  <p className="text-xs mt-1 opacity-80">server, workflow, node-service, mcp-server, umap</p>
+                  <p className="text-xs mt-1 font-mono opacity-60">JSON logs to stdout</p>
+                </div>
+                <ArrowRight size={24} className="text-teal-400 flex-shrink-0" strokeWidth={2.5} />
+                <div className="bg-blue-600 text-white p-3 rounded-lg text-center flex-1">
+                  <p className="font-semibold text-xs">Customer Agents</p>
+                  <p className="text-xs mt-1 opacity-80">Fluentd, Splunk forwarder, Datadog agent, Filebeat</p>
+                </div>
+                <ArrowRight size={24} className="text-teal-400 flex-shrink-0" strokeWidth={2.5} />
+                <div className="bg-indigo-600 text-white p-3 rounded-lg text-center flex-1">
+                  <p className="font-semibold text-xs">Customer Platform</p>
+                  <p className="text-xs mt-1 opacity-80">Splunk, Datadog, Elastic, Dynatrace, Grafana Cloud</p>
+                </div>
               </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow border-t-4 border-purple-500">
-              <h4 className="font-bold text-gray-800 mb-2">Traces</h4>
-              <p className="text-xs text-gray-600 mb-2">OpenTelemetry (OTLP)</p>
-              <div className="bg-gray-100 rounded p-2 text-xs text-gray-700">
-                <p className="font-semibold mb-1">Configurable exporter:</p>
-                <p>- OTLP/gRPC</p>
-                <p>- OTLP/HTTP</p>
-                <p>- Jaeger</p>
-                <p>- Zipkin</p>
-              </div>
+              <p className="text-xs text-teal-700 mt-3 pt-2 border-t border-teal-200">
+                <strong>Provided artifacts:</strong> Grafana dashboard JSON, Prometheus alerting rules, Splunk saved
+                searches, Elastic/Kibana dashboards
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Customer Integration Flow */}
-        <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="font-bold text-gray-800 mb-4 text-lg">Customer Integration</h3>
-          <div className="flex items-center justify-between gap-4">
-            <div className="bg-green-600 text-white p-4 rounded-lg text-center flex-1">
-              <p className="font-bold text-sm">Gravity Services</p>
-              <p className="text-xs mt-1">server, workflow, node-service, mcp-server, umap</p>
-              <p className="text-xs mt-1 opacity-75">stdout logs | /metrics | OTLP traces</p>
-            </div>
-            <ArrowRight size={32} className="text-gray-400 flex-shrink-0" strokeWidth={3} />
-            <div className="bg-blue-600 text-white p-4 rounded-lg text-center flex-1">
-              <p className="font-bold text-sm">Customer Agents</p>
-              <p className="text-xs mt-1">Prometheus scraper, Fluentd, OTEL Collector</p>
-            </div>
-            <ArrowRight size={32} className="text-gray-400 flex-shrink-0" strokeWidth={3} />
-            <div className="bg-purple-600 text-white p-4 rounded-lg text-center flex-1">
-              <p className="font-bold text-sm">Customer Platform</p>
-              <p className="text-xs mt-1">Splunk, Datadog, Elastic, Dynatrace, Grafana Cloud</p>
-            </div>
-          </div>
-          <div className="mt-4 bg-white rounded p-3 border border-gray-200">
-            <p className="text-xs text-gray-700"><strong>Provided artifacts (not running services):</strong> Grafana dashboard JSON files, Prometheus alerting rules, Splunk saved searches, Elastic/Kibana dashboards</p>
-          </div>
+          <p className="text-xs text-gray-400 text-right mt-6">
+            Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL
+          </p>
         </div>
-
-        <p className="text-xs text-gray-400 text-right mt-6">Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL</p>
-      </div>
-    );
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
-</body>
+      );
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
 </html>

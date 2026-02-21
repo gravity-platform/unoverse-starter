@@ -3,12 +3,15 @@
 # =============================================================================
 #
 # LAYER 1: CORE PLATFORM (Pre-compiled via GitHub Actions → DOCR)
-#   - server, workflow, canvas, umap, node-service
+#   - server, workflow, canvas, umap, node-service, mcp-server, memory
 #   - Code protected, pulled as images
 #   - node-service mounts ./packages for auto-discovery of custom nodes
 #
 # LAYER 2: CLIENT-SPECIFIC
 #   - packages/ (custom nodes, design-system components)
+#
+# OBSERVABILITY (optional, enabled via --profile observability):
+#   - Grafana/Loki/Promtail (POC only)
 #
 # =============================================================================
 
@@ -138,6 +141,29 @@ services:
       - "com.docker.compose.service=mcp-server"
     depends_on:
       - server
+      - workflow
+    restart: unless-stopped
+
+  # Memory Server - Evidence-based user memory system (ambient pub/sub, Redis Streams)
+  memory:
+    image: registry.digitalocean.com/gravity-repo/gravity-memory:${TAG:-latest}
+    ports:
+      - "4104:4104"
+    environment:
+      - NODE_ENV=production
+      - PORT=4104
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+      - AUTH_ISSUER=${AUTH_ISSUER}
+      - AUTH_AUDIENCE=${AUTH_AUDIENCE}
+      - WORKFLOW_SERVICE_URL=http://workflow:4101
+    labels:
+      - "com.docker.compose.service=memory"
+    depends_on:
       - workflow
     restart: unless-stopped
 

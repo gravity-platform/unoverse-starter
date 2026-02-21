@@ -77,12 +77,22 @@ User → LB (HTTPS Passthrough) → VM → Caddy (TLS) → Services
 
 ## Configured Routes
 
-| Subdomain         | Service      | Port |
-| ----------------- | ------------ | ---- | -------- |
-| `domain.com`      | Canvas (UI)  | 3001 | Always   |
-| `api.domain.com`  | API Server   | 4100 | Always   |
-| `mcp.domain.com`  | MCP Server   | 4103 | Always   |
-| `umap.domain.com` | UMAP Service | 5001 | POC only |
+| Subdomain         | Service      | Port | Visibility        |
+| ----------------- | ------------ | ---- | ----------------- |
+| `domain.com`      | Canvas (UI)  | 3001 | Public (always)   |
+| `api.domain.com`  | API Server   | 4100 | Public (always)   |
+| `mcp.domain.com`  | MCP Server   | 4103 | Public (always)   |
+| `umap.domain.com` | UMAP Service | 5001 | Public (POC only) |
+
+> **⚠️ Memory dashboard (port 4104) is NEVER exposed via Caddy.**
+> It is an internal admin tool — enterprise clients access it via SSH tunnel only:
+>
+> ```bash
+> ssh -L 4104:localhost:4104 root@<VM_IP>
+> # Then open: http://localhost:4104/dashboard
+> ```
+>
+> Do NOT add a `memory.domain.com` Caddy route.
 
 ## Expected Output
 

@@ -94,7 +94,17 @@ Your project has **two separate** `.env` files for different purposes:
 
 ---
 
-## Step 4: Set Up and Start
+## Step 4: Set Up the Database
+
+Create the required database tables. This is safe to re-run — it uses `IF NOT EXISTS` for everything:
+
+```bash
+gravity db-setup
+```
+
+---
+
+## Step 5: Start the Dev Environment
 
 ```bash
 gravity dev
@@ -108,7 +118,7 @@ This single command does everything:
 
 ---
 
-## Step 5: Verify
+## Step 6: Verify
 
 ```bash
 gravity check
@@ -141,7 +151,7 @@ All checks should pass:
 
 ---
 
-## Step 6: Access Services
+## Step 7: Access Services
 
 | Service    | URL                   | Description      |
 | ---------- | --------------------- | ---------------- |
@@ -210,6 +220,7 @@ gravity update           # Pull latest images and restart
 | Command                | Purpose                                             |
 | ---------------------- | --------------------------------------------------- |
 | `gravity init`         | Interactive setup wizard (first time)               |
+| `gravity db-setup`     | Create database tables (safe to re-run)             |
 | `gravity start`        | Start the platform                                  |
 | `gravity stop`         | Stop the platform                                   |
 | `gravity status`       | Show service health                                 |
