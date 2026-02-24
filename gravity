@@ -343,8 +343,10 @@ cmd_start() {
 
   # Start services silently, show our own progress
   local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local compose_log
+  compose_log=$(mktemp)
 
-  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans &>/dev/null &
+  docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans >"$compose_log" 2>&1 &
   local up_pid=$!
   local i=0
   while kill -0 "$up_pid" 2>/dev/null; do
@@ -355,11 +357,23 @@ cmd_start() {
   wait "$up_pid" 2>/dev/null
   local up_exit=$?
   if [ $up_exit -ne 0 ]; then
-    printf "\r  ${RED}✗${NC} ${DIM}Starting services...${NC} \n"
-    warn "Some services had issues starting. Checking status..."
+    printf "\r  ${RED}✗${NC} Failed to start services\n"
+    echo ""
+    echo -e "  ${DIM}──── docker compose output ────${NC}"
+    sed 's/^/  /' "$compose_log"
+    echo -e "  ${DIM}───────────────────────────────${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Common fixes:${NC}"
+    echo -e "    • Not logged into registry?  ${GREEN}gravity init${NC}"
+    echo -e "    • Missing .env?              ${GREEN}cp .env.example .env${NC} and fill in values"
+    echo -e "    • Images not pulled?         ${GREEN}docker compose pull${NC}"
+    echo ""
+    rm -f "$compose_log"
+    exit 1
   else
     printf "\r  ${GREEN}✓${NC} ${DIM}Starting services${NC}  \n"
   fi
+  rm -f "$compose_log"
 
   # Wait for services to be healthy
   local attempts=0
@@ -377,24 +391,35 @@ cmd_start() {
     sleep 2
     ((attempts++))
   done
-  printf "\r  ${GREEN}✓${NC} ${DIM}Health checks passed${NC}       \n"
 
   echo ""
   if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
+    printf "\r  ${GREEN}✓${NC} ${DIM}Health checks passed${NC}       \n"
+    echo ""
     echo -e "  ${GREEN}${BOLD}All $running services running${NC} ${DIM}($(timer_elapsed))${NC}"
+    echo ""
+    echo -e "  ${WHITE}${BOLD}Your platform is ready:${NC}"
+    echo ""
+    echo -e "  ${CYAN}Canvas${NC}  ${DIM}(Workflow Builder)${NC}   ${UNDERLINE}http://localhost:3001${NC}"
+    echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4100${NC}"
+    echo ""
+    info "Run ${BOLD}gravity logs${NC}    to stream logs"
+    info "Run ${BOLD}gravity open${NC}    to open Canvas in your browser"
+  elif [ "$total" -eq 0 ]; then
+    printf "\r  ${RED}✗${NC} No services found\n"
+    echo ""
+    echo -e "  ${YELLOW}No containers were created. Possible causes:${NC}"
+    echo -e "    • Images not pulled yet?     ${GREEN}docker compose pull${NC}"
+    echo -e "    • Not logged into registry?  ${GREEN}gravity init${NC}"
+    echo ""
   else
+    printf "\r  ${YELLOW}!${NC} ${DIM}$running/$total services running${NC}\n"
+    echo ""
     echo -e "  ${YELLOW}${BOLD}$running/$total services up${NC} ${DIM}($(timer_elapsed))${NC}"
-    info "Run ${BOLD}gravity status${NC} to check."
+    echo ""
+    info "Run ${BOLD}gravity status${NC} to see which services failed"
+    info "Run ${BOLD}gravity logs <service>${NC} to check logs"
   fi
-
-  echo ""
-  echo -e "  ${WHITE}${BOLD}Your platform is ready:${NC}"
-  echo ""
-  echo -e "  ${CYAN}Canvas${NC}  ${DIM}(Workflow Builder)${NC}   ${UNDERLINE}http://localhost:3001${NC}"
-  echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4100${NC}"
-  echo ""
-  info "Run ${BOLD}gravity logs${NC}    to stream logs"
-  info "Run ${BOLD}gravity open${NC}    to open Canvas in your browser"
   echo ""
 }
 
