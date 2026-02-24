@@ -50,17 +50,21 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
           type: "string",
           title: "Model",
           description: "Select the Claude model to use",
-          enum: ["us.anthropic.claude-sonnet-4-5-20250929-v1:0", "us.anthropic.claude-haiku-4-5-20251001-v1:0"],
-          enumNames: ["Claude Sonnet 4.5", "Claude 4.5 Haiku"],
-          default: "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+          enum: [
+            "us.anthropic.claude-sonnet-4-6",
+            "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+          ],
+          enumNames: ["Claude Sonnet 4.6", "Claude Sonnet 4.5", "Claude 4.5 Haiku"],
+          default: "us.anthropic.claude-sonnet-4-6",
         },
         maxTokens: {
           type: "number",
           title: "Max Tokens",
           description: "Maximum number of tokens to generate",
-          default: 256,
+          default: 4096,
           minimum: 1,
-          maximum: 16000,
+          maximum: 64000,
         },
         temperature: {
           type: "number",
@@ -108,6 +112,33 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
           "ui:field": "template",
           "ui:dependencies": {
             includeImageUrl: true,
+          },
+        },
+        includeDocumentUrl: {
+          type: "boolean",
+          title: "Include Document",
+          description: "Attach a document (PDF, DOCX, CSV, etc.) for Claude to analyze",
+          default: false,
+          "ui:widget": "toggle",
+        },
+        documentUrl: {
+          type: "string",
+          title: "Document URL",
+          description: "URL of the document to analyze (presigned S3 URL or public URL). Supports template syntax.",
+          default: "",
+          "ui:field": "template",
+          "ui:dependencies": {
+            includeDocumentUrl: true,
+          },
+        },
+        documentName: {
+          type: "string",
+          title: "Document Name",
+          description: "Optional name for the document (auto-detected from URL if empty). Supports template syntax.",
+          default: "",
+          "ui:field": "template",
+          "ui:dependencies": {
+            includeDocumentUrl: true,
           },
         },
         enableTools: {

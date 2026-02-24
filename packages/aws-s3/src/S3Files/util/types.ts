@@ -8,6 +8,8 @@ export interface S3FilesConfig {
   maxFiles?: number;
   extensions?: string;
   randomSelection?: boolean;
+  generatePresignedUrls?: boolean;
+  presignedUrlExpiry?: number;
 }
 
 export interface S3FileObject {
@@ -17,6 +19,7 @@ export interface S3FileObject {
   etag?: string;
   bucket: string;
   universalId: string; // Unique identifier for tracking files across systems
+  presignedUrl?: string; // Presigned download URL (if generatePresignedUrls is enabled)
 }
 
 export interface S3FilesOutput {

@@ -22,7 +22,6 @@
       "cache": false
     },
     "@gravity-platform/mcp-server#dev": {
-      "dependsOn": ["@gravity-platform/gravity-client#build"],
       "cache": false,
       "persistent": true
     }

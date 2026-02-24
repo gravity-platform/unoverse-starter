@@ -37,6 +37,9 @@ export interface BedrockClaudeConfig {
   prompt: string;
   includeImageUrl?: boolean;
   imageUrl?: string;
+  includeDocumentUrl?: boolean;
+  documentUrl?: string;
+  documentName?: string;
   enableTools: boolean;
   toolChoice?: string;
   toolSchema?: string | object;
@@ -118,6 +121,74 @@ export async function callBedrockClaude(
     } catch (error) {
       log.error("Failed to fetch image from URL", { imageUrl: config.imageUrl, error });
       throw new Error(`Failed to fetch image from URL: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  // Add document if URL is provided
+  if (config.includeDocumentUrl && config.documentUrl) {
+    log.info("Including document URL in message", { documentUrl: config.documentUrl });
+
+    try {
+      const response = await fetch(config.documentUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch document: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const bytes = Buffer.from(arrayBuffer);
+
+      log.info("Document fetched successfully", {
+        documentUrl: config.documentUrl,
+        bytesLength: bytes.length,
+      });
+
+      // Determine document format from URL or content-type
+      const contentType = response.headers.get("content-type") || "";
+      const urlLower = config.documentUrl.toLowerCase();
+      let format = "pdf"; // default
+      if (contentType.includes("csv") || urlLower.includes(".csv")) {
+        format = "csv";
+      } else if (contentType.includes("html") || urlLower.includes(".html") || urlLower.includes(".htm")) {
+        format = "html";
+      } else if (contentType.includes("msword") || (urlLower.includes(".doc") && !urlLower.includes(".docx"))) {
+        format = "doc";
+      } else if (contentType.includes("wordprocessingml") || urlLower.includes(".docx")) {
+        format = "docx";
+      } else if (contentType.includes("spreadsheetml") || urlLower.includes(".xlsx")) {
+        format = "xlsx";
+      } else if (contentType.includes("ms-excel") || (urlLower.includes(".xls") && !urlLower.includes(".xlsx"))) {
+        format = "xls";
+      } else if (urlLower.includes(".txt")) {
+        format = "txt";
+      } else if (urlLower.includes(".md")) {
+        format = "md";
+      }
+
+      // Derive a clean document name — Bedrock only allows: alphanumeric, whitespace, hyphens, parentheses, square brackets
+      const rawName =
+        config.documentName || decodeURIComponent(config.documentUrl.split("/").pop()?.split("?")[0] || "document");
+      // Strip file extension, replace disallowed chars with spaces, collapse multiple spaces
+      const docName =
+        rawName
+          .replace(/\.[^.]+$/, "")
+          .replace(/[^a-zA-Z0-9\s\-\(\)\[\]]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim() || "document";
+
+      log.info("Document format detected", { contentType, detectedFormat: format, docName });
+
+      messageContent.push({
+        document: {
+          format: format,
+          name: docName,
+          source: {
+            bytes: bytes,
+          },
+        },
+      });
+    } catch (error) {
+      log.error("Failed to fetch document from URL", { documentUrl: config.documentUrl, error });
+      throw new Error(`Failed to fetch document from URL: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

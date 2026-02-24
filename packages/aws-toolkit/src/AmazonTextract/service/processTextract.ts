@@ -2,19 +2,84 @@
  * AWS Textract service implementation
  */
 
-import { TextractClient, DetectDocumentTextCommand, AnalyzeDocumentCommand } from "@aws-sdk/client-textract";
+import {
+  TextractClient,
+  DetectDocumentTextCommand,
+  AnalyzeDocumentCommand,
+  StartDocumentTextDetectionCommand,
+  StartDocumentAnalysisCommand,
+  GetDocumentTextDetectionCommand,
+  GetDocumentAnalysisCommand,
+} from "@aws-sdk/client-textract";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { AmazonTextractConfig, S3FileInput, TextractMetadata } from "../util/types";
 import { createLogger } from "../../shared/platform";
+
+/**
+ * Poll an async Textract job until it completes.
+ * Returns all blocks from all pages.
+ */
+async function pollTextractJob(
+  textractClient: TextractClient,
+  jobId: string,
+  isAnalyze: boolean,
+  logger: any,
+): Promise<any[]> {
+  const allBlocks: any[] = [];
+  let nextToken: string | undefined;
+  let status = "IN_PROGRESS";
+
+  // Poll until job completes (max ~5 min with 2s intervals)
+  for (let attempt = 0; attempt < 150 && status === "IN_PROGRESS"; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const getCommand = isAnalyze
+      ? new GetDocumentAnalysisCommand({ JobId: jobId, NextToken: nextToken })
+      : new GetDocumentTextDetectionCommand({ JobId: jobId, NextToken: nextToken });
+
+    const response = await textractClient.send(getCommand);
+    status = response.JobStatus || "FAILED";
+
+    if (status === "SUCCEEDED") {
+      if (response.Blocks) allBlocks.push(...response.Blocks);
+      nextToken = response.NextToken;
+
+      // Paginate through remaining results
+      while (nextToken) {
+        const pageCommand = isAnalyze
+          ? new GetDocumentAnalysisCommand({ JobId: jobId, NextToken: nextToken })
+          : new GetDocumentTextDetectionCommand({ JobId: jobId, NextToken: nextToken });
+        const pageResponse = await textractClient.send(pageCommand);
+        if (pageResponse.Blocks) allBlocks.push(...pageResponse.Blocks);
+        nextToken = pageResponse.NextToken;
+      }
+      break;
+    }
+
+    if (status === "FAILED") {
+      throw new Error(`Textract job ${jobId} failed: ${(response as any).StatusMessage || "unknown error"}`);
+    }
+
+    if (attempt % 5 === 0) {
+      logger.info("Textract job in progress", { jobId, attempt, status });
+    }
+  }
+
+  if (status === "IN_PROGRESS") {
+    throw new Error(`Textract job ${jobId} timed out after 5 minutes`);
+  }
+
+  return allBlocks;
+}
 
 export async function processS3FileWithTextract(
   fileInput: S3FileInput,
   config: AmazonTextractConfig,
   credentialContext: any,
-  logger: any
+  logger: any,
 ) {
   const awsCredentials = credentialContext.credentials?.aws;
-  
+
   if (!awsCredentials) {
     throw new Error("AWS credentials are required for Textract service");
   }
@@ -36,57 +101,80 @@ export async function processS3FileWithTextract(
   });
 
   try {
+    // Detect if file is a PDF — sync APIs don't support multi-page PDFs
+    const isPdf = fileInput.key.toLowerCase().endsWith(".pdf");
+
     logger.info("Processing document with Textract", {
       bucket: fileInput.bucket,
       key: fileInput.key,
-      analysisType: config.analysisType || "DETECT_TEXT"
+      analysisType: config.analysisType || "DETECT_TEXT",
+      async: isPdf,
     });
 
-    const document = {
+    const s3Object = {
       S3Object: {
         Bucket: fileInput.bucket,
         Name: fileInput.key,
       },
     };
 
-    let result;
     let rawBlocks: any[] = [];
+    const isAnalyze = config.analysisType === "ANALYZE_DOCUMENT";
 
-    if (config.analysisType === "ANALYZE_DOCUMENT") {
-      // Advanced analysis with features
-      const command = new AnalyzeDocumentCommand({
-        Document: document,
-        FeatureTypes: config.features || ["TABLES", "FORMS"],
-      });
-      
-      result = await textractClient.send(command);
-      rawBlocks = result.Blocks || [];
+    if (isPdf) {
+      // Async API for PDFs (supports multi-page)
+      let jobId: string;
+
+      if (isAnalyze) {
+        const startCmd = new StartDocumentAnalysisCommand({
+          DocumentLocation: s3Object,
+          FeatureTypes: config.features || ["TABLES", "FORMS"],
+        });
+        const startResult = await textractClient.send(startCmd);
+        jobId = startResult.JobId!;
+      } else {
+        const startCmd = new StartDocumentTextDetectionCommand({
+          DocumentLocation: s3Object,
+        });
+        const startResult = await textractClient.send(startCmd);
+        jobId = startResult.JobId!;
+      }
+
+      logger.info("Started async Textract job", { jobId, key: fileInput.key });
+      rawBlocks = await pollTextractJob(textractClient, jobId, isAnalyze, logger);
     } else {
-      // Simple text detection
-      const command = new DetectDocumentTextCommand({
-        Document: document,
-      });
-      
-      result = await textractClient.send(command);
-      rawBlocks = result.Blocks || [];
+      // Sync API for images (JPEG, PNG, TIFF)
+      if (isAnalyze) {
+        const command = new AnalyzeDocumentCommand({
+          Document: s3Object,
+          FeatureTypes: config.features || ["TABLES", "FORMS"],
+        });
+        const result = await textractClient.send(command);
+        rawBlocks = result.Blocks || [];
+      } else {
+        const command = new DetectDocumentTextCommand({
+          Document: s3Object,
+        });
+        const result = await textractClient.send(command);
+        rawBlocks = result.Blocks || [];
+      }
     }
 
     // Extract text from blocks
-    const textBlocks = rawBlocks.filter(block => block.BlockType === "LINE");
+    const textBlocks = rawBlocks.filter((block) => block.BlockType === "LINE");
     const extractedText = textBlocks
-      .map(block => block.Text)
-      .filter(text => text)
+      .map((block) => block.Text)
+      .filter((text) => text)
       .join("\n");
 
     // Calculate metadata
-    const pageCount = Math.max(1, new Set(rawBlocks.map(block => block.Page)).size);
+    const pageCount = Math.max(1, new Set(rawBlocks.map((block) => block.Page)).size);
     const blockCount = rawBlocks.length;
     const confidenceValues = rawBlocks
-      .filter(block => block.Confidence !== undefined)
-      .map(block => block.Confidence);
-    const averageConfidence = confidenceValues.length > 0
-      ? confidenceValues.reduce((sum, conf) => sum + conf, 0) / confidenceValues.length
-      : 0;
+      .filter((block) => block.Confidence !== undefined)
+      .map((block) => block.Confidence);
+    const averageConfidence =
+      confidenceValues.length > 0 ? confidenceValues.reduce((sum, conf) => sum + conf, 0) / confidenceValues.length : 0;
 
     const metadata: TextractMetadata = {
       pageCount,
@@ -98,7 +186,7 @@ export async function processS3FileWithTextract(
 
     // Process structured data if requested
     let structuredText, tables, formFields;
-    
+
     if (config.outputFormat === "structured" || config.outputFormat === "all") {
       structuredText = extractStructuredText(rawBlocks);
       tables = extractTables(rawBlocks);
@@ -109,15 +197,17 @@ export async function processS3FileWithTextract(
     let outputKey;
     if (config.saveToS3) {
       const prefix = config.outputPrefix || "textract-output";
-      outputKey = `${prefix}/${fileInput.key.split('/').pop()}.txt`;
-      
-      await s3Client.send(new PutObjectCommand({
-        Bucket: fileInput.bucket,
-        Key: outputKey,
-        Body: extractedText,
-        ContentType: "text/plain",
-      }));
-      
+      outputKey = `${prefix}/${fileInput.key.split("/").pop()}.txt`;
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: fileInput.bucket,
+          Key: outputKey,
+          Body: extractedText,
+          ContentType: "text/plain",
+        }),
+      );
+
       logger.info("Saved extracted text to S3", { bucket: fileInput.bucket, key: outputKey });
     }
 
@@ -131,7 +221,6 @@ export async function processS3FileWithTextract(
       tables,
       formFields,
     };
-
   } catch (error: any) {
     logger.error("Textract processing failed", {
       error: error.message,
@@ -146,13 +235,13 @@ export async function processS3FileWithTextract(
 function extractStructuredText(blocks: any[]): any {
   // Group blocks by page and type for structured output
   const pages: any = {};
-  
-  blocks.forEach(block => {
+
+  blocks.forEach((block) => {
     const page = block.Page || 1;
     if (!pages[page]) {
       pages[page] = { lines: [], words: [], tables: [], forms: [] };
     }
-    
+
     switch (block.BlockType) {
       case "LINE":
         pages[page].lines.push({
@@ -170,23 +259,22 @@ function extractStructuredText(blocks: any[]): any {
         break;
     }
   });
-  
+
   return pages;
 }
 
 function extractTables(blocks: any[]): any[] {
   const tables: any[] = [];
-  const tableBlocks = blocks.filter(block => block.BlockType === "TABLE");
-  
-  tableBlocks.forEach(table => {
+  const tableBlocks = blocks.filter((block) => block.BlockType === "TABLE");
+
+  tableBlocks.forEach((table) => {
     const cells: any[] = [];
-    
+
     if (table.Relationships) {
-      const cellIds = table.Relationships
-        .find((rel: any) => rel.Type === "CHILD")?.Ids || [];
-      
+      const cellIds = table.Relationships.find((rel: any) => rel.Type === "CHILD")?.Ids || [];
+
       cellIds.forEach((cellId: string) => {
-        const cell = blocks.find(block => block.Id === cellId);
+        const cell = blocks.find((block) => block.Id === cellId);
         if (cell && cell.BlockType === "CELL") {
           cells.push({
             rowIndex: cell.RowIndex,
@@ -197,7 +285,7 @@ function extractTables(blocks: any[]): any[] {
         }
       });
     }
-    
+
     tables.push({
       id: table.Id,
       confidence: table.Confidence,
@@ -207,20 +295,20 @@ function extractTables(blocks: any[]): any[] {
       }),
     });
   });
-  
+
   return tables;
 }
 
 function extractFormFields(blocks: any[]): any {
   const formFields: any = {};
-  const keyValueSets = blocks.filter(block => block.BlockType === "KEY_VALUE_SET");
-  
-  keyValueSets.forEach(kvSet => {
+  const keyValueSets = blocks.filter((block) => block.BlockType === "KEY_VALUE_SET");
+
+  keyValueSets.forEach((kvSet) => {
     if (kvSet.EntityTypes?.includes("KEY")) {
       const keyText = extractKeyValueText(kvSet, blocks);
       const valueBlock = findValueForKey(kvSet, blocks);
       const valueText = valueBlock ? extractKeyValueText(valueBlock, blocks) : "";
-      
+
       if (keyText) {
         formFields[keyText] = {
           value: valueText,
@@ -229,19 +317,18 @@ function extractFormFields(blocks: any[]): any {
       }
     }
   });
-  
+
   return formFields;
 }
 
 function extractCellText(cell: any, blocks: any[]): string {
   if (!cell.Relationships) return "";
-  
-  const wordIds = cell.Relationships
-    .find((rel: any) => rel.Type === "CHILD")?.Ids || [];
-  
+
+  const wordIds = cell.Relationships.find((rel: any) => rel.Type === "CHILD")?.Ids || [];
+
   return wordIds
     .map((wordId: string) => {
-      const word = blocks.find(block => block.Id === wordId);
+      const word = blocks.find((block) => block.Id === wordId);
       return word?.Text || "";
     })
     .join(" ");
@@ -249,13 +336,12 @@ function extractCellText(cell: any, blocks: any[]): string {
 
 function extractKeyValueText(kvSet: any, blocks: any[]): string {
   if (!kvSet.Relationships) return "";
-  
-  const wordIds = kvSet.Relationships
-    .find((rel: any) => rel.Type === "CHILD")?.Ids || [];
-  
+
+  const wordIds = kvSet.Relationships.find((rel: any) => rel.Type === "CHILD")?.Ids || [];
+
   return wordIds
     .map((wordId: string) => {
-      const word = blocks.find(block => block.Id === wordId);
+      const word = blocks.find((block) => block.Id === wordId);
       return word?.Text || "";
     })
     .join(" ");
@@ -263,11 +349,10 @@ function extractKeyValueText(kvSet: any, blocks: any[]): string {
 
 function findValueForKey(keyBlock: any, blocks: any[]): any | null {
   if (!keyBlock.Relationships) return null;
-  
-  const valueId = keyBlock.Relationships
-    .find((rel: any) => rel.Type === "VALUE")?.Ids?.[0];
-  
+
+  const valueId = keyBlock.Relationships.find((rel: any) => rel.Type === "VALUE")?.Ids?.[0];
+
   if (!valueId) return null;
-  
-  return blocks.find(block => block.Id === valueId && block.EntityTypes?.includes("VALUE")) || null;
+
+  return blocks.find((block) => block.Id === valueId && block.EntityTypes?.includes("VALUE")) || null;
 }

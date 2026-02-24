@@ -27,10 +27,13 @@ export const createEmbedding = async (params: any, config: any, context: NodeExe
     configNormalize: config.normalize,
   });
 
-  // Build config for OpenAI service
+  // Parse combined "model:dimensions" format (e.g. "text-embedding-3-large:1024")
+  const rawModel = config.model || "text-embedding-3-large:1536";
+  const [modelName, dimStr] = rawModel.includes(":") ? rawModel.split(":") : [rawModel, "1536"];
+
   const openaiConfig = {
-    model: config.model || "text-embedding-3-large",
-    dimensions: config.dimensions ? parseInt(config.dimensions, 10) : 1536,
+    model: modelName,
+    dimensions: config.dimensions || parseInt(dimStr, 10) || 1536,
     normalize: config.normalize !== false,
   };
 

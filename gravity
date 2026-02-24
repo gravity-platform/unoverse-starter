@@ -1228,7 +1228,22 @@ cmd_db_setup() {
     }
   else
     # Starter/production — run via Docker workflow container
+    # The migration code lives inside the workflow image (dist/db/).
+    # The workflow service must be running so we can exec into it.
     echo ""
+
+    if ! docker compose -f "$ROOT/docker-compose.yml" ps --status running workflow 2>/dev/null | grep -q workflow; then
+      echo ""
+      echo -e "  ${YELLOW}The workflow service must be running to initialize the database.${NC}"
+      echo -e "  ${DIM}(Migration code is bundled inside the workflow Docker image)${NC}"
+      echo ""
+      echo -e "  Start services first, then re-run:"
+      echo -e "    ${GREEN}./gravity start${NC}"
+      echo -e "    ${GREEN}./gravity db-setup${NC}"
+      echo ""
+      exit 1
+    fi
+
     echo "  Initializing database tables (via Docker)..."
 
     docker compose -f "$ROOT/docker-compose.yml" exec -T \

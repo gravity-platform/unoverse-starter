@@ -94,17 +94,7 @@ Your project has **two separate** `.env` files for different purposes:
 
 ---
 
-## Step 4: Set Up the Database
-
-Create the required database tables. This is safe to re-run — it uses `IF NOT EXISTS` for everything:
-
-```bash
-gravity db-setup
-```
-
----
-
-## Step 5: Start the Dev Environment
+## Step 4: Start the Dev Environment
 
 ```bash
 gravity dev
@@ -115,6 +105,18 @@ This single command does everything:
 1. **Starts the platform** (all Docker containers)
 2. **Installs workspace dependencies** (`npm install`)
 3. **Generates workflow nodes** from the design system (`gen:nodes`)
+
+---
+
+## Step 5: Set Up the Database
+
+> **The platform must be running first.** The migration code is bundled inside the workflow Docker image, so `gravity db-setup` executes inside that container.
+
+Create the required database tables. This is safe to re-run — it uses `IF NOT EXISTS` for everything:
+
+```bash
+gravity db-setup
+```
 
 ---
 

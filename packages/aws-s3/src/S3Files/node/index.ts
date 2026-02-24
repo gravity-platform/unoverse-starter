@@ -5,7 +5,7 @@ export const NODE_TYPE = "S3Files";
 
 function createNodeDefinition(): EnhancedNodeDefinition {
   const { NodeInputType } = getPlatformDependencies();
-  
+
   return {
     packageVersion: "1.1.0",
     type: NODE_TYPE,
@@ -14,7 +14,7 @@ function createNodeDefinition(): EnhancedNodeDefinition {
     category: "storage",
     logoUrl: "https://res.cloudinary.com/sonik/image/upload/v1749916163/gravity/icons/Amazon-S3-Logo.svg.png",
     color: "#FF9900",
-    
+
     inputs: [
       {
         name: "trigger",
@@ -26,7 +26,7 @@ function createNodeDefinition(): EnhancedNodeDefinition {
     outputs: [
       {
         name: "count",
-        type: NodeInputType.NUMBER, 
+        type: NodeInputType.NUMBER,
         description: "Total number of files",
       },
       {
@@ -70,6 +70,23 @@ function createNodeDefinition(): EnhancedNodeDefinition {
           title: "Random Selection",
           description: "Randomly select files instead of taking the first N files",
           default: false,
+        },
+        generatePresignedUrls: {
+          type: "boolean",
+          title: "Generate Presigned URLs",
+          description: "Generate a temporary download URL for each file (valid for 1 hour by default)",
+          default: false,
+        },
+        presignedUrlExpiry: {
+          type: "number",
+          title: "URL Expiry (seconds)",
+          description: "How long presigned URLs remain valid",
+          default: 3600,
+          minimum: 60,
+          maximum: 86400,
+          "ui:dependencies": {
+            generatePresignedUrls: true,
+          },
         },
       },
     },

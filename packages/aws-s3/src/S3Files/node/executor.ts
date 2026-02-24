@@ -1,4 +1,8 @@
-import { getPlatformDependencies, type NodeExecutionContext, type ValidationResult } from "@gravity-platform/plugin-base";
+import {
+  getPlatformDependencies,
+  type NodeExecutionContext,
+  type ValidationResult,
+} from "@gravity-platform/plugin-base";
 import { S3FilesConfig, S3FilesExecutorOutput, S3FileObject } from "../util/types";
 import { listS3Files } from "../service/s3Service";
 import { createHash } from "crypto";
@@ -19,17 +23,17 @@ export default class S3FilesExecutor extends PromiseNode<S3FilesConfig> {
   protected async executeNode(
     inputs: Record<string, any>,
     config: S3FilesConfig,
-    context: NodeExecutionContext
+    context: NodeExecutionContext,
   ): Promise<S3FilesExecutorOutput> {
     const logger = createLogger("S3Files");
-    
+
     // Build credential context for service
     const credentialContext = this.buildCredentialContext(context);
 
-    logger.info('Starting S3 file listing', { 
-      bucket: config.bucket, 
+    logger.info("Starting S3 file listing", {
+      bucket: config.bucket,
       prefix: config.prefix,
-      maxFiles: config.maxFiles 
+      maxFiles: config.maxFiles,
     });
 
     try {
@@ -44,8 +48,10 @@ export default class S3FilesExecutor extends PromiseNode<S3FilesConfig> {
           prefix: config.prefix,
           maxKeys: poolSize,
           fileExtensions: config.extensions ? config.extensions.split(",").map((ext) => ext.trim()) : undefined,
+          generatePresignedUrls: config.generatePresignedUrls,
+          presignedUrlExpiry: config.presignedUrlExpiry,
         },
-        credentialContext
+        credentialContext,
       );
 
       // Select files based on configuration
@@ -60,16 +66,16 @@ export default class S3FilesExecutor extends PromiseNode<S3FilesConfig> {
           }
           files = shuffled.slice(0, requestedFiles);
 
-          logger.info('Randomly selected files', {
+          logger.info("Randomly selected files", {
             poolSize: allFiles.length,
             selectedCount: files.length,
-            requestedCount: requestedFiles
+            requestedCount: requestedFiles,
           });
         } else {
           // Take first N files (default behavior)
           files = allFiles.slice(0, requestedFiles);
 
-          logger.info('Selected first N files', {
+          logger.info("Selected first N files", {
             poolSize: allFiles.length,
             selectedCount: files.length,
             requestedCount: requestedFiles,
@@ -91,7 +97,7 @@ export default class S3FilesExecutor extends PromiseNode<S3FilesConfig> {
         };
       });
 
-      logger.info('S3 file listing completed', { 
+      logger.info("S3 file listing completed", {
         fileCount: transformedFiles.length,
       });
 
@@ -103,7 +109,7 @@ export default class S3FilesExecutor extends PromiseNode<S3FilesConfig> {
         },
       };
     } catch (error) {
-      logger.error('S3 file listing failed', { error });
+      logger.error("S3 file listing failed", { error });
       throw error;
     }
   }
