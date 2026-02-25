@@ -1219,7 +1219,7 @@ cmd_db_setup() {
     fi
 
     # Run table initialization
-    NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" node -e "
+    NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" node --no-warnings -e "
       const db = require('$ROOT/apps/workflow/dist/db');
       (async () => {
         const steps = [
@@ -1276,7 +1276,7 @@ cmd_db_setup() {
     echo "  Initializing database tables (via Docker)..."
 
     docker compose -f "$ROOT/docker-compose.yml" exec -T \
-      -e NODE_TLS_REJECT_UNAUTHORIZED=0 workflow node -e "
+      -e NODE_TLS_REJECT_UNAUTHORIZED=0 workflow node --no-warnings -e "
       const db = require('./dist/db');
       (async () => {
         const steps = [
