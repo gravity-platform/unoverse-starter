@@ -6,7 +6,7 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "generate-index": "mkdir -p .storybook-index && storybook index --output-file .storybook-index/index.json",
+    "generate-index": "node -e \"require('fs').mkdirSync('.storybook-index',{recursive:true})\" && storybook index --output-file .storybook-index/index.json",
     "gen:nodes": "npm run generate-index && ts-node scripts/generate-nodes.ts"
   },
   "devDependencies": {
