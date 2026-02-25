@@ -209,6 +209,21 @@ cmd_init() {
     fail "DATABASE_URL is required — get it from your Gravity admin"
   done
 
+  # Auto-add SSL params if missing
+  if [[ "$DATABASE_URL" != *"sslmode="* ]] && [[ "$DATABASE_URL" != *"ssl="* ]]; then
+    local sep="?"
+    [[ "$DATABASE_URL" == *"?"* ]] && sep="&"
+    if [[ "$DATABASE_URL" == *"localhost"* ]] || \
+       [[ "$DATABASE_URL" == *"127.0.0.1"* ]] || \
+       [[ "$DATABASE_URL" == *"host.docker.internal"* ]]; then
+      DATABASE_URL="${DATABASE_URL}${sep}sslmode=disable"
+      ok "Local database detected — added sslmode=disable"
+    else
+      DATABASE_URL="${DATABASE_URL}${sep}sslmode=require"
+      ok "Managed database detected — added sslmode=require"
+    fi
+  fi
+
   # Redis
   read -p "  REDIS_HOST [host.docker.internal]: " REDIS_HOST
   REDIS_HOST="${REDIS_HOST:-host.docker.internal}"
@@ -319,9 +334,48 @@ cmd_login() {
   fi
 }
 
+# ─── DOCKER FILE SHARING CHECK ─────────────────────────────────────────────
+
+check_docker_file_sharing() {
+  # Detect macOS restricted directories that Docker cannot mount by default
+  local restricted=false
+  local location=""
+
+  case "$ROOT" in
+    "$HOME/Desktop"*)
+      restricted=true
+      location="Desktop"
+      ;;
+    "$HOME/Documents"*)
+      restricted=true
+      location="Documents"
+      ;;
+    "$HOME/Downloads"*)
+      restricted=true
+      location="Downloads"
+      ;;
+  esac
+
+  if [ "$restricted" = true ]; then
+    echo ""
+    warn "Project is in a restricted folder: ${BOLD}$ROOT${NC}"
+    echo ""
+    echo -e "  Docker cannot mount volumes from ${BOLD}$location${NC} without extra permissions."
+    echo -e "  This will cause services to stay in ${BOLD}Created${NC} state and not start."
+    echo ""
+    echo -e "  ${BOLD}Fix (choose one):${NC}"
+    echo -e "    1. Move project to ${BOLD}~/dev/${NC} or ${BOLD}~/projects/${NC} and re-run ${BOLD}gravity init${NC}"
+    echo -e "    2. Docker Desktop → Settings → Resources → File Sharing → add ${BOLD}$HOME/$location${NC}"
+    echo ""
+    return 1
+  fi
+  return 0
+}
+
 # ─── START ──────────────────────────────────────────────────────────────────
 
 cmd_start() {
+  check_docker_file_sharing || exit 1
   check_first_run
   banner "Starting Gravity Platform"
   timer_start
@@ -577,12 +631,14 @@ cmd_update() {
   fi
 
   # Step 3: Build packages (requires Node.js — installed by install.yml)
+  local build_log
+  build_log=$(mktemp)
   (
     cd "$ROOT"
     npm install --silent >/dev/null 2>&1 || true
-    npm run build -w @gravity-platform/plugin-base >/dev/null 2>&1 || true
-    npm run build --workspaces --if-present >/dev/null 2>&1 || true
-    npm run gen:nodes >/dev/null 2>&1 || true
+    npm run build -w @gravity-platform/plugin-base >> "$build_log" 2>&1 || true
+    npm run build --workspaces --if-present >> "$build_log" 2>&1 || true
+    npm run gen:nodes >> "$build_log" 2>&1 || true
   ) &
   local build_pid=$!
   local build_start=$(date +%s)
@@ -593,8 +649,15 @@ cmd_update() {
     sleep 0.1
   done
   wait "$build_pid" 2>/dev/null
+  local build_exit=$?
   printf "\r\033[2K"
-  ok "Packages built"
+  if [ $build_exit -eq 0 ]; then
+    ok "Packages built"
+  else
+    warn "Build completed with warnings — check output:"
+    cat "$build_log" | tail -20 | sed 's/^/    /'
+  fi
+  rm -f "$build_log"
 
   # Step 4: Restart — with spinner
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1 &
@@ -764,6 +827,11 @@ cmd_doctor() {
     ((issues++))
     print_summary $issues
     return
+  fi
+
+  # Docker file sharing
+  if ! check_docker_file_sharing; then
+    ((issues++))
   fi
 
   # .env
