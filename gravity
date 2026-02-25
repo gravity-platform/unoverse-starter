@@ -588,7 +588,8 @@ cmd_update() {
       ok "Code updated"
       rm -f "$git_log"
       # Re-exec with updated script so remaining steps use new code
-      exec "$ROOT/scripts/gravity" update --continue
+      # Use SCRIPT_DIR/basename($0) to handle both root-level and scripts/ placement
+      exec "$SCRIPT_DIR/$(basename "$0")" update --continue
     else
       warn "Code update failed — continuing"
       local git_err
