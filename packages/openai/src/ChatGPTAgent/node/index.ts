@@ -108,6 +108,9 @@ const definition: EnhancedNodeDefinition = {
         description: "Base system prompt. Supports template syntax like {{input.fieldName}}",
         default: "",
         "ui:field": "template",
+        "ui:ai": {
+          editable: true,
+        },
       },
       prompt: {
         type: "string",
@@ -115,6 +118,9 @@ const definition: EnhancedNodeDefinition = {
         description: "User message/prompt. Supports template syntax like {{input.fieldName}}",
         default: "",
         "ui:field": "template",
+        "ui:ai": {
+          editable: true,
+        },
       },
       maxTokens: {
         type: "number",

@@ -28,7 +28,7 @@ cmd_pull() {
 
   echo ""
   for img in "${IMAGES[@]}"; do
-    ((count++))
+    count=$((count + 1))
     local short="${img##*/}"          # gravity-server:latest
     short="${short%%:*}"              # gravity-server
 
@@ -38,19 +38,21 @@ cmd_pull() {
 
     # Animate spinner while pulling
     local i=0
-    while kill -0 "$pid" 2>/dev/null; do
-      local c="${spin:i++%${#spin}:1}"
+    while kill -0 "$pid" 2>/dev/null || false; do
+      local c="${spin:i%${#spin}:1}"
+      i=$((i + 1))
       printf "\r  ${DIM}[%d/%d]${NC} ${CYAN}%s${NC} Pulling ${BOLD}%s${NC} " "$count" "$total" "$c" "$short"
       sleep 0.1
     done
 
     # Check result
-    wait "$pid" 2>/dev/null
-    if [ $? -eq 0 ]; then
+    local pull_exit=0
+    wait "$pid" 2>/dev/null || pull_exit=$?
+    if [ $pull_exit -eq 0 ]; then
       printf "\r  ${DIM}[%d/%d]${NC} ${GREEN}✓${NC} Pulling ${BOLD}%s${NC} \n" "$count" "$total" "$short"
     else
       printf "\r  ${DIM}[%d/%d]${NC} ${RED}✗${NC} Pulling ${BOLD}%s${NC} \n" "$count" "$total" "$short"
-      ((failed++))
+      failed=$((failed + 1))
     fi
   done
   echo ""

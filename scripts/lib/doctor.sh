@@ -12,7 +12,7 @@ cmd_doctor() {
     ok "Docker is installed and running"
   else
     fail "Docker is not installed or not running"
-    ((issues++))
+    issues=$((issues + 1))
   fi
 
   # Apple Silicon
@@ -25,14 +25,14 @@ cmd_doctor() {
     ok "Project root: $ROOT"
   else
     fail "No docker-compose.yml found"
-    ((issues++))
+    issues=$((issues + 1))
     print_summary $issues
     return
   fi
 
   # Docker file sharing
   if ! check_docker_file_sharing; then
-    ((issues++))
+    issues=$((issues + 1))
   fi
 
   # .env
@@ -40,7 +40,7 @@ cmd_doctor() {
     ok ".env file exists"
   else
     fail ".env file missing — run ${BOLD}gravity init${NC}"
-    ((issues++))
+    issues=$((issues + 1))
     print_summary $issues
     return
   fi
@@ -54,7 +54,7 @@ cmd_doctor() {
     val=$(grep "^${var}=" "$ROOT/.env" 2>/dev/null | cut -d'=' -f2-)
     if [ -z "$val" ]; then
       fail "$var is not set"
-      ((issues++))
+      issues=$((issues + 1))
     else
       local is_placeholder=false
       for p in $placeholders; do
@@ -65,7 +65,7 @@ cmd_doctor() {
       done
       if $is_placeholder; then
         warn "$var looks like a placeholder: ${DIM}$val${NC}"
-        ((issues++))
+        issues=$((issues + 1))
       else
         local display="${val:0:40}"
         [ ${#val} -gt 40 ] && display="${display}..."
@@ -80,7 +80,7 @@ cmd_doctor() {
     ok "Logged in to DigitalOcean Container Registry"
   else
     fail "Not logged in to DOCR — run ${BOLD}gravity init${NC}"
-    ((issues++))
+    issues=$((issues + 1))
   fi
 
   # Images
@@ -93,7 +93,7 @@ cmd_doctor() {
     ok "$image_count images available"
   else
     warn "Images not pulled yet — run ${BOLD}gravity pull${NC}"
-    ((issues++))
+    issues=$((issues + 1))
   fi
 
   # Services running — use -a to catch Created containers
@@ -109,10 +109,10 @@ cmd_doctor() {
     elif [ "$created_doc" -gt 0 ]; then
       fail "$created_doc services stuck in Created state (never started)"
       info "This usually means Docker cannot mount the project volume"
-      ((issues++))
+      issues=$((issues + 1))
     else
       warn "$running/$total services running"
-      ((issues++))
+      issues=$((issues + 1))
     fi
   else
     info "No services found (run ${BOLD}gravity start${NC})"
@@ -127,7 +127,7 @@ cmd_doctor() {
     else
       warn "No local Redis container found"
       info "Start one: docker run -d --name gravity-redis -p 6379:6379 redis:7-alpine"
-      ((issues++))
+      issues=$((issues + 1))
     fi
   elif [ -n "$redis_host" ]; then
     info "Redis: using external host ${DIM}$redis_host${NC}"

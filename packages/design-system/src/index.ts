@@ -25,6 +25,7 @@ import { PDFViewerNode } from "./PDFViewer/node";
 // Print page nodes
 import { AutopsyReportNode } from "./AutopsyReport/node";
 import { ForensicsReportNode } from "./ForensicsReport/node";
+import { NewspaperPageNode } from "./NewspaperPage/node";
 import { PoliceReportNode } from "./PoliceReport/node";
 import { ProfileReportNode } from "./ProfileReport/node";
 import { StatementReportNode } from "./StatementReport/node";
@@ -45,6 +46,7 @@ const nodes = [
   // Print pages
   AutopsyReportNode,
   ForensicsReportNode,
+  NewspaperPageNode,
   PoliceReportNode,
   ProfileReportNode,
   StatementReportNode,

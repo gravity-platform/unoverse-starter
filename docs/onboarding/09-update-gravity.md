@@ -23,7 +23,23 @@ This updates your `docker-compose.yml`, `gravity` CLI, docs, and any shared conf
 gravity update
 ```
 
-This pulls the latest Docker images and restarts all services.
+This pulls the latest Docker images, rebuilds packages, and restarts all services.
+
+> **⚠️ Local changes to tracked files will be discarded.**
+>
+> `gravity update` runs `git checkout -- .` before pulling to ensure a clean merge. This means any uncommitted edits to tracked files (e.g. `docker-compose.yml`, `gravity`, files in `packages/`) will be lost.
+>
+> **Safe (never touched):** `.env`, `ansible/inventory/production.yml`, `ansible/files/.env`, `node_modules/`, `package-lock.json` — these are gitignored.
+>
+> **If you have local changes you want to keep**, commit them to a branch first:
+>
+> ```bash
+> git checkout -b my-changes
+> git add -A && git commit -m "my local changes"
+> git checkout main
+> gravity update
+> git merge my-changes
+> ```
 
 ### 3. Verify
 

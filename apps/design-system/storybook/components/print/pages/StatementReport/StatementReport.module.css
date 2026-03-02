@@ -228,9 +228,16 @@
   font-size: 8.5pt;
   line-height: 1.55;
   color: #1a1a3a;
-  white-space: pre-wrap;
   word-wrap: break-word;
   overflow: hidden;
+}
+
+.statementParagraph {
+  margin: 0 0 6pt 0;
+}
+
+.statementParagraph:last-child {
+  margin-bottom: 0;
 }
 
 /* ============================================

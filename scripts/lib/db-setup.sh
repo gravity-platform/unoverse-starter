@@ -20,14 +20,12 @@ cmd_db_setup() {
     echo ""
     echo "  Initializing database tables (local dev)..."
 
-    # Check if workflow is built
-    if [ ! -f "$ROOT/apps/workflow/dist/db/index.js" ]; then
-      echo "  Building workflow first..."
-      (cd "$ROOT" && npx turbo run build --filter=@gravity-platform/gravity-workflow >/dev/null 2>&1) || {
-        fail "Workflow build failed — run 'npx turbo run build' first"
-        exit 1
-      }
-    fi
+    # Always rebuild workflow to ensure migrations reflect latest code
+    echo "  Building workflow..."
+    (cd "$ROOT" && npx turbo run build --filter=@gravity-platform/gravity-workflow >/dev/null 2>&1) || {
+      fail "Workflow build failed — run 'npx turbo run build' first"
+      exit 1
+    }
 
     # Run table initialization
     NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" node --no-warnings -e "

@@ -53,8 +53,9 @@ cmd_update() {
   local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   local si=0
   local pull_start=$(date +%s)
-  while kill -0 "$pull_pid" 2>/dev/null; do
-    local c="${spin:si++%${#spin}:1}"
+  while kill -0 "$pull_pid" 2>/dev/null || false; do
+    local c="${spin:si%${#spin}:1}"
+    si=$((si + 1))
     local elapsed=$(( $(date +%s) - pull_start ))
     printf "\r  ${CYAN}%s${NC} Pulling images... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
     sleep 0.1
@@ -70,8 +71,9 @@ cmd_update() {
     docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1 &
     pull_pid=$!
     pull_start=$(date +%s)
-    while kill -0 "$pull_pid" 2>/dev/null; do
-      local c="${spin:si++%${#spin}:1}"
+    while kill -0 "$pull_pid" 2>/dev/null || false; do
+      local c="${spin:si%${#spin}:1}"
+      si=$((si + 1))
       local elapsed=$(( $(date +%s) - pull_start ))
       printf "\r  ${CYAN}%s${NC} Pulling images (retry)... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
       sleep 0.1
@@ -97,14 +99,15 @@ cmd_update() {
   ) &
   local build_pid=$!
   local build_start=$(date +%s)
-  while kill -0 "$build_pid" 2>/dev/null; do
-    local c="${spin:si++%${#spin}:1}"
+  while kill -0 "$build_pid" 2>/dev/null || false; do
+    local c="${spin:si%${#spin}:1}"
+    si=$((si + 1))
     local elapsed=$(( $(date +%s) - build_start ))
     printf "\r  ${CYAN}%s${NC} Building packages... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
     sleep 0.1
   done
-  wait "$build_pid" 2>/dev/null
-  local build_exit=$?
+  local build_exit=0
+  wait "$build_pid" 2>/dev/null || build_exit=$?
   printf "\r\033[2K"
   if [ $build_exit -eq 0 ]; then
     ok "Packages built"
@@ -118,13 +121,14 @@ cmd_update() {
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --quiet-pull >/dev/null 2>&1 &
   local restart_pid=$!
   local restart_start=$(date +%s)
-  while kill -0 "$restart_pid" 2>/dev/null; do
-    local c="${spin:si++%${#spin}:1}"
+  while kill -0 "$restart_pid" 2>/dev/null || false; do
+    local c="${spin:si%${#spin}:1}"
+    si=$((si + 1))
     local elapsed=$(( $(date +%s) - restart_start ))
     printf "\r  ${CYAN}%s${NC} Restarting services... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
     sleep 0.1
   done
-  wait "$restart_pid" 2>/dev/null
+  wait "$restart_pid" 2>/dev/null || true
   printf "\r\033[2K"
 
   # Verify services actually started (not stuck in Created)

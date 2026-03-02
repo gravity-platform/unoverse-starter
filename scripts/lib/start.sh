@@ -66,13 +66,14 @@ cmd_start() {
   docker compose -f "$ROOT/docker-compose.yml" --env-file "$ROOT/.env" up -d --remove-orphans >"$compose_log" 2>&1 &
   local up_pid=$!
   local i=0
-  while kill -0 "$up_pid" 2>/dev/null; do
-    local c="${spin:i++%${#spin}:1}"
+  while kill -0 "$up_pid" 2>/dev/null || false; do
+    local c="${spin:i%${#spin}:1}"
+    i=$((i + 1))
     printf "\r  ${CYAN}%s${NC} ${DIM}Starting services...${NC} " "$c"
     sleep 0.1
   done
-  wait "$up_pid" 2>/dev/null
-  local up_exit=$?
+  local up_exit=0
+  wait "$up_pid" 2>/dev/null || up_exit=$?
   if [ $up_exit -ne 0 ]; then
     printf "\r  ${RED}✗${NC} Failed to start services\n"
     echo ""
@@ -103,10 +104,11 @@ cmd_start() {
     if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
       break
     fi
-    local c="${spin:i++%${#spin}:1}"
+    local c="${spin:i%${#spin}:1}"
+    i=$((i + 1))
     printf "\r  ${CYAN}%s${NC} ${DIM}Waiting for health checks...${NC} ${DIM}(%d/%d)${NC} " "$c" "$running" "$total"
     sleep 2
-    ((attempts++))
+    attempts=$((attempts + 1))
   done
 
   echo ""

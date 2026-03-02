@@ -98,7 +98,15 @@ export default function StatementReport({ object }: StatementReportProps) {
                 <span className={styles.statementTitle}>Official Statement</span>
                 <span className={styles.statementName}>{d.suspect_name}</span>
               </div>
-              <div className={styles.statementBody}>{d.statement_text}</div>
+              <div className={styles.statementBody}>
+                {d.statement_text.split(/\\n/g).map((para, i) =>
+                  para.trim() ? (
+                    <p key={i} className={styles.statementParagraph}>
+                      {para.trim()}
+                    </p>
+                  ) : null,
+                )}
+              </div>
             </div>
 
             {/* Signature Block */}
