@@ -19,11 +19,11 @@
     - name: Update .env with rollback version
       lineinfile:
         path: /opt/gravity/.env
-        regexp: '^GRAVITY_VERSION='
+        regexp: "^GRAVITY_VERSION="
         line: "GRAVITY_VERSION={{ rollback_version }}"
 
     - name: Pull previous version images
-      command: docker compose pull
+      command: docker compose pull --quiet
       args:
         chdir: /opt/gravity
       environment:

@@ -136,7 +136,7 @@
       when: docr_token != ""
 
     - name: "[10/12] Pull Gravity images"
-      command: docker compose pull
+      command: docker compose pull --quiet
       args:
         chdir: /opt/gravity
       register: pull_result

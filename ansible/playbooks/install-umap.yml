@@ -78,7 +78,7 @@
     - name: "[6/7] POC — Start UMAP via docker compose"
       shell: |
         cd /opt/gravity
-        docker compose pull umap
+        docker compose pull --quiet umap
         docker compose up -d umap
       register: poc_result
       when: compose_file.stat.exists
