@@ -8,11 +8,12 @@ cmd_update() {
   timer_start
 
   # Pre-flight: Docker must be running
-  if ! docker info >/dev/null 2>&1; then
+  if ! docker ps >/dev/null 2>&1; then
     echo ""
-    fail "Docker is not running"
+    fail "Docker engine is not running"
     echo ""
-    echo -e "  Start Docker Desktop, then re-run:"
+    echo -e "  Open ${BOLD}Docker Desktop${NC} and wait for it to fully start (whale icon stops animating)."
+    echo -e "  Then re-run:"
     echo -e "    ${GREEN}./gravity update${NC}"
     echo ""
     exit 1
@@ -184,11 +185,12 @@ cmd_update_nodes() {
   timer_start
 
   # Pre-flight: Docker must be running
-  if ! docker info >/dev/null 2>&1; then
+  if ! docker ps >/dev/null 2>&1; then
     echo ""
-    fail "Docker is not running"
+    fail "Docker engine is not running"
     echo ""
-    echo -e "  Start Docker Desktop, then re-run:"
+    echo -e "  Open ${BOLD}Docker Desktop${NC} and wait for it to fully start (whale icon stops animating)."
+    echo -e "  Then re-run:"
     echo -e "    ${GREEN}./gravity update nodes${NC}"
     echo ""
     exit 1
