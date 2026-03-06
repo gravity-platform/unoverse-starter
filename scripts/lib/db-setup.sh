@@ -61,7 +61,9 @@ cmd_db_setup() {
     echo "  Running migrations (via Docker)..."
 
     docker compose -f "$ROOT/docker-compose.yml" exec -T \
-      -e NODE_TLS_REJECT_UNAUTHORIZED=0 workflow \
+      -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
+      -e DATABASE_URL="$db_url" \
+      workflow \
       npx node-pg-migrate up \
         --migrations-dir /app/migrations \
         --migration-file-language sql \
