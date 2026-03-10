@@ -14,14 +14,7 @@ cmd_db_setup() {
   fi
   ok "DATABASE_URL configured"
 
-  # Ensure SSL is specified (required by DigitalOcean managed Postgres)
-  if [[ "$db_url" != *"sslmode="* ]]; then
-    if [[ "$db_url" == *"?"* ]]; then
-      db_url="${db_url}&sslmode=require"
-    else
-      db_url="${db_url}?sslmode=require"
-    fi
-  fi
+  # Note: if your Postgres requires SSL, add ?sslmode=require to DATABASE_URL in .env
 
   # Detect environment: monorepo (local dev) vs starter (Docker)
   if [ -d "$ROOT/apps/workflow" ]; then
@@ -81,7 +74,8 @@ cmd_db_setup() {
       (async () => {
         try {
           const seedData = JSON.parse(fs.readFileSync('/app/security-corpus-seed.json', 'utf-8'));
-          const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+          const ssl = process.env.DATABASE_URL.includes('sslmode=') ? { rejectUnauthorized: false } : false;
+          const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl });
           for (const a of seedData) {
             await pool.query(
               'INSERT INTO security_attack_corpus (id,category,label,attack_prompt,expected_result,severity,source,is_active) VALUES (\$1,\$2,\$3,\$4,\$5,\$6,\$7,true) ON CONFLICT (id) DO NOTHING',
@@ -122,7 +116,8 @@ _seed_security_corpus() {
     (async () => {
       try {
         const seedData = JSON.parse(fs.readFileSync('$seed_file', 'utf-8'));
-        const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+        const ssl = process.env.DATABASE_URL.includes('sslmode=') ? { rejectUnauthorized: false } : false;
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl });
         for (const a of seedData) {
           await pool.query(
             'INSERT INTO security_attack_corpus (id,category,label,attack_prompt,expected_result,severity,source,is_active) VALUES (\$1,\$2,\$3,\$4,\$5,\$6,\$7,true) ON CONFLICT (id) DO NOTHING',

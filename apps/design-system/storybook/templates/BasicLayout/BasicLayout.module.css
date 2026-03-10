@@ -1,0 +1,21 @@
+/* BasicLayout - Minimal vertical stack of components */
+@import '../../styles/index.css';
+
+.container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  background-color: var(--color-gray-50);
+}
+
+.content {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--spacing-6) var(--spacing-4);
+}
+
+.content > * + * {
+  margin-top: var(--spacing-4);
+}

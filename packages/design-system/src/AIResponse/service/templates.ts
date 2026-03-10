@@ -7,7 +7,7 @@ import { AIResponseTemplate } from "../util/types";
 
 export function loadDefaultTemplate(): AIResponseTemplate {
   return {
-    componentUrl: '/components/AIResponse.js?v=1772955894646',
+    componentUrl: '/components/AIResponse.js?v=1772979655837',
   };
 }
 
