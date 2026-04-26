@@ -85,8 +85,7 @@
         set -e
         cd {{ gravity_dir }}
         npm install --no-audit --no-fund 2>&1 | tail -3
-        npm run build -w @gravity-platform/plugin-base 2>&1 | tail -3
-        npm run build --workspaces --if-present 2>&1 | tail -3
+        npx turbo run build 2>&1 | tail -10
       register: build_result
       timeout: 300
 

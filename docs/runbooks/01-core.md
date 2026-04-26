@@ -32,9 +32,13 @@ Deploy the core Gravity Platform services to a VM.
 
 ### 1. Configure Ansible Inventory
 
+> **All Ansible commands run from inside your gravity-starter clone** — the directory you cloned from `gravity-platform/gravity-starter` (e.g. `~/gravityDevTest` or `~/gravity`). Not from the GravityPlatform source repo.
+
 Copy the example inventory and fill in your VM details:
 
 ```bash
+# Run this from inside your gravity-starter clone:
+cd ~/gravityDevTest   # or wherever you cloned gravity-starter
 cp ansible/inventory/production.yml.example ansible/inventory/production.yml
 ```
 
