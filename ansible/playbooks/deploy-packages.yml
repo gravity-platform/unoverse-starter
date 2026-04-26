@@ -58,13 +58,25 @@
         state: present
       when: ansible_facts['os_family'] == "RedHat"
 
-    - name: "[2/5] Clone {{ starter_repo }} ({{ starter_branch | default('main') }})"
-      git:
-        repo: "{{ 'https://' + packages_token + '@' + (starter_repo | regex_replace('^https?://', '')) if (packages_token | length > 0) else starter_repo }}"
-        dest: /tmp/gravity-packages
-        version: "{{ starter_branch | default('main') }}"
-        force: yes
-      no_log: "{{ (packages_token | length) > 0 }}"
+    - block:
+        - name: "[2/5] Clone {{ starter_repo }} ({{ starter_branch | default('main') }})"
+          shell: |
+            set -e
+            rm -rf /tmp/gravity-packages
+            GIT_TERMINAL_PROMPT=0 git clone \
+              --depth 1 \
+              --branch {{ starter_branch | default('main') }} \
+              "{{ 'https://' + packages_token + '@' + (starter_repo | regex_replace('^https?://', '')) if (packages_token | length > 0) else starter_repo }}" \
+              /tmp/gravity-packages
+          no_log: "{{ (packages_token | length) > 0 }}"
+      rescue:
+        - name: "Clone failed — token likely missing or expired"
+          fail:
+            msg: |
+              Git clone failed for {{ starter_repo }}.
+              Most likely cause: PACKAGES_TOKEN in ansible/files/.env is missing or expired.
+              Fix: generate a new GitHub PAT (repo scope) and update ansible/files/.env:
+                PACKAGES_TOKEN=ghp_your_new_token_here
 
     - name: "[3/5] Copy config and packages"
       shell: |
