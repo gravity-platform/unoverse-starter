@@ -16,8 +16,8 @@ cmd_deploy() {
 
   # Read deploy target from .env.production
   local deploy_host deploy_user
-  deploy_host=$(grep '^DEPLOY_HOST=' "$env_prod" | cut -d= -f2-)
-  deploy_user=$(grep '^DEPLOY_USER=' "$env_prod" | cut -d= -f2-)
+  deploy_host=$(grep '^DEPLOY_HOST=' "$env_prod" | cut -d= -f2- | tr -d '\r\n' | xargs)
+  deploy_user=$(grep '^DEPLOY_USER=' "$env_prod" | cut -d= -f2- | tr -d '\r\n' | xargs)
 
   if [ -z "$deploy_host" ] || [ "$deploy_host" = "your-vm-ip" ]; then
     fail "DEPLOY_HOST is not set in .env.production"
@@ -56,6 +56,12 @@ EOF
     sed -i "s/DEPLOY_HOST_PLACEHOLDER/$deploy_host/g" "$tmp_inventory"
     sed -i "s/DEPLOY_USER_PLACEHOLDER/$deploy_user/g" "$tmp_inventory"
   fi
+
+  # Debug: show what's in the inventory
+  echo ""
+  info "Generated inventory file:"
+  cat "$tmp_inventory" | sed 's/^/  /'
+  echo ""
 
   local ansible_dir="$ROOT/ansible"
   local subcommand="${1:-full}"
