@@ -53,44 +53,33 @@ cmd_update() {
     echo "$docr_token" | docker login registry.digitalocean.com -u "$docr_token" --password-stdin >/dev/null 2>&1 || true
   fi
 
-  local pull_ok=true
-  docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1 &
-  local pull_pid=$!
-  local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  local si=0
+  echo ""
   local pull_start=$(date +%s)
-  while kill -0 "$pull_pid" 2>/dev/null || false; do
-    local c="${spin:si%${#spin}:1}"
-    si=$((si + 1))
-    local elapsed=$(( $(date +%s) - pull_start ))
-    printf "\r  ${CYAN}%s${NC} Pulling images... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
-    sleep 0.1
-  done
-  wait "$pull_pid" 2>/dev/null || pull_ok=false
-  printf "\r\033[2K"
-  if $pull_ok; then
-    ok "Images pulled"
-  else
-    warn "Pull failed — retrying in 5s..."
-    sleep 5
-    pull_ok=true
-    docker compose -f "$ROOT/docker-compose.yml" pull --quiet >/dev/null 2>&1 &
-    pull_pid=$!
-    pull_start=$(date +%s)
-    while kill -0 "$pull_pid" 2>/dev/null || false; do
-      local c="${spin:si%${#spin}:1}"
-      si=$((si + 1))
-      local elapsed=$(( $(date +%s) - pull_start ))
-      printf "\r  ${CYAN}%s${NC} Pulling images (retry)... ${DIM}(%ds)${NC}  " "$c" "$elapsed"
-      sleep 0.1
-    done
-    wait "$pull_pid" 2>/dev/null || pull_ok=false
-    printf "\r\033[2K"
-    if $pull_ok; then
-      ok "Images pulled (retry succeeded)"
-    else
-      fail "Image pull failed — check network/registry and run ${BOLD}gravity update${NC} again"
+  local pull_ok=true
+
+  # Run pull with output, parse service names as they complete
+  docker compose -f "$ROOT/docker-compose.yml" pull 2>&1 | while IFS= read -r line; do
+    # Parse lines like "server Pulled" or "✔ workflow Pulled"
+    if echo "$line" | grep -qE "(Pulled|✔.*Pulled)"; then
+      local service=$(echo "$line" | sed -E 's/.*[[:space:]]([a-z-]+)[[:space:]]Pulled.*/\1/' | sed 's/✔//' | xargs)
+      if [ -n "$service" ]; then
+        local elapsed=$(( $(date +%s) - pull_start ))
+        echo "  ${GREEN}✓${NC} ${service} ${DIM}(${elapsed}s)${NC}"
+      fi
     fi
+  done
+
+  # Check exit code
+  if [ $? -ne 0 ]; then
+    pull_ok=false
+  fi
+
+  echo ""
+  if $pull_ok; then
+    local total_elapsed=$(( $(date +%s) - pull_start ))
+    ok "Images pulled ${DIM}(${total_elapsed}s total)${NC}"
+  else
+    fail "Image pull failed — check network/registry and run ${BOLD}gravity update${NC} again"
   fi
 
   # Step 3: Build packages (requires Node.js — installed by install.yml)
