@@ -78,19 +78,19 @@ The wizard will ask for your DOCR token, database URL, Redis, and auth credentia
 
 ### Understanding the Two `.env` Files
 
-Your project has **two separate** `.env` files for different purposes:
+Your project has **two** `.env` files, both at the project root:
 
-| File                      | Purpose                   | Used By                                                |
-| ------------------------- | ------------------------- | ------------------------------------------------------ |
-| **`.env`** (project root) | **Local development**     | `docker compose` on your machine                       |
-| **`ansible/files/.env`**  | **Production deployment** | Ansible copies it to `/opt/gravity/.env` on the server |
+| File                  | Purpose                   | Used By                                       |
+| --------------------- | ------------------------- | --------------------------------------------- |
+| **`.env`**            | **Local development**     | `docker compose` on your machine              |
+| **`.env.production`** | **Production deployment** | `gravity deploy` copies to server             |
 
-- The root `.env` points to **local** services (Redis on `localhost`, local DB, no TLS, no `DOMAIN`)
-- `ansible/files/.env` points to **production** services (managed Redis with TLS, managed DB, `DOMAIN` set)
+- `.env` points to **local** services (Redis on `localhost`, no TLS, no `DOMAIN`)
+- `.env.production` points to **production** services (managed Redis with TLS, `DOMAIN` set) and includes `DEPLOY_HOST`/`DEPLOY_USER` for targeting your VM
 - Both files are **gitignored** — they contain secrets and are never committed
-- Use `ansible/files/.env.example` as the template when setting up production config
+- Use `.env.example` and `.env.production.example` as templates
 
-> **Do not mix them up.** The root `.env` is for your laptop. `ansible/files/.env` is for the server.
+> **Do not mix them up.** `.env` is for your laptop. `.env.production` is for the server.
 
 ---
 

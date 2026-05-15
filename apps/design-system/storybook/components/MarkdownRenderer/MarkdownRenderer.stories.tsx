@@ -16,18 +16,17 @@ const meta: Meta<typeof MarkdownRenderer> = {
   },
   argTypes: {
     title: {
-      control: "text",
+      control: "object",
       description: "Optional title shown above the rendered markdown",
       workflowInput: true,
     },
     markdown: {
-      control: "text",
+      control: "object",
       description: "Markdown content to render",
       workflowInput: true,
     },
     streamingState: {
-      control: "select",
-      options: ["idle", "streaming", "complete"],
+      control: "object",
       description: "Controls the 'Writing…' indicator",
       workflowInput: true,
     },

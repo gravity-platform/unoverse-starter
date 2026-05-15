@@ -21,6 +21,7 @@ import { CardFinderNode } from "./CardFinder/node";
 import { ChatInputNode } from "./ChatInput/node";
 import { ListPickerNode } from "./ListPicker/node";
 import { MarkdownRendererNode } from "./MarkdownRenderer/node";
+import { MiroIssueTriageNode } from "./MiroIssueTriage/node";
 import { PDFViewerNode } from "./PDFViewer/node";
 
 // Print page nodes
@@ -44,6 +45,7 @@ const nodes = [
   ChatInputNode,
   ListPickerNode,
   MarkdownRendererNode,
+  MiroIssueTriageNode,
   PDFViewerNode,
   // Print pages
   AutopsyReportNode,

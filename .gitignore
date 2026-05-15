@@ -2,10 +2,10 @@ node_modules/
 .turbo/
 dist/
 .env
+.env.production
 .DS_Store
 *.log
 
 # Customer-specific files (never commit these)
 ansible/inventory/production.yml
-ansible/files/.env
 package-lock.json

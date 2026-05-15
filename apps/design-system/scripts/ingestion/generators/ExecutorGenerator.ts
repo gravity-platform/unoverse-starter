@@ -64,6 +64,7 @@ ${Object.keys(metadata.argTypes)
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      ${metadata.workflowSize ? `nodeSize: { width: ${metadata.workflowSize.width}, height: ${metadata.workflowSize.height} },` : ""}
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

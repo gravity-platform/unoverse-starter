@@ -5,26 +5,32 @@ Deploy customer packages (custom nodes, design-system components) to the server.
 ## Prerequisites
 
 - [ ] Core platform deployed ([01-core.md](./01-core.md))
-- [ ] `starter_repo` set in `production.yml`
-- [ ] Changes pushed to your starter repo
+- [ ] `.env.production` configured with `DEPLOY_HOST`
+- [ ] Changes built locally (packages have `dist/`)
 
 ## Deploy
 
 ```bash
+gravity deploy packages
+```
+
+Or manually via Ansible:
+
+```bash
+cd ansible
 ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 ```
 
 This playbook:
 
-1. Clones `starter_repo` (from `production.yml`) to the server
-2. Copies `packages/` and `apps/design-system/` to `/opt/gravity/`
-3. Runs `npm install` + `npm run build` + `gen:nodes`
-4. Restarts `node-service` to load the built packages
+1. Rsyncs `packages/` and `apps/design-system/` from your local machine to the server
+2. Runs `npm install` + `turbo build` on the server
+3. Restarts `node-service` to load the built packages
 
 ## Verify
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
+gravity deploy test
 ```
 
 Check the **Plugins & Packages** section — `plugins` should be > 0.
@@ -34,20 +40,20 @@ Check the **Plugins & Packages** section — `plugins` should be > 0.
 ```
 PACKAGES DEPLOYED
 ============================================
-Repo:   https://github.com/your-org/your-gravity.git (main)
-Build:  OK
+Mode:    rsync (local)
+Build:   OK
 Restart: OK
 ============================================
 ```
 
 ## Troubleshooting
 
-| Issue                  | Cause                 | Fix                                                                     |
-| ---------------------- | --------------------- | ----------------------------------------------------------------------- |
-| plugins=0 on server    | Packages not built    | Re-run `deploy-packages.yml`                                            |
-| Build FAILED           | Missing dependency    | SSH in, run `cd /opt/gravity && npm install` manually                   |
-| Clone fails            | Bad token or repo URL | Check `starter_repo` in `production.yml` and `PACKAGES_TOKEN` in `.env` |
-| node-service unhealthy | Bad package code      | Check `docker compose logs node-service` on server                      |
+| Issue                  | Cause                 | Fix                                                    |
+| ---------------------- | --------------------- | ------------------------------------------------------ |
+| plugins=0 on server    | Packages not built    | Re-run `gravity deploy packages`                       |
+| Build FAILED           | Missing dependency    | SSH in, run `cd /opt/gravity && npm install` manually  |
+| rsync permission error | SSH key not set up    | Check `DEPLOY_HOST` and `DEPLOY_USER` in `.env.production` |
+| node-service unhealthy | Bad package code      | Check `docker compose logs node-service` on server     |
 
 ## Related
 

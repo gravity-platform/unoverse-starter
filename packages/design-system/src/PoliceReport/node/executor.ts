@@ -47,6 +47,7 @@ export default class PoliceReportExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 800, height: 2120 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

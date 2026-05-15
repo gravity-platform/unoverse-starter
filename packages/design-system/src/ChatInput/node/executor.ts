@@ -68,6 +68,7 @@ export default class ChatInputExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

@@ -25,4 +25,13 @@ cmd_help() {
   echo -e "    ${GREEN}build${NC}       Build and restart ${DIM}(./gravity build <package>)${NC}"
   echo -e "    ${GREEN}gendesign${NC}   Generate design system nodes + restart"
   echo ""
+  echo -e "  ${BOLD}Deployment${NC}"
+  echo -e "    ${GREEN}deploy${NC}      Deploy to production VM ${DIM}(reads .env.production)${NC}"
+  echo -e "    ${GREEN}deploy packages${NC}  Deploy packages only"
+  echo -e "    ${GREEN}deploy db${NC}        Run database setup on server"
+  echo -e "    ${GREEN}deploy caddy${NC}     Install TLS reverse proxy"
+  echo -e "    ${GREEN}deploy umap${NC}      Install UMAP AI service"
+  echo -e "    ${GREEN}deploy harden${NC}    Security hardening"
+  echo -e "    ${GREEN}deploy test${NC}      Run connectivity test"
+  echo ""
 }

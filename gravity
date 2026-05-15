@@ -52,6 +52,7 @@ source "$GRAVITY_LIB/help.sh"
 source "$GRAVITY_LIB/open.sh"
 source "$GRAVITY_LIB/db-setup.sh"
 source "$GRAVITY_LIB/db-verify.sh"
+source "$GRAVITY_LIB/deploy.sh"
 
 # ── Dispatch ───────────────────────────────────────────────────────
 case "${1:-}" in
@@ -73,6 +74,7 @@ case "${1:-}" in
   dev)       cmd_dev ;;
   db-setup)  cmd_db_setup ;;
   db-verify) cmd_db_verify ;;
+  deploy)    cmd_deploy "${2:-}" ;;
   build)     cmd_build "${2:-}" ;;
   gendesign) cmd_gendesign ;;
   open)      cmd_open "${2:-}" ;;

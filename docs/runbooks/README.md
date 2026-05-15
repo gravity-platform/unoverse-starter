@@ -51,14 +51,43 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 
 ### POC (Single VM - All Services)
 
+**Simple path (recommended):**
+
 ```bash
+# 1. Configure .env.production (set DEPLOY_HOST, DEPLOY_USER, Redis, DOMAIN, etc.)
+cp .env.production.example .env.production
+
+# 2. Deploy everything
+gravity deploy
+
+# 3. Database tables
+gravity deploy db
+
+# 4. AI model
+gravity deploy umap
+
+# 5. TLS
+gravity deploy caddy
+
+# 6. Security hardening
+gravity deploy harden
+
+# 7. Verify
+gravity deploy test
+```
+
+**Manual path (direct Ansible):**
+
+```bash
+cd ansible
+
 # 1. Core services (Docker, Node.js, DOCR images)
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 
-# 2. Database tables (reads DATABASE_URL from ansible/files/.env)
+# 2. Database tables
 ansible-playbook -i inventory/production.yml playbooks/db-setup.yml
 
-# 3. Customer packages (clones starter_repo, builds on server)
+# 3. Customer packages (rsyncs from local, builds on server)
 ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 
 # 4. AI model
@@ -94,11 +123,13 @@ ansible-playbook -i inventory/production.yml playbooks/harden.yml -l ml_vms
 
 ## Environment Files — Two `.env` Files, Two Purposes
 
+Both files live at the project root:
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  .env  (project root)                                            │
 │                                                                  │
-│  Purpose: LOCAL DEVELOPMENT ONLY                                 │
+│  Purpose: LOCAL DEVELOPMENT                                      │
 │  Read by: docker compose (automatically reads root .env)         │
 │  Contains: localhost Redis, local DB, no TLS, no DOMAIN          │
 │                                                                  │
@@ -112,13 +143,16 @@ ansible-playbook -i inventory/production.yml playbooks/harden.yml -l ml_vms
 └──────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────┐
-│  ansible/files/.env                                              │
+│  .env.production  (project root)                                 │
 │                                                                  │
 │  Purpose: PRODUCTION DEPLOYMENT                                  │
-│  Read by: Ansible (copies to /opt/gravity/.env on the server)    │
-│  Contains: real Redis, real DB, TLS enabled, DOMAIN set          │
+│  Read by: gravity deploy / Ansible                               │
+│  Deployed to: /opt/gravity/.env on the server                    │
+│  Contains: VM target, real Redis, real DB, TLS enabled, DOMAIN   │
 │                                                                  │
 │  Example values:                                                 │
+│    DEPLOY_HOST=YOUR_VM_IP                                   │
+│    DEPLOY_USER=root                                              │
 │    REDIS_HOST=your-redis.db.ondigitalocean.com                   │
 │    REDIS_PORT=25061                                              │
 │    REDIS_PASSWORD=your-password                                  │
@@ -130,14 +164,14 @@ ansible-playbook -i inventory/production.yml playbooks/harden.yml -l ml_vms
 
 **Key rules:**
 
-- **Never** copy `ansible/files/.env` values into the root `.env` (or vice versa)
-- The root `.env` is gitignored — each developer configures their own
-- `ansible/files/.env` is also gitignored — it contains production secrets
-- `ansible/files/.env.example` is the template for production config
-- On the server, Ansible places `.env` at `/opt/gravity/.env` where `docker compose` reads it
+- Both files are **gitignored** — they contain secrets and are never committed
+- `.env.example` is the template for local dev
+- `.env.production.example` is the template for production
+- On the server, `gravity deploy` places `.env.production` at `/opt/gravity/.env` where `docker compose` reads it
+- `DEPLOY_HOST` and `DEPLOY_USER` are deployment-only — they tell Ansible where to SSH
 
 **How `DOMAIN` drives Canvas URLs:**
-When `DOMAIN=yourdomain.com` is set in `.env`, `docker-compose.yml` automatically derives:
+When `DOMAIN=yourdomain.com` is set, `docker-compose.yml` automatically derives:
 
 - `VITE_API_URL=https://api.yourdomain.com`
 - `VITE_SERVER_WS_URL=wss://api.yourdomain.com`
@@ -149,7 +183,6 @@ When `DOMAIN` is unset (local dev), Canvas falls back to `http://localhost:4100`
 ## Prerequisites
 
 - SSH access to target VMs
-- Ansible installed locally
+- Ansible installed locally (`pip install ansible`)
 - DOCR token for pulling images
 - PostgreSQL instance provisioned (customer-managed)
-- `starter_repo` set in `production.yml` (your fork of gravity-starter)

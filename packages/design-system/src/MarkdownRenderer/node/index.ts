@@ -43,29 +43,19 @@ export function createNodeDefinition(): EnhancedNodeDefinition {
                   }
             },
             "title": {
-                  "type": "string",
+                  "type": "object",
                   "title": "Optional title shown above the rendered markdown",
                   "ui:field": "template"
             },
             "markdown": {
-                  "type": "string",
+                  "type": "object",
                   "title": "Markdown content to render",
                   "ui:field": "template"
             },
             "streamingState": {
-                  "type": "string",
+                  "type": "object",
                   "title": "Controls the 'Writing…' indicator",
-                  "default": "idle",
-                  "enum": [
-                        "idle",
-                        "streaming",
-                        "complete"
-                  ],
-                  "enumNames": [
-                        "Idle",
-                        "Streaming",
-                        "Complete"
-                  ]
+                  "ui:field": "template"
             }
       },
       "required": []

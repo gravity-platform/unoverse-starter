@@ -81,7 +81,7 @@ export class SessionOrchestrator {
     }
 
     const wsClient = new WsClient();
-    const responseProcessor = new GrokResponseProcessor(metadata.workflowId || "unknown", metadata, emit);
+    const responseProcessor = new GrokResponseProcessor(metadata.workflowId || "unknown", metadata, emit, wsClient);
 
     // Tool use handler
     responseProcessor.onToolUse = async ({ toolName, toolInput, callId }) => {

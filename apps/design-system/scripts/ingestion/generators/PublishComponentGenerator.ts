@@ -93,6 +93,7 @@ export async function publishComponent(
         type: config.component.type,
         componentUrl: config.component.componentUrl,
         version: config.component.version,
+        ...(config.component.nodeSize && { nodeSize: config.component.nodeSize }),
         props,
       },
       metadata: {

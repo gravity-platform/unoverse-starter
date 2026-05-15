@@ -50,6 +50,7 @@ export default class AudioPlayerExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 450, height: 80 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

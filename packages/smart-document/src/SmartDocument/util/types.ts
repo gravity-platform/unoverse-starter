@@ -1,5 +1,6 @@
 export interface SmartDocumentConfig {
   initialMarkdown?: string;
+  sectionizeAt?: 1 | 2;
 }
 
 export interface SmartDocumentOutput {
@@ -8,30 +9,50 @@ export interface SmartDocumentOutput {
   };
 }
 
-export interface MarkdownDoc {
-  content: string;
+export type SectionLevel = 1 | 2;
+
+export interface Section {
+  id: string;
+  level: SectionLevel;
+  heading: string;
+  body: string;
+  parentId: string | null;
+  order: number;
+  hash: string;
+}
+
+export interface Doc {
+  sections: Section[];
   version: number;
   updatedAt: string;
 }
 
-export interface ServiceCallSuccess {
+export type ErrorCode =
+  | "STALE_SECTION"
+  | "STALE_DOC"
+  | "CONCURRENT_UPDATE"
+  | "NOT_FOUND"
+  | "NOT_UNIQUE"
+  | "INVALID_STRUCTURE"
+  | "INVALID_PLACEMENT"
+  | "INVALID_PARAMS"
+  | "NOT_INITIALISED"
+  | "UNKNOWN_METHOD";
+
+export interface ServiceError {
+  ok: false;
+  error: ErrorCode;
+  hint?: string;
+  currentHash?: string;
+  currentBody?: string;
+  currentVersion?: number;
+  matches?: number;
+}
+
+export interface ServiceSuccess {
   ok: true;
   version: number;
-  content?: string;
+  [key: string]: any;
 }
 
-export interface ServiceCallError {
-  ok: false;
-  error:
-    | "not_found"
-    | "not_unique"
-    | "line_out_of_range"
-    | "not_initialised"
-    | "invalid_params";
-  version?: number;
-  matches?: number;
-  maxLine?: number;
-  message?: string;
-}
-
-export type ServiceCallResult = ServiceCallSuccess | ServiceCallError;
+export type ServiceResult = ServiceSuccess | ServiceError;

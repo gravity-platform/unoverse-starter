@@ -53,6 +53,7 @@ export default class AIResponseExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 750, height: 400 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

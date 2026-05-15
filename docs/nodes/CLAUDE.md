@@ -175,9 +175,18 @@ serviceConnectors: [
 ]
 ```
 
-- **Pure MCP service** — implement `handleServiceCall(method, params)` that returns data directly; no workflow routing.
-- **MCP workflow node** — calls `executeNodeWithRouting(this.executeNode.bind(this), params, config, context)` so downstream nodes trigger via `NODE_OUTPUT`; returns a short summary to the MCP caller.
-- Always implement `getSchema` so consumers (e.g. Nova) can discover tools.
+A node has **two independent channels**:
+- `handleServiceCall` — MCP channel. Tool calls from an agent. Returns data to the agent. Does NOT fire the node's `outputs[]`.
+- `executeNode` — workflow channel. Graph-triggered. Returns `{ __outputs }` which propagates down data edges.
+
+Three patterns (see `08-mcp-services.md`):
+- **A. Pure MCP** — `handleServiceCall` only; no `executeNode`. Agent RPC endpoint (e.g. `PostgresFetch`).
+- **B. Pure workflow** — `executeNode` only; no MCP. Standard pipeline step (e.g. `S3Files`).
+- **C. Hybrid** — both methods, independent channels. Tool calls return data to agent; graph triggers fire outputs. The two channels do NOT cross. Example: `SpatialSearch`.
+
+Escape hatch: if an MCP tool call *must* also fire the workflow channel, call `executeNodeWithRouting(this.executeNode.bind(this), params, config, context)` from inside `handleServiceCall`. Rare. `MCPgetNeeds` is the canonical example.
+
+Always implement `getSchema` so consumers can discover tools.
 
 ## Signal routing (CallbackNode only)
 

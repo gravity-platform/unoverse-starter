@@ -4,6 +4,7 @@ import { AudioHandler } from "./AudioHandler";
 import { TextAccumulator } from "./TextAccumulator";
 import { UsageStatsCollector } from "./UsageStatsCollector";
 import { WebSocketAudioPublisher } from "../../io/publishers/WebSocketAudioPublisher";
+import type { WsClient } from "../streaming/WsClient";
 
 const { createLogger } = getPlatformDependencies();
 
@@ -24,6 +25,7 @@ export class GrokResponseProcessor {
     private sessionId: string,
     private metadata: StreamingMetadata,
     emit?: (output: any) => void,
+    private wsClient?: WsClient,
   ) {
     const conversationId = metadata.conversationId || sessionId;
     this.audioHandler = new AudioHandler(conversationId, metadata);
@@ -87,7 +89,13 @@ export class GrokResponseProcessor {
         break;
 
       case "input_audio_buffer.speech_started":
-        this.logger.debug("VAD: speech started", { sessionId: this.sessionId });
+        this.logger.debug("VAD: speech started — interrupting", { sessionId: this.sessionId });
+        this.wsClient?.send({ type: "response.cancel" });
+        if (this.audioStarted) {
+          await this.audioHandler.handleAudioEnd();
+          this.audioStarted = false;
+        }
+        this.textAccumulator.resetTurn();
         await this.publishUserSpeechState("USER_SPEECH_STARTED");
         break;
 

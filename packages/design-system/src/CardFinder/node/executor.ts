@@ -50,6 +50,7 @@ export default class CardFinderExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 900, height: 700 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

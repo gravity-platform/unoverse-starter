@@ -1,88 +1,171 @@
 export const SmartDocumentMCPSchema = {
   name: "SmartDocument",
-  version: "1.0.0",
+  version: "2.0.0",
   description:
-    "Read and edit a long-form markdown document. All edits appear live in the UI. Prefer str_replace and insert for surgical edits; use create only for initialisation or explicit 'start over'.",
+    "Read and edit a long-form markdown document as addressable sections. Always call outline() first to see the document shape and obtain section IDs and hashes. Every mutation requires the current expectedHash of the section you are editing; if the hash is stale, the tool returns STALE_SECTION with the current hash and body — re-read and retry. IDs are stable; hashes change on every edit. Never invent IDs, hashes, or substrings.",
   methods: {
-    view: {
+    // ---------- READ ----------
+    outline: {
       description:
-        "Return the current markdown content. Always call this before editing so you know what is there.",
+        "Return the list of sections with id, level (1 or 2), heading, parentId, hash and wordCount. Call this first in any editing session, and again whenever you suspect the document has changed (e.g. after STALE_DOC). Does not return bodies.",
       input: {
         type: "object",
-        properties: {
-          withLineNumbers: { type: "boolean", default: true },
-          range: {
-            type: "array",
-            items: { type: "integer" },
-            minItems: 2,
-            maxItems: 2,
-            description: "[startLine, endLine] inclusive; omit for whole doc",
-          },
-        },
-      },
-      output: {
-        type: "object",
-        properties: {
-          content: { type: "string" },
-          version: { type: "integer" },
-        },
-      },
-    },
-
-    create: {
-      description:
-        "Replace the entire document with new content. Use ONLY for initialisation or an explicit 'start over'. For incremental edits use str_replace or insert so the rest of the document is preserved.",
-      input: {
-        type: "object",
-        properties: {
-          content: { type: "string" },
-        },
-        required: ["content"],
+        properties: {},
       },
       output: {
         type: "object",
         properties: {
           ok: { type: "boolean" },
           version: { type: "integer" },
+          sections: { type: "array" },
         },
       },
     },
 
-    str_replace: {
+    readSection: {
       description:
-        "Replace an exact substring with new text. old_str must match exactly once in the document; otherwise the call fails and you should widen old_str with surrounding context.",
+        "Return the body of one section. Use the hash from outline() or a previous readSection() as expectedHash in subsequent edits. Pass includeChildren to inline H2 children of an H1 section.",
       input: {
         type: "object",
         properties: {
-          old_str: {
-            type: "string",
-            description: "Exact string to find (must be unique in the document)",
-          },
-          new_str: { type: "string", description: "Replacement text" },
+          id: { type: "string", description: "Section id from outline()" },
+          includeChildren: { type: "boolean", default: false },
         },
-        required: ["old_str", "new_str"],
+        required: ["id"],
       },
       output: {
         type: "object",
         properties: {
           ok: { type: "boolean" },
           version: { type: "integer" },
+          id: { type: "string" },
+          level: { type: "integer" },
+          heading: { type: "string" },
+          body: { type: "string" },
+          hash: { type: "string" },
+        },
+      },
+    },
+
+    // ---------- EDIT ----------
+    updateSection: {
+      description:
+        "Replace heading and/or body of a section. Use for whole-section rewrites. For small edits on long sections, prefer replaceInSection (cheaper in tokens). Body MUST NOT contain H1 or H2 headings (use H3+ inside bodies).",
+      input: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          expectedHash: { type: "string", description: "Current hash of the section (from outline() or readSection())" },
+          heading: { type: "string" },
+          body: { type: "string" },
+          expectedDocVersion: { type: "integer", description: "Optional. If provided and stale, returns STALE_DOC." },
+        },
+        required: ["id", "expectedHash"],
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          hash: { type: "string" },
+          error: { type: "string" },
+          currentHash: { type: "string" },
+          currentBody: { type: "string" },
+          hint: { type: "string" },
+        },
+      },
+    },
+
+    appendToSection: {
+      description:
+        "Append text to the end of a section's body. Saves a read-modify-write. Body MUST NOT contain H1 or H2.",
+      input: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          expectedHash: { type: "string" },
+          text: { type: "string" },
+          expectedDocVersion: { type: "integer" },
+        },
+        required: ["id", "expectedHash", "text"],
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          hash: { type: "string" },
+          error: { type: "string" },
+        },
+      },
+    },
+
+    replaceInSection: {
+      description:
+        "Replace an exact substring inside one section's body. old_str must match exactly once within the section; otherwise fails with NOT_FOUND or NOT_UNIQUE. Prefer this when the change is less than ~20% of the section body.",
+      input: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          expectedHash: { type: "string" },
+          old_str: { type: "string", description: "Exact substring to find (must be unique in this section's body)" },
+          new_str: { type: "string" },
+          expectedDocVersion: { type: "integer" },
+        },
+        required: ["id", "expectedHash", "old_str", "new_str"],
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          hash: { type: "string" },
           error: { type: "string" },
           matches: { type: "integer" },
         },
       },
     },
 
-    insert: {
+    insertSection: {
       description:
-        "Insert text after the given line number (1-indexed). Use 0 to prepend. Line numbers are against the current document; re-view after structural inserts if you plan more.",
+        "Create a new section. If the document is empty or you want to append to the end, omit placement keys. Otherwise provide exactly one of afterId, beforeId, or parentId. Level must be 1 or 2. Returns the new section id and hash.",
       input: {
         type: "object",
         properties: {
-          line: { type: "integer", minimum: 0 },
-          text: { type: "string" },
+          afterId: { type: "string", description: "Insert immediately after this section" },
+          beforeId: { type: "string", description: "Insert immediately before this section" },
+          parentId: { type: "string", description: "Nest under this H1; only valid for a new H2" },
+          level: { type: "integer", enum: [1, 2] },
+          heading: { type: "string" },
+          body: { type: "string", default: "" },
+          expectedDocVersion: { type: "integer" },
         },
-        required: ["line", "text"],
+        required: ["level", "heading"],
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          id: { type: "string" },
+          hash: { type: "string" },
+          error: { type: "string" },
+        },
+      },
+    },
+
+    deleteSection: {
+      description:
+        "Delete a section. With cascade=true, removes descendants too; otherwise descendants are re-parented to the deleted section's parent.",
+      input: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          expectedHash: { type: "string" },
+          cascade: { type: "boolean", default: false },
+          expectedDocVersion: { type: "integer" },
+        },
+        required: ["id", "expectedHash"],
       },
       output: {
         type: "object",
@@ -90,7 +173,49 @@ export const SmartDocumentMCPSchema = {
           ok: { type: "boolean" },
           version: { type: "integer" },
           error: { type: "string" },
-          maxLine: { type: "integer" },
+        },
+      },
+    },
+
+    moveSection: {
+      description:
+        "Move a section to a new position. Provide exactly one of afterId, beforeId, or parentId. Content is unchanged.",
+      input: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          expectedHash: { type: "string" },
+          afterId: { type: "string" },
+          beforeId: { type: "string" },
+          parentId: { type: "string" },
+          expectedDocVersion: { type: "integer" },
+        },
+        required: ["id", "expectedHash"],
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          error: { type: "string" },
+        },
+      },
+    },
+
+    // ---------- BULK (escape hatches; discourage casual use) ----------
+    resetDoc: {
+      description:
+        "DESTRUCTIVE. Re-parse initialMarkdown from the node config with fresh IDs, discarding all current content. Only use when the user explicitly asks to start over. Prefer targeted edits.",
+      input: {
+        type: "object",
+        properties: {},
+      },
+      output: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+          version: { type: "integer" },
+          sectionCount: { type: "integer" },
         },
       },
     },

@@ -71,6 +71,7 @@ export default class AccountTransferWidgetExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 900, height: 600 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

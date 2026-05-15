@@ -4,40 +4,58 @@ Deploy Gravity Platform to production VMs.
 
 ## Overview
 
-Production deployment uses **Ansible playbooks** to install and configure services on your VMs. The runbooks cover everything from core services to TLS, security hardening, and observability.
+Production deployment uses `gravity deploy` which reads your `.env.production` file and runs Ansible playbooks to install and configure services on your VM.
 
 ## Prerequisites
 
-- SSH access to target VM(s)
+- SSH access to target VM
 - Ansible installed locally (`pip install ansible`)
 - DOCR token for pulling images
 - PostgreSQL instance provisioned (customer-managed)
 
-## Quick Deploy (POC — Single VM)
+## Quick Deploy (Single VM)
 
 ```bash
-cd ansible
-
-# 1. Configure inventory
-cp inventory/production.yml.example inventory/production.yml
-# Edit with your VM IP, SSH key, etc.
+# 1. Configure production environment
+cp .env.production.example .env.production
+# Edit with your VM IP, Redis, domain, etc.
 
 # 2. Deploy core services
-ansible-playbook -i inventory/production.yml playbooks/install.yml
+gravity deploy
 
 # 3. Set up database
-ansible-playbook -i inventory/production.yml playbooks/db-setup.yml
+gravity deploy db
 
-# 4. Deploy AI model
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml
+# 4. Deploy AI model (optional)
+gravity deploy umap
 
 # 5. TLS with Caddy (optional)
-ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
-  -e "domain=yourdomain.com"
+gravity deploy caddy
 
 # 6. Verify
-ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
+gravity deploy test
 ```
+
+## What `.env.production` Contains
+
+Same format as `.env` (local dev), plus:
+
+```bash
+# Deploy target (where to SSH)
+DEPLOY_HOST=134.209.x.x
+DEPLOY_USER=root          # Azure: azureuser, AWS: ubuntu
+
+# Production Redis (instead of local)
+REDIS_HOST=your-managed-redis.com
+REDIS_PORT=25061
+REDIS_PASSWORD=your-password
+REDIS_TLS=true
+
+# Domain (enables HTTPS via Caddy)
+DOMAIN=yourdomain.com
+```
+
+Everything else (DATABASE_URL, Auth0, OpenAI) stays the same as your local `.env`.
 
 ## Runbooks
 
@@ -52,15 +70,19 @@ For detailed step-by-step guides, see the [Runbooks](../runbooks/README.md):
 | [05-caddy](../runbooks/05-caddy.md)                 | TLS + reverse proxy            |
 | [06-test](../runbooks/06-test.md)                   | Verify connectivity and health |
 | [07-observability](../runbooks/07-observability.md) | Grafana/Loki (POC only)        |
-| [08-update-nodes](../runbooks/08-update-nodes.md)   | Update custom nodes/components |
+| [08-deploy-packages](../runbooks/08-deploy-packages.md) | Deploy packages to server  |
 
 ## Deploying Custom Code
 
 After deploying the platform, push your custom nodes and components:
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
+gravity deploy packages
 ```
+
+## Advanced: Multi-VM Enterprise
+
+For multi-VM setups (separate app VMs + ML VMs), use `ansible/inventory/production.yml` directly. See `ansible/inventory/production.yml.example` for the template.
 
 ## ✅ Challenge Complete
 

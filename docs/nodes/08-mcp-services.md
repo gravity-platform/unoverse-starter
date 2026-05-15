@@ -2,11 +2,75 @@
 
 ## Overview
 
-MCP (Model Context Protocol) services enable AI models like AWS Nova to interact with workflow nodes through a standardized tool interface. MCP nodes can either be pure data services or workflow nodes that trigger downstream execution.
+MCP (Model Context Protocol) services expose workflow nodes as tools to AI models (Nova, Claude, Grok, OpenAI). Before picking a pattern, understand that **a node has two independent channels**:
 
-## MCP Service Types
+- **`handleServiceCall(method, params, config, context)`** — the **MCP channel**. Invoked when an agent calls a tool. Returns data to the agent. Does NOT drive the node's `outputs[]` or fire downstream data edges.
+- **`executeNode(inputs, config, context)`** — the **workflow channel**. Invoked when the graph triggers the node. Returns `{ __outputs: { ... } }`, which propagates along data edges to downstream nodes.
 
-### 1. Pure MCP Data Services
+These two channels are separate. An MCP tool call will not fire the node's outputs unless the handler explicitly asks the workflow engine to route them (`executeNodeWithRouting`). Conversely, a workflow-triggered execution does nothing MCP-facing.
+
+## The three patterns
+
+Every MCP-capable node falls into one of three shapes. Pick the one that matches what you're building.
+
+### Pattern A — Pure MCP (service channel only)
+
+The node is an RPC endpoint for the agent. Tool calls return data; the workflow graph never sees them. `outputs[]` and `executeNode` are typically absent (or unused at runtime).
+
+- **Use when:** the agent just needs to *read* or *look up* something (knowledge base queries, schema lookups, user memory recall).
+- **Implementation:** only `handleServiceCall`. No `executeNode`, no data-edge routing.
+- **Example:** `PostgresFetch` — Nova calls `getChunksByQuery`, PostgresFetch returns rows, done.
+
+### Pattern B — Pure workflow (execution channel only)
+
+A normal workflow node with no MCP surface. Triggered by graph edges; emits `__outputs` to downstream nodes.
+
+- **Use when:** the node is an ordinary step in a pipeline — transform, write, fetch.
+- **Implementation:** only `executeNode`. No `handleServiceCall`, no `serviceConnectors` of type `mcp`.
+- **Example:** `S3Files` — upstream node passes config, node lists S3 objects, emits `{ files, count }`.
+
+### Pattern C — Hybrid (package nodes)
+
+The node exposes an MCP tool surface to agents **and** emits standard workflow outputs so downstream nodes re-fire on every tool call. Use this when an agent action on the node should also propagate through the graph (e.g. a document edit refreshes a renderer).
+
+- **Use when:** the tool call itself is the workflow trigger — you want downstream nodes to react every time the agent invokes a method.
+- **Implementation:** both `handleServiceCall` and `executeNode`. Every MCP method calls `executeNodeWithRouting` so `NODE_OUTPUT` fires and downstream edges activate.
+- **Example:** `SmartDocument` — `view` / `create` / `str_replace` / `insert` each return their MCP response to the agent **and** emit a workflow output carrying the current markdown, which drives `MarkdownRenderer` downstream.
+
+## `executeNodeWithRouting` — bridging the channels
+
+Obtain it from `getPlatformDependencies()` alongside `PromiseNode`, and call it from inside `handleServiceCall` for every method that should fire workflow outputs:
+
+```typescript
+import { getPlatformDependencies } from "@gravity-platform/plugin-base";
+
+const { PromiseNode, executeNodeWithRouting } = getPlatformDependencies();
+
+async handleServiceCall(method, params, config, context) {
+  // ... run the MCP handler and produce the agent response ...
+  const mcpResult = await handleMethod(method, params);
+
+  // Also emit NODE_OUTPUT so downstream nodes re-fire.
+  await executeNodeWithRouting(
+    this.executeNode.bind(this),
+    { method, params },
+    config,
+    context,
+  );
+
+  return mcpResult; // agent gets the MCP response, unchanged
+}
+```
+
+`executeNodeWithRouting` runs `executeNode` locally (producing `{ __outputs: { ... } }`) and bridges the result into the workflow engine so the node's outputs propagate along data edges — exactly as if the graph had triggered it. The bridge works transparently for package nodes running in node-service.
+
+Pattern 1 re-runs the node's own `executeNode` — use it when the MCP params map cleanly onto what `executeNode` expects. Pattern 2 wraps results you've already computed — use it when the MCP path and the workflow path do different work (as in SpatialSearch, where `handleServiceCall` uses `searchKnowledgeBase` while `executeNode` runs `MultiTypeExecutor`).
+
+---
+
+## Pattern reference
+
+### Pure MCP Data Services
 
 These services provide data to AI models without affecting workflow execution.
 
@@ -39,9 +103,9 @@ Nova needs to retrieve credit card information from the knowledge base:
 3. Results returned directly to Nova
 4. Nova uses information in conversation
 
-### 2. MCP Workflow Nodes
+### MCP Workflow Nodes (channel-bridging via `executeNodeWithRouting`)
 
-These are workflow nodes that expose MCP interfaces, allowing AI models to trigger workflow execution and downstream nodes.
+These are the escape-hatch variant of Pattern C: a tool call deliberately triggers the workflow channel as well. Most MCP nodes do **not** need this — reach for it only when an agent action should kick off a downstream pipeline.
 
 #### Characteristics
 - Part of the workflow graph

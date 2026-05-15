@@ -50,6 +50,7 @@ export default class CardCarouselExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 900, height: 400 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

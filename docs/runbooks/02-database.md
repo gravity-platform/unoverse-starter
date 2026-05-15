@@ -6,12 +6,12 @@ Create database tables and schema.
 
 Gravity Platform requires a PostgreSQL database. The database is **always customer-managed** — it is never bundled with the platform.
 
-The `DATABASE_URL` is configured in `ansible/files/.env` and deployed with `install.yml`. This runbook creates the required database tables.
+The `DATABASE_URL` is configured in `.env.production` and deployed to the server with `gravity deploy`. This runbook creates the required database tables.
 
 ## Prerequisites
 
 - [ ] Core services deployed ([01-core.md](./01-core.md))
-- [ ] `DATABASE_URL` configured in `ansible/files/.env`
+- [ ] `DATABASE_URL` configured in `.env.production`
 - [ ] PostgreSQL instance accessible from VM (firewall allows database port — typically 25060 for DO Managed, 5432 for self-hosted)
 - [ ] **Required extensions enabled** (see Step 1 below)
 

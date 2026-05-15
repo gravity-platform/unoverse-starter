@@ -33,9 +33,10 @@
   },
   "dependencies": {
     "@gravity-platform/plugin-base": "*",
+    "@openai/agents": "^0.11.4",
     "openai": "^6.15.0",
     "p-retry": "^5.1.2",
-    "zod": "^3.22.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.0.0",

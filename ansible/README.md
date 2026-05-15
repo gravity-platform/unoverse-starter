@@ -2,70 +2,70 @@
 
 Ansible playbooks for deployment, upgrades, and operations.
 
+## Quick Start (Single VM)
+
+You don't need to configure Ansible inventory or files for single-VM deployments.
+Just use `.env.production` at the project root:
+
+```bash
+# 1. Configure production environment
+cp .env.production.example .env.production
+# Set DEPLOY_HOST, DEPLOY_USER, Redis, DOMAIN, etc.
+
+# 2. Deploy
+gravity deploy
+
+# 3. Verify
+gravity deploy test
+```
+
+The `gravity deploy` command reads `.env.production`, builds a temporary inventory, and runs the playbooks automatically.
+
 ## Structure
 
 ```
 ansible/
 ├── inventory/
-│   ├── production.yml.example  # Copy this to get started
-│   └── production.yml          # Your inventory (gitignored)
-├── playbooks/                  # All playbooks use hosts: all
-├── files/
-│   ├── .env.example            # Environment template
-│   └── .env                    # Your secrets (gitignored)
+│   ├── production.yml.example  # ONLY for enterprise multi-VM setups
+│   └── production.yml          # Your inventory (gitignored, multi-VM only)
+├── playbooks/                  # All playbooks
 ├── templates/
 │   └── Caddyfile.j2            # Caddy config template
 └── ansible.cfg
 ```
 
-## Quick Start
+## Direct Ansible Usage
+
+For advanced use or multi-VM enterprise deployments:
 
 ```bash
-# 1. Configure inventory
-cp inventory/production.yml.example inventory/production.yml
-vim inventory/production.yml  # Set your VM IP
+cd ansible
 
-# 2. Configure environment
-cp files/.env.example files/.env
-vim files/.env  # Set DATABASE_URL, REDIS_*, AUTH_*, DOCR_TOKEN
-
-# 3. Install
+# Single VM (reads .env.production from project root)
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 
-# 4. Verify
-ansible-playbook -i inventory/production.yml playbooks/health-check.yml
+# Multi-VM (target specific groups)
+ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
+ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
 ```
 
 ## Playbooks
-
-All playbooks target `hosts: all`. For enterprise multi-VM setups, use `-l` to limit to a group.
 
 | Playbook                | Purpose                                      |
 | ----------------------- | -------------------------------------------- |
 | `install.yml`           | Fresh install (Docker, images, services)     |
 | `install-umap.yml`      | Install UMAP service (spatial search)        |
 | `install-caddy.yml`     | Caddy reverse proxy with automatic TLS       |
+| `deploy-packages.yml`   | Deploy packages (rsync from local + build)   |
+| `db-setup.yml`          | Database setup and migrations                |
 | `migrate-db.yml`        | Migrate database between providers           |
 | `rollback.yml`          | Rollback to previous version                 |
 | `health-check.yml`      | Verify all services healthy                  |
-| `db-setup.yml`          | Database setup and migrations                |
-| `deploy-packages.yml`   | Deploy customer packages                     |
 | `backup.yml`            | Backup UMAP models                           |
 | `restore.yml`           | Restore UMAP models from backup              |
 | `harden.yml`            | Security hardening (SSH, firewall, fail2ban) |
 | `test-connectivity.yml` | Test VM connectivity and ports               |
 | `uninstall-caddy.yml`   | Remove Caddy                                 |
-
-## POC vs Enterprise
-
-```bash
-# POC (single VM) — just run the playbook
-ansible-playbook -i inventory/production.yml playbooks/install.yml
-
-# Enterprise (multi-VM) — use -l to target a group
-ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
-ansible-playbook -i inventory/production.yml playbooks/install-umap.yml -l ml_vms
-```
 
 ## Requirements
 

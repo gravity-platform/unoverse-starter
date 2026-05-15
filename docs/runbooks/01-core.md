@@ -30,68 +30,46 @@ Deploy the core Gravity Platform services to a VM.
 
 ## Steps
 
-### 1. Configure Ansible Inventory
-
-> **All Ansible commands run from inside your gravity-starter clone** — the directory you cloned from `gravity-platform/gravity-starter` (e.g. `~/gravityDevTest` or `~/gravity`). Not from the GravityPlatform source repo.
-
-Copy the example inventory and fill in your VM details:
-
-```bash
-# Run this from inside your gravity-starter clone:
-cd ~/gravityDevTest   # or wherever you cloned gravity-starter
-cp ansible/inventory/production.yml.example ansible/inventory/production.yml
-```
-
-Then edit `ansible/inventory/production.yml`:
-
-**If your VM allows direct root SSH login** (e.g. DigitalOcean droplets with root key):
-```yaml
-all:
-  children:
-    app_vms:
-      hosts:
-        app-vm-1:
-          ansible_host: <YOUR_VM_IP>
-          ansible_user: root
-```
-
-**If your VM uses a default non-root user with passwordless sudo** (e.g. Azure `azureuser`, AWS `ubuntu`, GCP `debian`):
-```yaml
-all:
-  children:
-    app_vms:
-      hosts:
-        app-vm-1:
-          ansible_host: <YOUR_VM_IP>
-          ansible_user: azureuser   # or ubuntu, debian, etc.
-```
-
-> **Do not set `ansible_become_password` or `ansible_become_flags`** for these cloud VMs. Their default users already have passwordless sudo configured by the cloud provider. Adding an empty password (`ansible_become_password: ""`) will cause a 12s timeout error. The `ansible.cfg` in this repo handles privilege escalation automatically.
-
-> **Note:** `production.yml` is gitignored — it will not be overwritten when you run `gravity update`. Only the `.example` file is tracked in git.
-
-### 2. Configure Environment File
+### 1. Configure Production Environment
 
 Copy the example and fill in your values:
 
 ```bash
-cp ansible/files/.env.example ansible/files/.env
+cp .env.production.example .env.production
 ```
 
-Edit `ansible/files/.env` with your credentials:
+Edit `.env.production` with your credentials:
 
 ```bash
+# Deploy target
+DEPLOY_HOST=<YOUR_VM_IP>
+DEPLOY_USER=root              # Azure: azureuser, AWS: ubuntu, GCP: debian
+
 # DOCR - DigitalOcean Container Registry
 DOCR_TOKEN=dop_v1_your_token_here
 
 # Database and Redis
 DATABASE_URL=postgresql://user:pass@host:5432/gravity
 REDIS_HOST=your-redis-host
-REDIS_PORT=25061  # DO Managed Redis uses 25061; local Redis uses 6379
+REDIS_PORT=25061              # DO Managed Redis uses 25061; local Redis uses 6379
 REDIS_PASSWORD=your-redis-password
+REDIS_TLS=true
+
+# Domain (for HTTPS)
+DOMAIN=yourdomain.com
 ```
 
-### 3. Run Core Platform Installation
+> **Note:** `.env.production` is gitignored — it will not be overwritten when you run `gravity update`. Only the `.example` file is tracked in git.
+
+> **Do not set `ansible_become_password` or `ansible_become_flags`** for cloud VMs. Their default users already have passwordless sudo configured by the cloud provider.
+
+### 2. Run Core Platform Installation
+
+```bash
+gravity deploy
+```
+
+Or manually via Ansible:
 
 ```bash
 cd ansible
@@ -100,21 +78,31 @@ ansible-playbook -i inventory/production.yml playbooks/install.yml
 
 This installs Docker, Node.js, pulls DOCR images, and starts **core platform** (server, workflow, node-service, mcp-server, memory, canvas).
 
-### 4. Deploy Customer Packages
+### 3. Deploy Customer Packages
 
-Clones your `starter_repo` (set in `production.yml`), builds packages on the server, and restarts node-service:
+Rsyncs packages from your local machine to the server, builds them, and restarts node-service:
 
 ```bash
+gravity deploy packages
+```
+
+Or manually:
+
+```bash
+cd ansible
 ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 ```
 
-### 5. Verify
+### 4. Verify
 
 ```bash
-# Quick health check
-ansible-playbook -i inventory/production.yml playbooks/health-check.yml
+gravity deploy test
+```
 
-# Full connectivity test (includes DB, Redis, API endpoints)
+Or manually:
+
+```bash
+cd ansible
 ansible-playbook -i inventory/production.yml playbooks/test-connectivity.yml
 ```
 
@@ -148,7 +136,7 @@ Internal Only (SSH tunnel required):
 | Issue               | Cause            | Fix                                            |
 | ------------------- | ---------------- | ---------------------------------------------- |
 | DOCR login failed   | Invalid token    | Get a new DOCR token from your Gravity admin   |
-| Service unhealthy   | Missing env vars | Check `.env` file on VM at `/opt/gravity/.env` |
+| Service unhealthy   | Missing env vars | Check `.env.production` and `/opt/gravity/.env` on VM |
 | Port already in use | Previous install | Run `docker compose down` first                |
 | `Timeout (12s) waiting for privilege escalation prompt` | `ansible_become_password` set to empty string in inventory | Remove `ansible_become_password` and `ansible_become_flags` from inventory entirely — cloud default users (azureuser, ubuntu) have passwordless sudo and need no password |
 

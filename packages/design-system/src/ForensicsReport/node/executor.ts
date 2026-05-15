@@ -47,6 +47,7 @@ export default class ForensicsReportExecutor extends PromiseNode {
       nodeId: context.nodeId, // Include nodeId at top level for client
       props,
       componentUrl: template.componentUrl,
+      nodeSize: { width: 1060, height: 820 },
       metadata: {
         dataSource: "direct",
         nodeId: context.nodeId,

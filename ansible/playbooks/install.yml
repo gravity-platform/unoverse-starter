@@ -5,8 +5,12 @@
 # Usage:
 #   ansible-playbook -i inventory/production.yml playbooks/install.yml
 #
+# Or via gravity CLI (reads .env.production automatically):
+#   gravity deploy
+#
 # Prerequisites:
-#   - ansible/files/.env configured with DOCR_TOKEN, DATABASE_URL, etc.
+#   - .env.production configured with DEPLOY_HOST, DOCR_TOKEN, DATABASE_URL, etc.
+#   - (Legacy) ansible/files/.env also supported for backwards compatibility
 #
 # This playbook installs CORE PLATFORM only (from DOCR images).
 # For customer packages (custom nodes, design system), run deploy-packages.yml
@@ -92,7 +96,7 @@
         msg: "{{ (node_install.stdout_lines | default(node_install_rhel.stdout_lines | default(['Node.js already present']))) }}"
 
     - name: "[6/12] Read DOCR token from local .env"
-      shell: grep '^DOCR_TOKEN=' {{ env_file | default('../files/.env') }} | cut -d= -f2
+      shell: grep '^DOCR_TOKEN=' {{ env_file | default('../../.env.production') }} | cut -d= -f2
       register: docr_token_result
       delegate_to: localhost
       become: no
@@ -119,7 +123,7 @@
 
     - name: "[8/12] Copy .env file"
       copy:
-        src: "{{ env_file | default('../files/.env') }}"
+        src: "{{ env_file | default('../../.env.production') }}"
         dest: /opt/gravity/.env
         owner: "{{ ansible_user }}"
         mode: "0600"

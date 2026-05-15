@@ -1,39 +1,33 @@
 # Gravity Platform Production Inventory
-# Copy to production.yml and update with your values
 #
-# POC:        Single VM — use the default config below
-# Enterprise: Uncomment the multi-VM section at the bottom
+# ═══════════════════════════════════════════════════════════════════════════════
+# SINGLE VM: You don't need this file!
+# Just set DEPLOY_HOST and DEPLOY_USER in .env.production and run: gravity deploy
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This file is ONLY needed for enterprise multi-VM deployments.
+# Copy to production.yml and update with your values.
 
 # =============================================================================
-# POC — Single VM (all services on one host)
+# POC — Single VM (use .env.production instead — this is just for reference)
 # =============================================================================
-all:
-  vars:
-    starter_repo: "https://github.com/your-org/your-gravity.git"
-    starter_branch: main
-
-  hosts:
-    gravity-prod:
-      ansible_host: <YOUR_VM_IP>
-      ansible_user: root   # DigitalOcean / direct root SSH
+# all:
+#   hosts:
+#     gravity-prod:
+#       ansible_host: <YOUR_VM_IP>
+#       ansible_user: root   # DigitalOcean / direct root SSH
 
 # If your VM uses a non-root user with passwordless sudo (Azure azureuser, AWS ubuntu, GCP debian):
 # Do NOT add ansible_become_password or ansible_become_flags — cloud VMs have passwordless sudo by default.
 # Adding ansible_become_password: "" will cause a 12s timeout error.
-#
-#   hosts:
-#     gravity-prod:
-#       ansible_host: <YOUR_VM_IP>
-#       ansible_user: azureuser   # or ubuntu, debian, etc.
 
 # =============================================================================
-# ENTERPRISE — Multi-VM (uncomment below, remove the POC section above)
+# ENTERPRISE — Multi-VM
 # =============================================================================
-# all:
-#   vars:
-#     starter_repo: "https://github.com/your-org/your-gravity.git"
-#     starter_branch: main
+# Uncomment and configure for multi-VM deployments.
+# Use with: ansible-playbook -i inventory/production.yml playbooks/install.yml -l app_vms
 #
+# all:
 #   children:
 #     app_vms:
 #       hosts:

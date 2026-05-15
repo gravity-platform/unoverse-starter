@@ -8,9 +8,9 @@ export interface MarkdownRendererConfig {
   focusable?: boolean;
   /** Focus Mode Label - name shown in chat input when this component is focused */
   focusLabel?: string;
-  title?: string;
-  markdown?: string;
-  streamingState?: string;
+  title?: object;
+  markdown?: object;
+  streamingState?: object;
 }
 
 export interface MarkdownRendererOutput {
