@@ -26,7 +26,7 @@ cmd_check() {
   echo ""
 
   # 2. Health endpoints
-  for endpoint in 4100:server 4101:workflow 4102:node-service 5001:umap; do
+  for endpoint in 4100:server 4101:workflow 4102:node-service 5001:umap 4104:memory; do
     local port="${endpoint%%:*}" name="${endpoint##*:}"
     total=$((total + 1))
     local code

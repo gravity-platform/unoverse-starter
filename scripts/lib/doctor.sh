@@ -122,6 +122,28 @@ cmd_doctor() {
     info "No services found (run ${BOLD}gravity start${NC})"
   fi
 
+  # Memory service health
+  local mem_code
+  mem_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4104/health" 2>/dev/null)
+  if [ "$mem_code" = "200" ]; then
+    ok "Memory service reachable ${DIM}:4104${NC}"
+  else
+    fail "Memory service not reachable ${DIM}:4104 → $mem_code${NC}"
+    info "Check memory container logs: ${BOLD}gravity logs memory${NC}"
+    issues=$((issues + 1))
+  fi
+
+  # Memory API proxy in canvas nginx
+  local proxy_code
+  proxy_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001/mem-api/health" 2>/dev/null)
+  if [ "$proxy_code" = "200" ]; then
+    ok "Canvas → memory proxy working ${DIM}/mem-api${NC}"
+  else
+    warn "Canvas /mem-api proxy not working ${DIM}→ $proxy_code${NC}"
+    info "Rebuild canvas image to pick up nginx proxy config"
+    issues=$((issues + 1))
+  fi
+
   # Redis
   local redis_host
   redis_host=$(grep "^REDIS_HOST=" "$ROOT/.env" 2>/dev/null | cut -d'=' -f2-)

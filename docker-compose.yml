@@ -80,6 +80,7 @@ services:
       - VITE_AUTH_ISSUER=${AUTH_ISSUER}
       - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
       - VITE_AUTH_AUDIENCE=${AUTH_AUDIENCE}
+      - MEMORY_SERVICE_URL=http://memory:4104
     depends_on:
       - server
       - node-service
