@@ -39,7 +39,7 @@ cmd_deploy() {
 
   # Generate a temporary inventory from .env.production
   local tmp_inventory
-  tmp_inventory=$(mktemp)
+  tmp_inventory=$(mktemp).yml
   cat > "$tmp_inventory" << 'EOF'
 all:
   hosts:
