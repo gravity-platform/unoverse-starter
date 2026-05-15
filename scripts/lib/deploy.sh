@@ -46,6 +46,7 @@ all:
     gravity-prod:
       ansible_host: DEPLOY_HOST_PLACEHOLDER
       ansible_user: DEPLOY_USER_PLACEHOLDER
+      ansible_python_interpreter: /usr/bin/python3
 EOF
 
   # Replace placeholders with actual values
