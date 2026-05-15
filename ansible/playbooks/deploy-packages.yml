@@ -27,6 +27,9 @@
           - "--exclude=node_modules"
           - "--exclude=.turbo"
           - "--exclude=dist"
+          - "--exclude=.DS_Store"
+          - "--exclude=*.swp"
+          - "--exclude=*.log"
 
     - name: "[2/5] Sync apps/design-system/ to server"
       synchronize:
@@ -38,6 +41,9 @@
           - "--exclude=.turbo"
           - "--exclude=dist"
           - "--exclude=.storybook-index"
+          - "--exclude=.DS_Store"
+          - "--exclude=*.swp"
+          - "--exclude=*.log"
 
     - name: "[3/5] Sync workspace config files"
       copy:
