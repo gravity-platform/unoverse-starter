@@ -19,7 +19,7 @@
 
   tasks:
     - name: "[1/5] Sync packages/ to server"
-      synchronize:
+      ansible.posix.synchronize:
         src: "{{ local_root }}/packages/"
         dest: "{{ gravity_dir }}/packages/"
         delete: yes
@@ -30,10 +30,12 @@
           - "--exclude=.DS_Store"
           - "--exclude=*.swp"
           - "--exclude=*.log"
-          - "--iconv=utf-8,utf-8"
+        set_remote_user: no
+      environment:
+        ANSIBLE_PIPELINING: "true"
 
     - name: "[2/5] Sync apps/design-system/ to server"
-      synchronize:
+      ansible.posix.synchronize:
         src: "{{ local_root }}/apps/design-system/"
         dest: "{{ gravity_dir }}/apps/design-system/"
         delete: yes
@@ -45,7 +47,9 @@
           - "--exclude=.DS_Store"
           - "--exclude=*.swp"
           - "--exclude=*.log"
-          - "--iconv=utf-8,utf-8"
+        set_remote_user: no
+      environment:
+        ANSIBLE_PIPELINING: "true"
 
     - name: "[3/5] Sync workspace config files"
       copy:
