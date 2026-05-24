@@ -21,8 +21,13 @@ cmd_update() {
     # This is safe: .env, production.yml, node_modules, package-lock.json are gitignored
     git reset HEAD -- . >/dev/null 2>&1 || true
     git checkout -- . >/dev/null 2>&1 || true
-    # Now pull cleanly
-    git pull --quiet 2>"$git_log"
+    # Fetch latest from remote
+    git fetch origin >/dev/null 2>&1 || true
+    # For customer deployments, always reset to match remote exactly
+    # (local commits in a deployment environment are usually mistakes)
+    git reset --hard origin/$(git rev-parse --abbrev-ref HEAD) >/dev/null 2>&1 || true
+    # Clean any untracked files (e.g. old marketplace packages no longer in git)
+    git clean -fd >/dev/null 2>&1 || true
   ) || git_ok=false
   printf "\r\033[2K"
   if $git_ok; then
