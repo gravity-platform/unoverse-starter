@@ -30,9 +30,6 @@
           - "--exclude=.DS_Store"
           - "--exclude=*.swp"
           - "--exclude=*.log"
-        set_remote_user: no
-      environment:
-        ANSIBLE_PIPELINING: "true"
 
     - name: "[2/5] Sync apps/design-system/ to server"
       ansible.posix.synchronize:
@@ -47,9 +44,6 @@
           - "--exclude=.DS_Store"
           - "--exclude=*.swp"
           - "--exclude=*.log"
-        set_remote_user: no
-      environment:
-        ANSIBLE_PIPELINING: "true"
 
     - name: "[3/5] Sync workspace config files"
       copy:
