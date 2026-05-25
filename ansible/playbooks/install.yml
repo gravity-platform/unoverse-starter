@@ -64,6 +64,11 @@
         groups: docker
         append: yes
 
+    - name: "[4.5/10] Install rsync (required for package deployment)"
+      package:
+        name: rsync
+        state: present
+
   tasks:
     - name: "[5/12] Install Node.js 20 LTS (Debian/Ubuntu)"
       shell: |
