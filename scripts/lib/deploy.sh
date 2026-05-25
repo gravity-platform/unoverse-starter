@@ -111,6 +111,7 @@ EOF
         -i "$tmp_inventory" \
         "$ansible_dir/playbooks/install-caddy.yml" \
         -e "domain=$domain" \
+        -e "include_umap=true" \
         -e "env_file=$env_prod"
       ;;
     umap)
