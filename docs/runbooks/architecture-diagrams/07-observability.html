@@ -128,7 +128,7 @@
                   <p className="text-xs text-gray-500 mb-2">Structured JSON via stdout (Pino)</p>
                   <div className="bg-gray-50 rounded p-2 font-mono text-xs text-gray-600 leading-relaxed">
                     <p>{`{`}</p>
-                    <p className="ml-2">"service": "workflow",</p>
+                    <p className="ml-2">"service": "unoverse",</p>
                     <p className="ml-2">"level": "info",</p>
                     <p className="ml-2">"executionId": "exec_789",</p>
                     <p className="ml-2">"message": "Node completed",</p>
@@ -162,7 +162,7 @@
                   <div className="bg-gray-50 rounded p-2 text-xs text-gray-400 leading-relaxed">
                     <p>OTLP/gRPC or OTLP/HTTP</p>
                     <p>Distributed tracing across</p>
-                    <p>server, workflow, unoverse</p>
+                    <p>unoverse, mcp-server, memory</p>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">Add Tempo + OTel SDK when needed.</p>
                 </div>
@@ -179,7 +179,7 @@
               <div className="flex items-center justify-between gap-3">
                 <div className="bg-green-600 text-white p-3 rounded-lg text-center flex-1">
                   <p className="font-semibold text-xs">Gravity Services</p>
-                  <p className="text-xs mt-1 opacity-80">server, workflow, unoverse, mcp-server, umap</p>
+                  <p className="text-xs mt-1 opacity-80">unoverse, canvas, mcp-server, memory, umap</p>
                   <p className="text-xs mt-1 font-mono opacity-60">JSON logs to stdout</p>
                 </div>
                 <ArrowRight size={24} className="text-teal-400 flex-shrink-0" strokeWidth={2.5} />
@@ -190,12 +190,12 @@
                 <ArrowRight size={24} className="text-teal-400 flex-shrink-0" strokeWidth={2.5} />
                 <div className="bg-indigo-600 text-white p-3 rounded-lg text-center flex-1">
                   <p className="font-semibold text-xs">Customer Platform</p>
-                  <p className="text-xs mt-1 opacity-80">Splunk, Datadog, Elastic, Dynatrace, Grafana Cloud</p>
+                  <p className="text-xs mt-1 opacity-80">Splunk, Datadog, Elastic, Dynatrace</p>
                 </div>
               </div>
               <p className="text-xs text-teal-700 mt-3 pt-2 border-t border-teal-200">
                 <strong>Log format:</strong> structured JSON (Pino) on stdout — ingest directly into the customer's
-                SIEM (Splunk, Datadog, Elastic, Grafana Cloud) with their standard collectors
+                SIEM (Splunk, Datadog, Elastic, Dynatrace) with their standard collectors
               </p>
             </div>
           </div>
