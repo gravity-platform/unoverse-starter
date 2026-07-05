@@ -25,19 +25,25 @@ cmd_gendesign() {
   banner "Generate Component Nodes (nodegen)"
 
   # nodegen turns rx/ component definitions into loadable component-node source
-  # under apps/unoverse/nodes/components (UNOVERSE_OUT=nodes/components).
-  # Lives in apps/unoverse/tools — present in the platform repo (authoring),
-  # not in customer starters.
-  if [ ! -d "$ROOT/apps/unoverse/tools/nodegen" ]; then
-    fail "nodegen not found (apps/unoverse/tools is platform-only — not shipped to starters)"
-    info "Customers receive pre-generated component nodes in apps/unoverse/nodes/components."
+  # under apps/unoverse/nodes/components. It runs INSIDE the unoverse container:
+  # the image carries the generator (apps/unoverse/tools), its server-side deps,
+  # and tsx — none of which ship as host source. The carve-out folders are mounted,
+  # so it reads the local rx/ and writes nodes/components straight back to the host.
+  local ns_status
+  ns_status=$(docker compose -f "$ROOT/docker-compose.yml" ps --format '{{.Status}}' unoverse 2>/dev/null | head -1)
+  if ! echo "$ns_status" | grep -qi "up"; then
+    fail "unoverse is not running (status: ${ns_status:-unknown}) — start it first: ${BOLD}unoverse start${NC}"
     echo ""
     return
   fi
 
-  echo "  Generating component nodes from rx/ ..."
-  (cd "$ROOT/apps/unoverse" && npm run nodegen:local) || { fail "nodegen failed"; return; }
-  ok "Component nodes generated → apps/unoverse/nodes/components"
+  echo "  Generating component nodes from rx/ (in the unoverse container)..."
+  if docker compose -f "$ROOT/docker-compose.yml" exec -T unoverse npm run nodegen:local; then
+    ok "Component nodes generated → apps/unoverse/nodes/components"
+  else
+    fail "nodegen failed — check the output above"
+    return
+  fi
 
   echo "  Restarting unoverse..."
   docker compose -f "$ROOT/docker-compose.yml" restart unoverse 2>/dev/null || true
