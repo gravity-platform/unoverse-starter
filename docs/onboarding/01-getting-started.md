@@ -1,6 +1,6 @@
 # Getting Started
 
-Set up your local development environment for building on Gravity.
+Set up your local development environment for building on Unoverse.
 
 ---
 
@@ -46,7 +46,7 @@ git remote add upstream https://github.com/unoverse-platform/unoverse-starter.gi
 
 ## Step 2: Get Your Credentials
 
-When you sign up for Gravity, you'll receive:
+When you sign up for Unoverse, you'll receive:
 
 1. **DOCR Token** — for pulling Docker images (DigitalOcean Container Registry)
 2. **DATABASE_URL** — PostgreSQL connection string
@@ -57,14 +57,14 @@ When you sign up for Gravity, you'll receive:
 
 ## Step 3: Run the Setup Wizard
 
-The Gravity CLI handles everything — Docker login, environment config, and image pulling:
+The `unoverse` CLI handles everything — Docker login, environment config, and image pulling:
 
 ```bash
 cd ~/gravity
 ./unoverse init
 ```
 
-> **Note:** Use `./unoverse` (with `./`) the first time — the CLI isn't on your PATH yet. After init completes, it installs itself to your PATH so you can use `gravity` directly.
+> **Note:** Use `./unoverse` (with `./`) the first time — the CLI isn't on your PATH yet. After init completes, it installs itself to your PATH so you can use `unoverse` directly.
 
 The wizard will ask for your DOCR token, database URL, Redis, and auth credentials. It generates your `.env` file, logs into the registry, and pulls all platform images.
 
@@ -94,9 +94,9 @@ unoverse dev
 
 This single command does everything:
 
-1. **Starts the platform** (all Docker containers)
+1. **Starts the platform** (all Docker containers, if not already running)
 2. **Installs workspace dependencies** (`npm install`)
-3. **Generates workflow nodes** from the design system (`gen:nodes`)
+3. **Builds all node packages** and restarts unoverse so they load
 
 ---
 
@@ -121,7 +121,7 @@ unoverse check
 All checks should pass:
 
 ```
-  Gravity Platform Health Check
+  Unoverse Platform Health Check
 
   ✓ unoverse
   ✓ canvas
@@ -230,10 +230,10 @@ unoverse update           # Pull latest images and restart
 | `unoverse update nodes` | Rebuild packages and restart unoverse               |
 | `unoverse check`        | Run full health check                               |
 | `unoverse doctor`       | Diagnose issues                                     |
-| `unoverse dev`          | Install deps, generate nodes, start dev environment |
-| `unoverse build`        | Build all packages + gen:nodes + restart services   |
+| `unoverse dev`          | Start platform if needed, install deps, build packages, restart |
+| `unoverse build`        | Build all node packages + restart services          |
 | `unoverse build <pkg>`  | Build one package + restart services                |
-| `unoverse gendesign`    | Generate design system nodes + restart              |
+| `unoverse gendesign`    | Regenerate component nodes from `rx/` + restart     |
 | `unoverse open`         | Open in browser (`unoverse open canvas\|api\|logs`)  |
 | `unoverse help`         | Show all commands                                   |
 
