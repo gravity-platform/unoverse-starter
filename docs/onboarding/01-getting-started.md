@@ -149,6 +149,10 @@ All checks should pass:
 | ---------- | --------------------- | ---------------- |
 | **Canvas** | http://localhost:3001 | Workflow Builder |
 | **API**    | http://localhost:4105 | REST API (unoverse public listener) |
+| **Studio** | http://localhost:4105 | Unoverse Studio — preview and test components, templates, skills, and nodes |
+
+> **Studio:** enable it by setting `UNOVERSE_WORKBENCH=1` on the `unoverse` service in
+> `docker-compose.yml`, then restart (`docker compose up -d unoverse`).
 
 ---
 
