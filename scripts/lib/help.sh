@@ -14,7 +14,7 @@ cmd_help() {
   echo -e "    ${GREEN}stop${NC}        Stop all services"
   echo -e "    ${GREEN}status${NC}      Show service health"
   echo -e "    ${GREEN}check${NC}       Run full health check"
-  echo -e "    ${GREEN}logs${NC}        Stream logs ${DIM}(./unoverse logs <service>)${NC}"
+  echo -e "    ${GREEN}logs${NC}        Open the Dozzle log viewer ${DIM}(./unoverse logs <service> streams one in the terminal)${NC}"
   echo -e "    ${GREEN}update${NC}      Pull latest images and restart"
   echo -e "    ${GREEN}open${NC}        Open in browser ${DIM}(./unoverse open canvas|api|logs)${NC}"
   echo ""

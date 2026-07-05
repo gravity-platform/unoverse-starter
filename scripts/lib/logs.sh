@@ -9,10 +9,15 @@ cmd_logs() {
     echo ""
     docker compose -f "$ROOT/docker-compose.yml" logs -f --tail 100 "$service"
   else
-    banner "Platform Logs"
-    info "Press Ctrl+C to stop"
-    info "Tip: ${BOLD}./unoverse logs server${NC} to filter by service"
+    banner "Log Viewer (Dozzle)"
+    # No service → open the Dozzle web log viewer. Start it first if it isn't
+    # running (Dozzle sits behind the 'observability' compose profile).
+    if ! docker compose -f "$ROOT/docker-compose.yml" ps --status running dozzle 2>/dev/null | grep -q dozzle; then
+      info "Starting the Dozzle log viewer..."
+      docker compose -f "$ROOT/docker-compose.yml" --profile observability up -d dozzle >/dev/null 2>&1 || true
+    fi
+    info "Tip: ${BOLD}./unoverse logs <service>${NC} to stream one service in the terminal"
     echo ""
-    docker compose -f "$ROOT/docker-compose.yml" logs -f --tail 50
+    cmd_open logs
   fi
 }
