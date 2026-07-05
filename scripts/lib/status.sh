@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity status
+# unoverse status
 
 cmd_status() {
   banner "Platform Status"
@@ -9,7 +9,7 @@ cmd_status() {
   output=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Name}}\t{{.Status}}" 2>/dev/null) || true
 
   if [ -z "$output" ]; then
-    info "No services found. Run ${BOLD}./gravity start${NC}"
+    info "No services found. Run ${BOLD}./unoverse start${NC}"
     echo ""
     return
   fi

@@ -57,7 +57,7 @@ ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
   -e "domain=yourdomain.com" -e "include_umap=true"
 ```
 
-> **`gravity deploy caddy`** reads the optional `CADDY_INCLUDE_UMAP` and `CADDY_BEHIND_LB` flags from `.env.production` (both default `false`) and passes them through — it no longer hardcodes `include_umap=true`. Set `CADDY_INCLUDE_UMAP=true` there if you need the umap route.
+> **`unoverse deploy caddy`** reads the optional `CADDY_INCLUDE_UMAP` and `CADDY_BEHIND_LB` flags from `.env.production` (both default `false`) and passes them through — it no longer hardcodes `include_umap=true`. Set `CADDY_INCLUDE_UMAP=true` there if you need the umap route.
 
 ### 3. Verify
 
@@ -86,7 +86,7 @@ User → LB (HTTPS Passthrough) → VM → Caddy (TLS) → Services
 | Subdomain             | Service      | Port | Visibility                              |
 | --------------------- | ------------ | ---- | --------------------------------------- |
 | `domain.com`          | Canvas (UI)  | 3001 | Public (always)                          |
-| `api.domain.com`      | API Server   | 4100 | Public (always)                          |
+| `api.domain.com`      | API (unoverse public listener) | 4105 | Public (always)        |
 | `mcp.domain.com`      | MCP Server   | 4103 | Public (always)                          |
 | `unoverse.domain.com` | Unoverse     | 4105 | Public (always, JWT-gated in-app)        |
 | `umap.domain.com`     | UMAP Service | 5001 | Public only if `CADDY_INCLUDE_UMAP=true` |
@@ -114,7 +114,7 @@ Mode: Direct (TLS via Lets Encrypt)
 
 Configured routes:
   - https://yourdomain.com -> Canvas (port 3001)
-  - https://api.yourdomain.com -> API Server (port 4100)
+  - https://api.yourdomain.com -> API (unoverse, port 4105)
   - https://mcp.yourdomain.com -> MCP Server (port 4103)
   - https://unoverse.yourdomain.com -> Unoverse (port 4105)
   - https://umap.yourdomain.com -> UMAP Service (port 5001)  # only if CADDY_INCLUDE_UMAP=true

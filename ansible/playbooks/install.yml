@@ -6,7 +6,7 @@
 #   ansible-playbook -i inventory/production.yml playbooks/install.yml
 #
 # Or via gravity CLI (reads .env.production automatically):
-#   gravity deploy
+#   unoverse deploy
 #
 # Prerequisites:
 #   - .env.production configured with DEPLOY_HOST, DOCR_TOKEN, DATABASE_URL, etc.
@@ -21,7 +21,7 @@
 
   vars:
     gravity_dir: /opt/gravity
-    core_services: "server workflow unoverse mcp-server memory canvas umap"
+    core_services: "unoverse mcp-server memory canvas umap"  # server + workflow retired — unoverse serves :4101 (engine in-process) and the public :4105 API surface
 
   pre_tasks:
     - name: "[1/10] Check current system"
@@ -175,9 +175,9 @@
       pause:
         seconds: 10
 
-    - name: "Health check - Server (port 4100)"
+    - name: "Health check - Unoverse public (port 4105)"
       uri:
-        url: "http://localhost:4100/health"
+        url: "http://localhost:4105/health"
         status_code: 200
       register: server_health
       until: server_health.status == 200
@@ -231,6 +231,6 @@
 
           Access URLs:
             - Canvas:    http://{{ ansible_host }}:3001
-            - API:       http://{{ ansible_host }}:4100
+            - API:       http://{{ ansible_host }}:4105
             - Memory:    http://{{ ansible_host }}:4104/dashboard
           ============================================

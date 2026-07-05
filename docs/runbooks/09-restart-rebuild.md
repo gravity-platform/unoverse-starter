@@ -6,7 +6,7 @@ Rebuild packages, regenerate nodes, reload components, and restart services so t
 
 - New or updated **design system components** (storybook atoms/components)
 - New or updated **custom node packages** (in `packages/`)
-- After `git pull` or `gravity update` when the platform isn't reflecting changes
+- After `git pull` or `unoverse update` when the platform isn't reflecting changes
 - After editing node executor code, templates, or component bundles
 
 ## Quick Commands
@@ -15,16 +15,16 @@ Rebuild packages, regenerate nodes, reload components, and restart services so t
 
 ```bash
 # Full rebuild — builds all packages, regenerates nodes, restarts services
-./gravity build
+./unoverse build
 
 # Build one package only
-./gravity build @gravity-platform/my-package
+./unoverse build @gravity-platform/my-package
 
 # Regenerate design system nodes only (after editing storybook components)
-./gravity gendesign
+./unoverse gendesign
 
 # Full dev setup — install deps, build, gen:nodes, restart
-./gravity dev
+./unoverse dev
 ```
 
 ### Production Server (via Ansible)
@@ -41,9 +41,7 @@ ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 | **1. Install deps** | `npm install` | Installs workspace dependencies |
 | **2. Build packages** | `npm run build --workspaces` | Compiles TypeScript → `dist/` for all packages |
 | **3. Generate nodes** | `npm run gen:nodes` | Scans `apps/design-system/storybook/` and generates workflow nodes + component bundles in `packages/design-system/` |
-| **4. Restart unoverse** | `docker compose restart unoverse` | Reloads built packages into the node plane |
-| **5. Restart workflow** | `docker compose restart workflow` | Picks up new node definitions |
-| **6. Restart server** | `docker compose restart server` | Reloads component bundles served at `/components/*.js` |
+| **4. Restart unoverse** | `docker compose restart unoverse` | Reloads built packages and node definitions into the engine (the workflow engine runs in-process in unoverse, which also serves the component bundles at `/components/*.js`) |
 
 ## Manual Step-by-Step (when CLI commands aren't enough)
 
@@ -62,17 +60,17 @@ npm run build --workspaces --if-present
 # 4. Regenerate nodes from design system
 npm run gen:nodes
 
-# 5. Restart services that load packages (in this order: unoverse first —
-#    workflow pulls its node catalog from unoverse)
-docker compose restart unoverse workflow server
+# 5. Restart the service that loads packages (the workflow engine runs
+#    in-process in unoverse, so one restart covers everything)
+docker compose restart unoverse
 
 # 6. Verify
-./gravity status
+./unoverse status
 ```
 
 ## Component Bundle Reload
 
-Component bundles (the `.js` files served at `http://localhost:4100/components/`) are built by `gen:nodes` and stored in `packages/design-system/components/`. The **server** service serves these files.
+Component bundles (the `.js` files served at `http://localhost:4105/components/`) are built by `gen:nodes` and stored in `packages/design-system/components/`. The **unoverse** service serves these files from disk with no caching, so a rebuilt bundle is picked up on the next request — no restart needed.
 
 If components aren't updating in the Canvas:
 
@@ -80,11 +78,8 @@ If components aren't updating in the Canvas:
 # Regenerate component bundles
 npm run gen:nodes
 
-# Restart server (serves component bundles)
-docker compose restart server
-
-# Verify a component loads
-curl -s http://localhost:4100/components/AIResponse.js | head -5
+# Verify a component loads (served fresh — hard-refresh the browser if stale)
+curl -s http://localhost:4105/components/AIResponse.js | head -5
 ```
 
 ## Nuclear Restart (full teardown + rebuild)
@@ -93,7 +88,7 @@ When things are truly stuck:
 
 ```bash
 # Stop everything
-./gravity stop
+./unoverse stop
 
 # Rebuild from scratch
 npm install
@@ -102,17 +97,17 @@ npm run build --workspaces --if-present
 npm run gen:nodes
 
 # Start fresh
-./gravity start
+./unoverse start
 ```
 
 ## Verify
 
 ```bash
 # Check all services are running
-./gravity status
+./unoverse status
 
 # Full health check
-./gravity check
+./unoverse check
 
 # Check nodes loaded in unoverse (:4106 is Docker-internal and :4105 /plugins
 # is JWT-gated, so count from inside the container)
@@ -120,7 +115,7 @@ docker compose exec -T unoverse node -e \
   "fetch('http://127.0.0.1:4106/nodes').then(r=>r.json()).then(d=>console.log((d.nodes||[]).length)).catch(()=>console.log(0))"
 
 # Check component bundles served
-curl -s -o /dev/null -w '%{http_code}' http://localhost:4100/components/AIResponse.js
+curl -s -o /dev/null -w '%{http_code}' http://localhost:4105/components/AIResponse.js
 # Should return 200
 ```
 
@@ -128,9 +123,9 @@ curl -s -o /dev/null -w '%{http_code}' http://localhost:4100/components/AIRespon
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| New component not in Canvas | `gen:nodes` not run | `./gravity gendesign` |
-| Node shows in Canvas but errors | Package not built | `./gravity build` |
-| Component renders old version | Server serving cached bundle | `docker compose restart server` |
+| New component not in Canvas | `gen:nodes` not run | `./unoverse gendesign` |
+| Node shows in Canvas but errors | Package not built | `./unoverse build` |
+| Component renders old version | Browser caching the bundle | `npm run gen:nodes`, then hard-refresh the browser |
 | `nodes: 0` in status | unoverse didn't load packages | Check `docker compose logs unoverse` |
 | Build fails | Missing plugin-base | `npm run build -w @gravity-platform/plugin-base` first |
 | gen:nodes fails | design-system not built | `npm run build -w @gravity-platform/design-system-dev` first |

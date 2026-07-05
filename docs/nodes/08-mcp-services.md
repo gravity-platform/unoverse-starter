@@ -388,5 +388,3 @@ This utility is not MCP-specific and can be used by any node that needs to trigg
 ## Related Documentation
 
 - [Service Connectors](./07-service-connectors.md)
-- [Workflow Architecture](/services/gravity-workflow/ARCHITECTURE.md)
-- [Nova Integration](/services/gravity-services/packages/aws-nova/README.md)

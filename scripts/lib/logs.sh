@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity logs
+# unoverse logs
 
 cmd_logs() {
   local service="$1"
@@ -11,7 +11,7 @@ cmd_logs() {
   else
     banner "Platform Logs"
     info "Press Ctrl+C to stop"
-    info "Tip: ${BOLD}./gravity logs server${NC} to filter by service"
+    info "Tip: ${BOLD}./unoverse logs server${NC} to filter by service"
     echo ""
     docker compose -f "$ROOT/docker-compose.yml" logs -f --tail 50
   fi

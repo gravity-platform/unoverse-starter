@@ -1,15 +1,15 @@
-# Gravity Starter Template
+# Unoverse Starter Template
 
-Build custom AI experiences powered by the Gravity Platform.
+Build custom AI experiences powered by the Unoverse platform.
 
 ## Quick Start
 
 ```bash
 # 1. Setup (configure env, login to registry, pull images)
-gravity init
+./unoverse init
 
 # 2. Start the platform
-gravity start
+./unoverse start
 
 # 3. Install dev dependencies (for building custom nodes & components)
 npm install
@@ -19,20 +19,20 @@ npm install
 
 | Command | Purpose |
 |---------|---------|
-| `gravity init` | Interactive setup wizard |
-| `gravity start` | Start the platform |
-| `gravity stop` | Stop the platform |
-| `gravity status` | Show service health |
-| `gravity logs` | Stream logs (`gravity logs server` for one service) |
-| `gravity update` | Pull latest images and restart |
-| `gravity doctor` | Diagnose issues |
-| `gravity dev` | Install deps, generate nodes, start dev environment |
-| `gravity build` | Build all + gen:nodes + restart (`gravity build <pkg>` for one) |
+| `unoverse init` | Interactive setup wizard |
+| `unoverse start` | Start the platform |
+| `unoverse stop` | Stop the platform |
+| `unoverse status` | Show service health |
+| `unoverse logs` | Stream logs (`unoverse logs unoverse` for one service) |
+| `unoverse update` | Pull latest images and restart |
+| `unoverse doctor` | Diagnose issues |
+| `unoverse dev` | Install deps, start dev environment |
+| `unoverse build` | Build all + restart (`unoverse build <pkg>` for one) |
 
 ## Access
 
 - **Canvas** (Workflow Builder): http://localhost:3001
-- **API**: http://localhost:4100
+- **API**: http://localhost:4105
 
 ## Development
 
@@ -43,20 +43,10 @@ npm install
 # ... write your node code ...
 
 # Build and restart
-gravity build @gravity-platform/my-custom-node
+./unoverse build @gravity-platform/my-custom-node
 ```
 
 See `docs/nodes/` for full node development guide.
-
-### UI Components (Design System)
-
-```bash
-# Edit components in apps/design-system/storybook/
-# Regenerate workflow nodes + restart
-gravity gendesign
-```
-
-See `docs/onboarding/05-components-and-templates.md` for details.
 
 ## Deployment (Production)
 

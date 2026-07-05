@@ -71,17 +71,17 @@
               <Step label="Client sends message" sublabel="Browser / Client App" color="bg-sky-500" timing="< 1ms" />
               <ArrowDown size={28} className="text-gray-400" />
               <Step
-                label="Server receives via WebSocket"
-                sublabel="uWebSockets.js on :4100"
+                label="Unoverse receives via WebSocket"
+                sublabel="uWebSockets.js on :4105"
                 color="bg-green-600"
                 timing="< 1ms"
               />
               <ArrowDown size={28} className="text-gray-400" />
               <Step
-                label="HTTP POST to Workflow service"
-                sublabel="Internal :4101"
+                label="Dispatched to the workflow engine"
+                sublabel="In-process (engine surface :4101)"
                 color="bg-green-700"
-                timing="1-5ms"
+                timing="< 1ms"
               />
               <ArrowDown size={28} className="text-gray-400" />
 
@@ -127,7 +127,7 @@
                       Package nodes
                     </div>
                     <ArrowRight size={20} className="text-gray-400" />
-                    <p className="text-xs text-gray-600">HTTP (+SSE) to unoverse :4106 (Docker-internal)</p>
+                    <p className="text-xs text-gray-600">Sandboxed in the same unoverse process (:4106 is the internal surface)</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 text-amber-800 px-3 py-2 rounded text-xs font-bold w-48 text-center">

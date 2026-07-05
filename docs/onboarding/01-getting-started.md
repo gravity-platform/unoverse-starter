@@ -6,7 +6,7 @@ Set up your local development environment for building on Gravity.
 
 ## How It Works
 
-[`gravity-starter`](https://github.com/gravity-platform/gravity-starter) is an open-source starter kit. You **fork** it to your own GitHub account, then build your custom nodes, components, and workflows on top of the platform.
+[`unoverse-starter`](https://github.com/gravity-platform/unoverse-starter) is an open-source starter kit. You **fork** it to your own GitHub account, then build your custom nodes, components, and workflows on top of the platform.
 
 The core platform runs as Docker images — you pull pre-built binaries and build ON TOP of them.
 
@@ -28,18 +28,18 @@ Install these on your machine:
 
 ## Step 1: Fork & Clone
 
-1. Fork [`gravity-platform/gravity-starter`](https://github.com/gravity-platform/gravity-starter) to your own GitHub account
+1. Fork [`gravity-platform/unoverse-starter`](https://github.com/gravity-platform/unoverse-starter) to your own GitHub account
 2. Clone your fork:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gravity-starter.git ~/gravity
+git clone https://github.com/YOUR_USERNAME/unoverse-starter.git ~/gravity
 cd ~/gravity
 ```
 
 3. Add the upstream remote so you can pull future platform updates:
 
 ```bash
-git remote add upstream https://github.com/gravity-platform/gravity-starter.git
+git remote add upstream https://github.com/gravity-platform/unoverse-starter.git
 ```
 
 ---
@@ -61,10 +61,10 @@ The Gravity CLI handles everything — Docker login, environment config, and ima
 
 ```bash
 cd ~/gravity
-./gravity init
+./unoverse init
 ```
 
-> **Note:** Use `./gravity` (with `./`) the first time — the CLI isn't on your PATH yet. After init completes, it installs itself to your PATH so you can use `gravity` directly.
+> **Note:** Use `./unoverse` (with `./`) the first time — the CLI isn't on your PATH yet. After init completes, it installs itself to your PATH so you can use `gravity` directly.
 
 The wizard will ask for your DOCR token, database URL, Redis, and auth credentials. It generates your `.env` file, logs into the registry, and pulls all platform images.
 
@@ -75,7 +75,7 @@ Your project has **two** `.env` files, both at the project root:
 | File                  | Purpose                   | Used By                                       |
 | --------------------- | ------------------------- | --------------------------------------------- |
 | **`.env`**            | **Local development**     | `docker compose` on your machine              |
-| **`.env.production`** | **Production deployment** | `gravity deploy` copies to server             |
+| **`.env.production`** | **Production deployment** | `unoverse deploy` copies to server             |
 
 - `.env` points to **local** services (Redis on `localhost`, no TLS, no `DOMAIN`)
 - `.env.production` points to **production** services (managed Redis with TLS, `DOMAIN` set) and includes `DEPLOY_HOST`/`DEPLOY_USER` for targeting your VM
@@ -89,7 +89,7 @@ Your project has **two** `.env` files, both at the project root:
 ## Step 4: Start the Dev Environment
 
 ```bash
-gravity dev
+unoverse dev
 ```
 
 This single command does everything:
@@ -102,12 +102,12 @@ This single command does everything:
 
 ## Step 5: Set Up the Database
 
-> **The platform must be running first.** The migration code is bundled inside the workflow Docker image, so `gravity db-setup` executes inside that container.
+> **The platform must be running first.** The migration code is bundled inside the unoverse Docker image (the platform runtime), so `unoverse db-setup` executes inside that container.
 
 Runs all pending migrations and seeds the database. Safe to re-run — migrations are tracked and only applied once:
 
 ```bash
-gravity db-setup
+unoverse db-setup
 ```
 
 ---
@@ -115,7 +115,7 @@ gravity db-setup
 ## Step 6: Verify
 
 ```bash
-gravity check
+unoverse check
 ```
 
 All checks should pass:
@@ -123,16 +123,14 @@ All checks should pass:
 ```
   Gravity Platform Health Check
 
-  ✓ server
-  ✓ workflow
   ✓ unoverse
   ✓ canvas
   ✓ umap
   ✓ mcp-server
+  ✓ memory
 
-  ✓ server health :4100
-  ✓ workflow health :4101
   ✓ unoverse health :4105
+  ✓ engine health :4101
   ✓ umap health :5001
 
   ✓ 12/12 packages built
@@ -140,7 +138,7 @@ All checks should pass:
   ✓ Component bundles served
   ✓ Canvas http://localhost:3001
 
-  All 14 checks passed
+  All checks passed
 ```
 
 ---
@@ -150,7 +148,7 @@ All checks should pass:
 | Service    | URL                   | Description      |
 | ---------- | --------------------- | ---------------- |
 | **Canvas** | http://localhost:3001 | Workflow Builder |
-| **API**    | http://localhost:4100 | REST API         |
+| **API**    | http://localhost:4105 | REST API (unoverse public listener) |
 
 ---
 
@@ -160,7 +158,7 @@ All checks should pass:
 
 ```bash
 # Edit your node code in packages/my-custom-node/
-gravity build @gravity-platform/my-custom-node
+unoverse build @gravity-platform/my-custom-node
 ```
 
 ### UI Components (Design System)
@@ -168,7 +166,7 @@ gravity build @gravity-platform/my-custom-node
 ```bash
 # Edit components in apps/design-system/storybook/
 # Then regenerate and restart:
-gravity gendesign
+unoverse gendesign
 ```
 
 ### Storybook (Component Preview)
@@ -185,14 +183,14 @@ npm run storybook -w @gravity-platform/design-system-dev
 ```bash
 # Start your day
 cd ~/gravity
-gravity dev
+unoverse dev
 
 # Make changes to packages/ or apps/design-system/
-gravity build               # Build all + gen:nodes + restart
-gravity build @gravity-platform/my-node  # Or build one package
+unoverse build               # Build all + gen:nodes + restart
+unoverse build @gravity-platform/my-node  # Or build one package
 
 # End your day
-gravity stop
+unoverse stop
 ```
 
 ---
@@ -205,7 +203,7 @@ When a new platform version is released:
 cd ~/gravity
 git fetch upstream
 git merge upstream/main  # Pull latest starter code from upstream
-gravity update           # Pull latest images and restart
+unoverse update           # Pull latest images and restart
 ```
 
 ---
@@ -214,22 +212,22 @@ gravity update           # Pull latest images and restart
 
 | Command                | Purpose                                             |
 | ---------------------- | --------------------------------------------------- |
-| `gravity init`         | Interactive setup wizard (first time)               |
-| `gravity db-setup`     | Run database migrations + seed (safe to re-run)     |
-| `gravity start`        | Start the platform                                  |
-| `gravity stop`         | Stop the platform                                   |
-| `gravity status`       | Show service health                                 |
-| `gravity logs`         | Stream logs                                         |
-| `gravity update`       | Pull latest images and restart                      |
-| `gravity update nodes` | Rebuild packages and restart unoverse               |
-| `gravity check`        | Run full health check                               |
-| `gravity doctor`       | Diagnose issues                                     |
-| `gravity dev`          | Install deps, generate nodes, start dev environment |
-| `gravity build`        | Build all packages + gen:nodes + restart services   |
-| `gravity build <pkg>`  | Build one package + restart services                |
-| `gravity gendesign`    | Generate design system nodes + restart              |
-| `gravity open`         | Open Canvas in browser (`gravity open grafana`)     |
-| `gravity help`         | Show all commands                                   |
+| `unoverse init`         | Interactive setup wizard (first time)               |
+| `unoverse db-setup`     | Run database migrations + seed (safe to re-run)     |
+| `unoverse start`        | Start the platform                                  |
+| `unoverse stop`         | Stop the platform                                   |
+| `unoverse status`       | Show service health                                 |
+| `unoverse logs`         | Stream logs                                         |
+| `unoverse update`       | Pull latest images and restart                      |
+| `unoverse update nodes` | Rebuild packages and restart unoverse               |
+| `unoverse check`        | Run full health check                               |
+| `unoverse doctor`       | Diagnose issues                                     |
+| `unoverse dev`          | Install deps, generate nodes, start dev environment |
+| `unoverse build`        | Build all packages + gen:nodes + restart services   |
+| `unoverse build <pkg>`  | Build one package + restart services                |
+| `unoverse gendesign`    | Generate design system nodes + restart              |
+| `unoverse open`         | Open in browser (`unoverse open canvas\|api\|logs`)  |
+| `unoverse help`         | Show all commands                                   |
 
 ---
 
@@ -239,7 +237,7 @@ Run the doctor to diagnose issues:
 
 ```bash
 cd ~/gravity
-gravity doctor
+unoverse doctor
 ```
 
 ### "unauthorized" when pulling images
@@ -252,8 +250,8 @@ echo "dop_v1_xxxxx" | docker login registry.digitalocean.com -u dop_v1_xxxxx --p
 ### Services not starting
 
 ```bash
-gravity logs server    # Check specific service logs
-gravity logs workflow
+unoverse logs unoverse    # Check specific service logs
+unoverse logs canvas
 ```
 
 ### Can't reach database server at 127.0.0.1
@@ -274,7 +272,7 @@ DATABASE_URL=postgresql://postgres:password@host.docker.internal:5432/gravity
 
 ### `extension "vector" is not available` during db-setup
 
-The `pgvector` extension must be installed in your local Postgres before running `gravity db-setup`. It is pre-installed on managed databases (DigitalOcean Postgres, Supabase) but not on a standard local Postgres.
+The `pgvector` extension must be installed in your local Postgres before running `unoverse db-setup`. It is pre-installed on managed databases (DigitalOcean Postgres, Supabase) but not on a standard local Postgres.
 
 **Homebrew (Mac):**
 
@@ -294,7 +292,7 @@ sudo apt install postgresql-16-pgvector   # replace 16 with your PG version
 image: pgvector/pgvector:pg16 # pg15, pg16, or pg17
 ```
 
-After installing, restart Postgres and re-run `gravity db-setup`.
+After installing, restart Postgres and re-run `unoverse db-setup`.
 
 ### Redis connection refused
 
@@ -307,8 +305,8 @@ docker run -d --name gravity-redis -p 6379:6379 redis:7-alpine
 ### Clean restart
 
 ```bash
-gravity stop
-gravity start
+unoverse stop
+unoverse start
 ```
 
 ### Nuclear reset (deletes all data!)
@@ -316,7 +314,7 @@ gravity start
 ```bash
 docker compose down -v
 docker system prune -a -f
-gravity start
+unoverse start
 ```
 
 ---

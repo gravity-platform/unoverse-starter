@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity doctor
+# unoverse doctor
 
 cmd_doctor() {
   banner "Gravity Doctor"
@@ -39,7 +39,7 @@ cmd_doctor() {
   if [ -f "$ROOT/.env" ]; then
     ok ".env file exists"
   else
-    fail ".env file missing — run ${BOLD}gravity init${NC}"
+    fail ".env file missing — run ${BOLD}unoverse init${NC}"
     issues=$((issues + 1))
     print_summary $issues
     return
@@ -79,7 +79,7 @@ cmd_doctor() {
   if [ -f "$docker_config" ] && grep -q "$DOCR_REGISTRY" "$docker_config" 2>/dev/null; then
     ok "Logged in to DigitalOcean Container Registry"
   else
-    fail "Not logged in to DOCR — run ${BOLD}gravity init${NC}"
+    fail "Not logged in to DOCR — run ${BOLD}unoverse init${NC}"
     issues=$((issues + 1))
   fi
 
@@ -92,7 +92,7 @@ cmd_doctor() {
   if [ "$image_count" -ge 5 ]; then
     ok "$image_count images available"
   else
-    warn "Images not pulled yet — run ${BOLD}gravity pull${NC}"
+    warn "Images not pulled yet — run ${BOLD}unoverse pull${NC}"
     issues=$((issues + 1))
   fi
 
@@ -119,7 +119,7 @@ cmd_doctor() {
       issues=$((issues + 1))
     fi
   else
-    info "No services found (run ${BOLD}gravity start${NC})"
+    info "No services found (run ${BOLD}unoverse start${NC})"
   fi
 
   # Memory service health
@@ -129,7 +129,7 @@ cmd_doctor() {
     ok "Memory service reachable ${DIM}:4104${NC}"
   else
     fail "Memory service not reachable ${DIM}:4104 → $mem_code${NC}"
-    info "Check memory container logs: ${BOLD}gravity logs memory${NC}"
+    info "Check memory container logs: ${BOLD}unoverse logs memory${NC}"
     issues=$((issues + 1))
   fi
 

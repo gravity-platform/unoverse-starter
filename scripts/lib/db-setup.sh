@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity db-setup — runs node-pg-migrate to apply all pending migrations
+# unoverse db-setup — runs node-pg-migrate to apply all pending migrations
 
 cmd_db_setup() {
   banner "Database Setup"
@@ -24,14 +24,14 @@ cmd_db_setup() {
   fi
 
   # Detect environment: monorepo (local dev) vs starter (Docker)
-  if [ -d "$ROOT/apps/workflow" ]; then
+  if [ -d "$ROOT/apps/unoverse/engine" ]; then
     # ── Local dev — run node-pg-migrate directly ──
     echo ""
     echo "  Running migrations (local dev)..."
 
     NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" \
       npx node-pg-migrate up \
-        --migrations-dir "$ROOT/apps/workflow/migrations" \
+        --migrations-dir "$ROOT/apps/unoverse/engine/migrations" \
         --migration-file-language sql \
         --no-lock \
         2>&1 | sed 's/^/  /' || {
@@ -43,17 +43,17 @@ cmd_db_setup() {
     _seed_security_corpus "$db_url" "$ROOT/apps/memory/src/security/corpus-seed.json"
 
   else
-    # ── Starter/production — run via Docker workflow container ──
+    # ── Starter/production — run via the unoverse container ──
     echo ""
 
-    if ! docker compose -f "$ROOT/docker-compose.yml" ps --status running workflow 2>/dev/null | grep -q workflow; then
+    if ! docker compose -f "$ROOT/docker-compose.yml" ps --status running unoverse 2>/dev/null | grep -q unoverse; then
       echo ""
-      echo -e "  ${YELLOW}The workflow service must be running to apply migrations.${NC}"
-      echo -e "  ${DIM}(Migration files are bundled inside the workflow Docker image)${NC}"
+      echo -e "  ${YELLOW}The unoverse service must be running to apply migrations.${NC}"
+      echo -e "  ${DIM}(Migration files are bundled inside the unoverse Docker image)${NC}"
       echo ""
       echo -e "  Start services first, then re-run:"
-      echo -e "    ${GREEN}./gravity start${NC}"
-      echo -e "    ${GREEN}./gravity db-setup${NC}"
+      echo -e "    ${GREEN}./unoverse start${NC}"
+      echo -e "    ${GREEN}./unoverse db-setup${NC}"
       echo ""
       exit 1
     fi
@@ -63,9 +63,9 @@ cmd_db_setup() {
     docker compose -f "$ROOT/docker-compose.yml" exec -T \
       -e NODE_TLS_REJECT_UNAUTHORIZED=0 \
       -e DATABASE_URL="$db_url" \
-      workflow \
+      unoverse \
       npx node-pg-migrate up \
-        --migrations-dir /app/migrations \
+        --migrations-dir /app/apps/unoverse/engine/migrations \
         --migration-file-language sql \
         --no-lock \
         2>&1 | sed 's/^/  /' || {
@@ -75,12 +75,12 @@ cmd_db_setup() {
 
     # Seed security corpus via Docker
     docker compose -f "$ROOT/docker-compose.yml" exec -T \
-      -e NODE_TLS_REJECT_UNAUTHORIZED=0 workflow node --no-warnings -e "
+      -e NODE_TLS_REJECT_UNAUTHORIZED=0 unoverse node --no-warnings -e "
       const fs = require('fs');
       const { Pool } = require('pg');
       (async () => {
         try {
-          const seedData = JSON.parse(fs.readFileSync('/app/security-corpus-seed.json', 'utf-8'));
+          const seedData = JSON.parse(fs.readFileSync('/app/apps/memory/src/security/corpus-seed.json', 'utf-8'));
           const ssl = process.env.DATABASE_URL.includes('sslmode=') ? { rejectUnauthorized: false } : false;
           const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl });
           for (const a of seedData) {

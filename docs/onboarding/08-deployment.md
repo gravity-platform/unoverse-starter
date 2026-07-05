@@ -4,7 +4,7 @@ Deploy Gravity Platform to production VMs.
 
 ## Overview
 
-Production deployment uses `gravity deploy` which reads your `.env.production` file and runs Ansible playbooks to install and configure services on your VM.
+Production deployment uses `unoverse deploy` which reads your `.env.production` file and runs Ansible playbooks to install and configure services on your VM.
 
 ## Prerequisites
 
@@ -21,19 +21,19 @@ cp .env.production.example .env.production
 # Edit with your VM IP, Redis, domain, etc.
 
 # 2. Deploy core services
-gravity deploy
+unoverse deploy
 
 # 3. Set up database
-gravity deploy db
+unoverse deploy db
 
 # 4. Deploy AI model (optional)
-gravity deploy umap
+unoverse deploy umap
 
 # 5. TLS with Caddy (optional)
-gravity deploy caddy
+unoverse deploy caddy
 
 # 6. Verify
-gravity deploy test
+unoverse deploy test
 ```
 
 ## What `.env.production` Contains
@@ -69,7 +69,7 @@ For detailed step-by-step guides, see the [Runbooks](../runbooks/README.md):
 | [04-harden](../runbooks/04-harden.md)               | Security hardening             |
 | [05-caddy](../runbooks/05-caddy.md)                 | TLS + reverse proxy            |
 | [06-test](../runbooks/06-test.md)                   | Verify connectivity and health |
-| [07-observability](../runbooks/07-observability.md) | Grafana/Loki (POC only)        |
+| [07-observability](../runbooks/07-observability.md) | Dozzle log viewer (POC only)   |
 | [08-deploy-packages](../runbooks/08-deploy-packages.md) | Deploy packages to server  |
 
 ## Deploying Custom Code
@@ -77,7 +77,7 @@ For detailed step-by-step guides, see the [Runbooks](../runbooks/README.md):
 After deploying the platform, push your custom nodes and components:
 
 ```bash
-gravity deploy packages
+unoverse deploy packages
 ```
 
 ## Advanced: Multi-VM Enterprise

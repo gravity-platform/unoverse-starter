@@ -1,22 +1,23 @@
-# Runbook: Observability Stack
+# Runbook: Observability (Log Viewer)
 
-Install the bundled observability stack for POC/demo environments.
+Install the bundled log viewer for POC/demo environments.
 
 ## Overview
 
-The observability stack includes:
-- **Grafana** (port 3000) — Dashboards and visualization
-- **Prometheus** (port 9090) — Metrics collection
-- **Loki** (port 3100) — Log aggregation
-- **Tempo** (port 3200) — Distributed tracing
-- **Promtail** — Log shipping to Loki
+A single container — **Dozzle** (port 8080) — tails and searches every
+container's logs in a live web UI. It stores nothing (streams from the Docker
+socket on demand), so its footprint is flat (~30 MB RAM) and there is no
+datasource, database, or dashboard to maintain.
+
+Host log growth is bounded independently by the `json-file` log rotation set on
+every service in `docker-compose.yml` (10 MB × 3 files = 30 MB ceiling each).
 
 ## When to Use
 
-| Scenario | Install Observability? | Notes |
-|----------|------------------------|-------|
-| **POC / Demo** | ✅ Yes | Quick visibility into system health |
-| **Enterprise** | ❌ No | Customer uses their own SIEM/observability |
+| Scenario | Install? | Notes |
+|----------|----------|-------|
+| **POC / Demo** | ✅ Yes | Quick live view of all container logs |
+| **Enterprise** | ❌ No | Customer ships logs to their own SIEM |
 
 ## Prerequisites
 
@@ -24,33 +25,33 @@ The observability stack includes:
 
 ## Steps
 
-### 1. Install Observability Stack
+### 1. Start Dozzle
 
 ```bash
 cd ansible
 ansible-playbook -i inventory/production.yml playbooks/install-observability.yml
 ```
 
-### 2. Access Grafana
+Or directly on the server:
 
-Open `http://<VM_IP>:3000` in your browser.
+```bash
+cd /opt/gravity && docker compose --profile observability up -d dozzle
+```
 
-Default credentials: `admin` / `admin`
+### 2. Access the log viewer
+
+Open `http://<VM_IP>:8080` in your browser.
 
 ## Uninstall
 
-To remove the observability stack:
-
 ```bash
-ssh root@<VM_IP> "cd /opt/gravity && docker compose stop grafana loki prometheus promtail tempo && docker compose rm -f grafana loki prometheus promtail tempo"
+ssh root@<VM_IP> "cd /opt/gravity && docker compose stop dozzle && docker compose rm -f dozzle"
 ```
 
 ## Enterprise Alternative
 
-For enterprise deployments, export metrics and logs to customer systems:
-
-- **Metrics:** Configure Prometheus remote_write to customer endpoint
-- **Logs:** Configure Promtail to ship to customer Splunk/ELK/Datadog
-- **Traces:** Configure Tempo to export to customer Jaeger/Zipkin
+For enterprise deployments, ship container logs to the customer's system instead
+of viewing them locally — point the Docker daemon's logging driver (or a sidecar
+shipper) at Splunk / ELK / Datadog.
 
 See [ENTERPRISE_DEPLOYMENT.md](../../docs/architecture/ENTERPRISE_DEPLOYMENT.md) for details.

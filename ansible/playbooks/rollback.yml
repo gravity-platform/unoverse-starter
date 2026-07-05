@@ -46,8 +46,6 @@
       retries: 30
       delay: 2
       loop:
-        - { name: server, port: 4100 }
-        - { name: workflow, port: 4101 }
         - { name: unoverse, port: 4105 }
       when: item.name in gravity_services
 

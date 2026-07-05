@@ -6,14 +6,12 @@ Deploy the core Gravity Platform services to a VM.
 
 | Service          | Port | Description                         |
 | ---------------- | ---- | ----------------------------------- |
-| **server**       | 4100 | API gateway                         |
-| **workflow**     | 4101 | XState orchestration engine         |
-| **unoverse**     | 4105 | Node plane — authors, distributes, and executes package nodes |
+| **unoverse**     | 4105 | Platform runtime — workflow engine (in-process), node plane, `/api`, MCP, data plane |
 | **mcp-server**   | 4103 | MCP (Model Context Protocol) server |
 | **memory**       | 4104 | Evidence-based user memory          |
 | **canvas**       | 3001 | Web UI                              |
 
-> **Unoverse has two ports.** `:4105` is the public port (JWT-gated: MCP defs, workbench, `/plugins` management, `/health`). `:4106` is the internal node runtime (`/execute`, `/nodes`, `/skills`, `/health`) — it lives on the Docker network only and is deliberately never published or proxied; network isolation is the trust boundary.
+> **Unoverse has three listeners.** `:4105` is the public port (JWT-gated: `/api/*`, MCP defs, workbench, `/plugins` management, `/health`). `:4106` is the internal node runtime (`/execute`, `/nodes`, `/skills`, `/health`) — it lives on the Docker network only and is deliberately never published or proxied; network isolation is the trust boundary. `:4101` is the workflow engine surface (internal; other containers reach it as `http://unoverse:4101`).
 
 ## VM Requirements
 
@@ -61,14 +59,14 @@ REDIS_TLS=true
 DOMAIN=yourdomain.com
 ```
 
-> **Note:** `.env.production` is gitignored — it will not be overwritten when you run `gravity update`. Only the `.example` file is tracked in git.
+> **Note:** `.env.production` is gitignored — it will not be overwritten when you run `unoverse update`. Only the `.example` file is tracked in git.
 
 > **Do not set `ansible_become_password` or `ansible_become_flags`** for cloud VMs. Their default users already have passwordless sudo configured by the cloud provider.
 
 ### 2. Run Core Platform Installation
 
 ```bash
-gravity deploy
+unoverse deploy
 ```
 
 Or manually via Ansible:
@@ -78,14 +76,14 @@ cd ansible
 ansible-playbook -i inventory/production.yml playbooks/install.yml
 ```
 
-This installs Docker, Node.js, pulls DOCR images, and starts **core platform** (server, workflow, unoverse, mcp-server, memory, canvas).
+This installs Docker, Node.js, pulls DOCR images, and starts **core platform** (unoverse, mcp-server, memory, canvas).
 
 ### 3. Deploy Customer Packages
 
 Rsyncs packages from your local machine to the server, builds them, and restarts unoverse:
 
 ```bash
-gravity deploy packages
+unoverse deploy packages
 ```
 
 Or manually:
@@ -98,7 +96,7 @@ ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 ### 4. Verify
 
 ```bash
-gravity deploy test
+unoverse deploy test
 ```
 
 Or manually:
@@ -116,8 +114,6 @@ GRAVITY PLATFORM DEPLOYED
 Host: gravity-prod (<YOUR_VM_IP>)
 
 Service Health:
-  - Server:       OK
-  - Workflow:      OK
   - Unoverse:      OK
   - MCP Server:    OK
   - Memory:        OK
@@ -125,7 +121,7 @@ Service Health:
 
 Access URLs:
   - Canvas:  http://<YOUR_VM_IP>:3001
-  - API:     http://<YOUR_VM_IP>:4100
+  - API:     http://<YOUR_VM_IP>:4105
 
 Internal Only (SSH tunnel required):
   - Memory:  http://localhost:4104/dashboard

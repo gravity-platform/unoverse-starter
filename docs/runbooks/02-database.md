@@ -6,7 +6,7 @@ Create database tables and schema.
 
 Gravity Platform requires a PostgreSQL database. The database is **always customer-managed** — it is never bundled with the platform.
 
-The `DATABASE_URL` is configured in `.env.production` and deployed to the server with `gravity deploy`. This runbook creates the required database tables.
+The `DATABASE_URL` is configured in `.env.production` and deployed to the server with `unoverse deploy`. This runbook creates the required database tables.
 
 ## Prerequisites
 
@@ -142,7 +142,7 @@ This will:
 3. Enable `vector` and `pg_stat_statements` extensions on target
 4. `pg_restore` to the target database
 5. Update `/opt/gravity/.env` with the new `DATABASE_URL`
-6. Restart workflow and server services
+6. Restart the unoverse service
 
 **Note:** Timescale-specific errors (continuous_agg, bgw_job) during restore are expected and harmless — all application tables migrate correctly.
 

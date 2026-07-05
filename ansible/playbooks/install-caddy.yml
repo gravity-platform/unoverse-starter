@@ -122,7 +122,7 @@
 
           Configured routes:
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://{{ caddy_domain }} -> Canvas (port 3001)
-            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://api.{{ caddy_domain }} -> API Server (port 4100)
+            - {% if caddy_behind_lb %}http{% else %}https{% endif %}://api.{{ caddy_domain }} -> API (unoverse, port 4105)
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://mcp.{{ caddy_domain }} -> MCP Server (port 4103)
             - {% if caddy_behind_lb %}http{% else %}https{% endif %}://unoverse.{{ caddy_domain }} -> Unoverse (port 4105)
           {% if caddy_include_umap %}

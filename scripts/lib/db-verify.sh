@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity db-verify
+# unoverse db-verify
 # Verifies all required tables and columns exist in the database.
 # Derived from the Prisma schema (source of truth).
 
@@ -163,7 +163,7 @@ cmd_db_verify() {
           if (m.column) {
             console.log("    ALTER TABLE " + m.table + " ADD COLUMN IF NOT EXISTS " + m.column + " — needs migration");
           } else {
-            console.log("    CREATE TABLE " + m.table + " — run ./gravity db-setup");
+            console.log("    CREATE TABLE " + m.table + " — run ./unoverse db-setup");
           }
         }
         process.exit(1);
@@ -179,7 +179,7 @@ cmd_db_verify() {
 
   echo ""
 
-  if [ -d "$ROOT/apps/workflow" ]; then
+  if [ -d "$ROOT/apps/unoverse/engine" ]; then
     # Local dev — run directly
     NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="$db_url" node --no-warnings -e "$verify_script" 2>&1
   else
@@ -197,7 +197,7 @@ cmd_db_verify() {
   if [ $verify_exit -eq 0 ]; then
     ok "Database schema verified"
   else
-    fail "Database schema has issues — re-run ${BOLD}./gravity db-setup${NC}"
+    fail "Database schema has issues — re-run ${BOLD}./unoverse db-setup${NC}"
   fi
   return $verify_exit
 }

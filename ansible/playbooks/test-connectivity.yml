@@ -38,8 +38,7 @@
         timeout: 5
       loop:
         - { name: "Canvas", port: 3001 }
-        - { name: "Server", port: 4100 }
-        - { name: "Workflow", port: 4101 }
+        - { name: "Engine", port: 4101 }
         - { name: "Unoverse", port: 4105 }
         - { name: "MCP Server", port: 4103 }
         - { name: "Memory", port: 4104 }
@@ -82,8 +81,7 @@
         status_code: 200
         timeout: 5
       loop:
-        - { name: "Server", port: 4100 }
-        - { name: "Workflow", port: 4101 }
+        - { name: "Engine", port: 4101 }
         - { name: "Unoverse", port: 4105 }
         - { name: "MCP Server", port: 4103 }
         - { name: "Memory", port: 4104 }
@@ -91,10 +89,10 @@
       register: health_checks
       ignore_errors: yes
 
-    - name: "[7b/9] Test UMAP reachable from workflow container (Docker DNS)"
+    - name: "[7b/9] Test UMAP reachable from unoverse container (Docker DNS)"
       shell: |
         cd /opt/gravity
-        RESULT=$(docker compose exec -T workflow node -e "fetch('http://umap:5001/health').then(r=>r.json()).then(d=>console.log('OK: '+JSON.stringify(d))).catch(e=>console.log('FAILED: '+e.message))" 2>&1)
+        RESULT=$(docker compose exec -T unoverse node -e "fetch('http://umap:5001/health').then(r=>r.json()).then(d=>console.log('OK: '+JSON.stringify(d))).catch(e=>console.log('FAILED: '+e.message))" 2>&1)
         echo "$RESULT"
         echo "$RESULT" | grep -q "OK:"
       register: umap_docker_check
@@ -109,16 +107,27 @@
         echo "HTTP $STATUS"
         [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]
       loop:
-        - { name: "GET /api/workflows", port: 4100, path: "/api/workflows" }
-        - { name: "GET /api/nodes", port: 4100, path: "/api/nodes" }
-        - { name: "GET /api/prompt-blocks", port: 4100, path: "/api/prompt-blocks" }
+        # The engine surface (:4101) is the ungated internal API — the public
+        # /api/* on :4105 is JWT-gated, so anonymous checks go here.
+        - { name: "GET /workflows (engine)", port: 4101, path: "/workflows" }
+        - { name: "GET /nodes (engine)", port: 4101, path: "/nodes" }
       register: api_checks
+      ignore_errors: yes
+
+    - name: "[8b/13] Test prompt blocks (internal :4106, from inside the container)"
+      shell: |
+        cd /opt/gravity
+        RESULT=$(docker compose exec -T unoverse node -e \
+          "fetch('http://127.0.0.1:4106/prompt-blocks').then(r=>r.json()).then(d=>console.log('blocks='+(Array.isArray(d)?d.length:(d.blocks||[]).length))).catch(e=>console.log('FAILED: '+e.message))" 2>&1)
+        echo "$RESULT"
+        echo "$RESULT" | grep -q "blocks="
+      register: prompt_blocks_check
       ignore_errors: yes
 
     - name: "[9/13] Test API write (POST workflow)"
       shell: |
         RESPONSE=$(curl -s -w '\n%{http_code}' --max-time 10 \
-          -X POST http://localhost:4100/api/workflows \
+          -X POST http://localhost:4101/workflows \
           -H 'Content-Type: application/json' \
           -d '{"name":"_health_check_test","nodes":[],"edges":[]}')
         STATUS=$(echo "$RESPONSE" | tail -1)
@@ -137,7 +146,7 @@
           "fetch('http://127.0.0.1:4106/nodes').then(r=>r.json()).then(d=>console.log((d.nodes||[]).length)).catch(()=>console.log(0))" 2>/dev/null | tr -d ' \r')
         echo "nodes=${NODE_COUNT}"
         if [ "${NODE_COUNT:-0}" -eq 0 ] 2>/dev/null; then
-          echo "WARNING: No nodes loaded — run deploy.sh rebuild or gravity update"
+          echo "WARNING: No nodes loaded — run deploy.sh rebuild or unoverse update"
           exit 1
         fi
       register: plugin_check
@@ -152,7 +161,7 @@
           [ "$PKG_COUNT" -gt 0 ]
         else
           echo "packages_mounted=0"
-          echo "WARNING: No packages directory — run deploy.sh or gravity update"
+          echo "WARNING: No packages directory — run deploy.sh or unoverse update"
           exit 1
         fi
       register: packages_check
@@ -236,7 +245,7 @@
           {% endfor %}
 
           ── UMAP (Docker DNS) ──
-          Workflow → umap:5001: {{ 'OK' if umap_docker_check.rc == 0 else 'FAILED — run install-umap.yml' }}
+          Unoverse → umap:5001: {{ 'OK' if umap_docker_check.rc == 0 else 'FAILED — run install-umap.yml' }}
 
           ── API Endpoints (read) ──
           {% for result in api_checks.results %}
@@ -244,7 +253,10 @@
           {% endfor %}
 
           ── API Write Test ──
-            - POST /api/workflows: {{ api_write_check.stdout | default('???') if not api_write_check.failed else 'FAILED (' + api_write_check.stdout | default('???') + ')' }}
+            - POST /workflows (engine): {{ api_write_check.stdout | default('???') if not api_write_check.failed else 'FAILED (' + api_write_check.stdout | default('???') + ')' }}
+
+          ── Prompt Blocks (internal :4106) ──
+            {{ prompt_blocks_check.stdout_lines[0] | default('(skipped)') }}
 
           ── Plugins & Packages ──
           Unoverse: {{ plugin_check.stdout_lines[0] | default('(skipped)') }}

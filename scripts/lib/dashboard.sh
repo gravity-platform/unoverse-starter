@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity dashboard (default command when no args)
+# unoverse dashboard (default command when no args)
 
 cmd_dashboard() {
   echo ""
@@ -9,7 +9,7 @@ cmd_dashboard() {
   # Check if .env exists
   if [ ! -f "$ROOT/.env" ]; then
     echo ""
-    echo -e "  ${YELLOW}${BOLD}First time?${NC} Run ${GREEN}${BOLD}./gravity init${NC} to get started."
+    echo -e "  ${YELLOW}${BOLD}First time?${NC} Run ${GREEN}${BOLD}./unoverse init${NC} to get started."
     echo ""
     return
   fi
@@ -29,30 +29,30 @@ cmd_dashboard() {
       echo -e "  ${GREEN}●${NC} ${BOLD}Platform running${NC} ${DIM}— $running services${NC}"
       echo ""
       echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
+      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
     elif [ "$created" -gt 0 ] && [ "$running" -eq 0 ]; then
       echo -e "  ${RED}●${NC} ${BOLD}$total containers stuck in Created state${NC}"
       echo ""
       echo -e "  Containers were created but never started."
-      echo -e "  Run ${GREEN}${BOLD}gravity doctor${NC} to diagnose"
+      echo -e "  Run ${GREEN}${BOLD}unoverse doctor${NC} to diagnose"
     elif [ "$running" -gt 0 ]; then
       echo -e "  ${YELLOW}●${NC} ${BOLD}$running/$total services up${NC}"
       echo ""
       echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
+      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
     else
       echo -e "  ${RED}●${NC} ${BOLD}Platform not running${NC} ${DIM}— $total containers stopped${NC}"
       echo ""
-      echo -e "  Run ${GREEN}${BOLD}./gravity start${NC} to launch"
+      echo -e "  Run ${GREEN}${BOLD}./unoverse start${NC} to launch"
     fi
   else
     echo ""
     echo -e "  ${DIM}●${NC} ${BOLD}Platform stopped${NC}"
     echo ""
-    echo -e "  Run ${GREEN}${BOLD}./gravity start${NC} to launch"
+    echo -e "  Run ${GREEN}${BOLD}./unoverse start${NC} to launch"
   fi
 
   echo ""
-  echo -e "  ${DIM}Run ${NC}${BOLD}./gravity help${NC}${DIM} for all commands${NC}"
+  echo -e "  ${DIM}Run ${NC}${BOLD}./unoverse help${NC}${DIM} for all commands${NC}"
   echo ""
 }

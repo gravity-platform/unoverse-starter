@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# gravity help
+# unoverse help
 
 cmd_help() {
   echo ""
-  echo -e "  ${BOLD}${CYAN}⬡ Gravity Platform CLI${NC} ${DIM}v${GRAVITY_VERSION}${NC}"
+  echo -e "  ${BOLD}${CYAN}⬡ Unoverse Platform CLI${NC} ${DIM}v${GRAVITY_VERSION}${NC}"
   echo ""
   echo -e "  ${BOLD}Setup${NC}"
   echo -e "    ${GREEN}init${NC}        Interactive setup wizard"
@@ -14,15 +14,15 @@ cmd_help() {
   echo -e "    ${GREEN}stop${NC}        Stop all services"
   echo -e "    ${GREEN}status${NC}      Show service health"
   echo -e "    ${GREEN}check${NC}       Run full health check"
-  echo -e "    ${GREEN}logs${NC}        Stream logs ${DIM}(./gravity logs <service>)${NC}"
+  echo -e "    ${GREEN}logs${NC}        Stream logs ${DIM}(./unoverse logs <service>)${NC}"
   echo -e "    ${GREEN}update${NC}      Pull latest images and restart"
-  echo -e "    ${GREEN}open${NC}        Open Canvas in browser ${DIM}(./gravity open grafana)${NC}"
+  echo -e "    ${GREEN}open${NC}        Open in browser ${DIM}(./unoverse open canvas|api|logs)${NC}"
   echo ""
   echo -e "  ${BOLD}Development${NC}"
   echo -e "    ${GREEN}dev${NC}         Install deps, gen nodes, start platform"
   echo -e "    ${GREEN}db-setup${NC}    Run database migrations ${DIM}(safe to re-run)${NC}"
   echo -e "    ${GREEN}db-verify${NC}   Verify database schema against Prisma"
-  echo -e "    ${GREEN}build${NC}       Build and restart ${DIM}(./gravity build <package>)${NC}"
+  echo -e "    ${GREEN}build${NC}       Build and restart ${DIM}(./unoverse build <package>)${NC}"
   echo -e "    ${GREEN}gendesign${NC}   Generate design system nodes + restart"
   echo ""
   echo -e "  ${BOLD}Deployment${NC}"

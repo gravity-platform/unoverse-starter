@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity start + Docker file sharing check
+# unoverse start + Docker file sharing check
 
 check_docker_file_sharing() {
   # Detect macOS restricted directories that Docker cannot mount by default
@@ -25,7 +25,7 @@ check_docker_file_sharing() {
     echo -e "  This will cause services to stay in ${BOLD}Created${NC} state and not start."
     echo ""
     echo -e "  ${BOLD}Fix (choose one):${NC}"
-    echo -e "    1. Move project to ${BOLD}~/dev/${NC} or ${BOLD}~/projects/${NC} and re-run ${BOLD}gravity init${NC}"
+    echo -e "    1. Move project to ${BOLD}~/dev/${NC} or ${BOLD}~/projects/${NC} and re-run ${BOLD}unoverse init${NC}"
     echo -e "    2. Docker Desktop → Settings → Resources → File Sharing → add ${BOLD}$HOME/$location${NC}"
     echo ""
     return 1
@@ -89,7 +89,7 @@ cmd_start() {
     echo -e "  ${DIM}───────────────────────────────${NC}"
     echo ""
     echo -e "  ${YELLOW}Common fixes:${NC}"
-    echo -e "    • Not logged into registry?  ${GREEN}gravity init${NC}"
+    echo -e "    • Not logged into registry?  ${GREEN}unoverse init${NC}"
     echo -e "    • Missing .env?              ${GREEN}cp .env.example .env${NC} and fill in values"
     echo -e "    • Images not pulled?         ${GREEN}docker compose pull${NC}"
     echo ""
@@ -127,16 +127,16 @@ cmd_start() {
     echo -e "  ${WHITE}${BOLD}Your platform is ready:${NC}"
     echo ""
     echo -e "  ${CYAN}Canvas${NC}  ${DIM}(Workflow Builder)${NC}   ${UNDERLINE}http://localhost:3001${NC}"
-    echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4100${NC}"
+    echo -e "  ${CYAN}API${NC}     ${DIM}(REST API)${NC}           ${UNDERLINE}http://localhost:4105${NC}"
     echo ""
-    info "Run ${BOLD}gravity logs${NC}    to stream logs"
-    info "Run ${BOLD}gravity open${NC}    to open Canvas in your browser"
+    info "Run ${BOLD}unoverse logs${NC}    to stream logs"
+    info "Run ${BOLD}unoverse open${NC}    to open Canvas in your browser"
   elif [ "$total" -eq 0 ]; then
     printf "\r  ${RED}✗${NC} No services found\n"
     echo ""
     echo -e "  ${YELLOW}No containers were created. Possible causes:${NC}"
     echo -e "    • Images not pulled yet?     ${GREEN}docker compose pull${NC}"
-    echo -e "    • Not logged into registry?  ${GREEN}gravity init${NC}"
+    echo -e "    • Not logged into registry?  ${GREEN}unoverse init${NC}"
     echo ""
   else
     printf "\r  ${YELLOW}!${NC} ${DIM}$running/$total services running${NC}\n"
@@ -154,11 +154,11 @@ cmd_start() {
       echo ""
       echo -e "  ${YELLOW}Common causes:${NC}"
       echo -e "    • Docker cannot mount project directory (restricted folder)"
-      echo -e "    • Try: ${GREEN}gravity doctor${NC} to diagnose"
-      echo -e "    • Try: ${GREEN}docker compose down && gravity start${NC} to recreate"
+      echo -e "    • Try: ${GREEN}unoverse doctor${NC} to diagnose"
+      echo -e "    • Try: ${GREEN}docker compose down && unoverse start${NC} to recreate"
     else
-      info "Run ${BOLD}gravity status${NC} to see which services failed"
-      info "Run ${BOLD}gravity logs <service>${NC} to check logs"
+      info "Run ${BOLD}unoverse status${NC} to see which services failed"
+      info "Run ${BOLD}unoverse logs <service>${NC} to check logs"
     fi
   fi
   echo ""

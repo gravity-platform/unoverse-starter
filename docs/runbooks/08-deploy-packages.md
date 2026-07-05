@@ -11,7 +11,7 @@ Deploy customer packages (custom nodes, design-system components) to the server.
 ## Deploy
 
 ```bash
-gravity deploy packages
+unoverse deploy packages
 ```
 
 Or manually via Ansible:
@@ -30,7 +30,7 @@ This playbook:
 ## Verify
 
 ```bash
-gravity deploy test
+unoverse deploy test
 ```
 
 Check the **Plugins & Packages** section — `nodes` should be > 0.
@@ -50,7 +50,7 @@ Restart: OK
 
 | Issue                  | Cause                 | Fix                                                    |
 | ---------------------- | --------------------- | ------------------------------------------------------ |
-| nodes=0 on server      | Packages not built    | Re-run `gravity deploy packages`                       |
+| nodes=0 on server      | Packages not built    | Re-run `unoverse deploy packages`                       |
 | Build FAILED           | Missing dependency    | SSH in, run `cd /opt/gravity && npm install` manually  |
 | rsync permission error | SSH key not set up    | Check `DEPLOY_HOST` and `DEPLOY_USER` in `.env.production` |
 | unoverse unhealthy     | Bad package code      | Check `docker compose logs unoverse` on server         |

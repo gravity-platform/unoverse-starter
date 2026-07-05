@@ -6,7 +6,7 @@
 
 ## How selection actually works (read this first)
 
-When UNO builds a workflow it does **not** see the full node list. For each step it calls `getNodeCatalog({ task })`, where `task` is a one-line description of what that step must do (e.g. `"write a long-form GTM plan document"`). The catalog (`apps/workflow/src/nodes/unoverse/UnoverseMCP/services/CatalogService.ts`) then:
+When UNO builds a workflow it does **not** see the full node list. For each step it calls `getNodeCatalog({ task })`, where `task` is a one-line description of what that step must do (e.g. `"write a long-form GTM plan document"`). The catalog (`apps/unoverse/engine/src/nodes/unoverse/UnoverseMCP/services/CatalogService.ts`) then:
 
 1. Filters to **active** packages only (intersected with the live Redis `nodes:types` set).
 2. For every node, builds this exact text and embeds it:

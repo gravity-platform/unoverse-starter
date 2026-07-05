@@ -136,11 +136,11 @@
                 </thead>
                 <tbody>
                   {[
-                    ["WebSocket → Server", "< 1ms"],
-                    ["Server → Workflow (HTTP)", "1-5ms"],
+                    ["WebSocket → Unoverse", "< 1ms"],
+                    ["Dispatch to engine (in-process)", "< 1ms"],
                     ["Route table lookup", "< 1ms"],
                     ["Core node execution", "1-10ms"],
-                    ["Workflow → Unoverse", "2-10ms"],
+                    ["Package node execution overhead (in-process)", "< 1ms"],
                     ["AI API call", "500-5,000ms"],
                     ["Redis pub/sub delivery", "< 5ms"],
                     ["WebSocket → Client", "< 1ms"],

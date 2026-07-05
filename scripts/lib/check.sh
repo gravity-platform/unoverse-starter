@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# gravity check
+# unoverse check
 
 cmd_check() {
   echo ""
-  echo -e "  ${BOLD}Gravity Platform Health Check${NC}"
+  echo -e "  ${BOLD}Unoverse Platform Health Check${NC}"
   echo ""
   local pass=0 total=0
 
   # 1. Services
-  for svc in server workflow unoverse canvas umap mcp-server memory; do
+  for svc in unoverse canvas umap mcp-server memory; do
     total=$((total + 1))
     local status
     status=$(docker compose -f "$ROOT/docker-compose.yml" ps --format '{{.Status}}' "$svc" 2>/dev/null | head -1)
@@ -26,7 +26,7 @@ cmd_check() {
   echo ""
 
   # 2. Health endpoints
-  for endpoint in 4100:server 4101:workflow 4105:unoverse 5001:umap 4104:memory; do
+  for endpoint in 4105:unoverse 4101:engine 5001:umap 4104:memory; do
     local port="${endpoint%%:*}" name="${endpoint##*:}"
     total=$((total + 1))
     local code
@@ -78,7 +78,7 @@ cmd_check() {
   # 5. Component bundles
   total=$((total + 1))
   local comp_code
-  comp_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4100/components/AIResponse.js" 2>/dev/null)
+  comp_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4105/components/AIResponse.js" 2>/dev/null)
   if [ "$comp_code" = "200" ]; then
     ok "Component bundles served"
     pass=$((pass + 1))

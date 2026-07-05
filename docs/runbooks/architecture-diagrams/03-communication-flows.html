@@ -58,8 +58,8 @@
             <div className="text-center">
               <div className="bg-green-600 text-white p-3 rounded-lg w-32 mx-auto">
                 <Server size={24} className="mx-auto mb-1" />
-                <p className="text-sm font-bold">API Server</p>
-                <p className="text-xs">:4100</p>
+                <p className="text-sm font-bold">Unoverse</p>
+                <p className="text-xs">:4105</p>
               </div>
             </div>
             <ArrowRight size={32} className="text-green-600" strokeWidth={3} />
@@ -78,25 +78,25 @@
           <h3 className="font-bold text-gray-800 mb-4">B. Workflow Execution with ML Service</h3>
           <div className="bg-green-50 p-5 rounded-lg border-2 border-green-300 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Workflow :4101</div>
+              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Engine :4101</div>
               <ArrowRight className="text-purple-600" />
               <div className="bg-purple-600 text-white px-4 py-2 rounded text-sm font-bold">UMAP ML :5001</div>
               <span className="text-xs text-gray-600 ml-2">(when semantic search needed)</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Workflow :4101</div>
+              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Engine :4101</div>
               <ArrowRight className="text-green-700" />
-              <div className="bg-green-700 text-white px-4 py-2 rounded text-sm font-bold">Unoverse :4106</div>
-              <span className="text-xs text-gray-600 ml-2">(node runtime, HTTP + SSE for streaming nodes)</span>
+              <div className="bg-green-700 text-white px-4 py-2 rounded text-sm font-bold">Node runtime :4106</div>
+              <span className="text-xs text-gray-600 ml-2">(package nodes — both surfaces of the same unoverse process)</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Workflow :4101</div>
+              <div className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Engine :4101</div>
               <ArrowRight className="text-orange-600" />
               <div className="bg-orange-600 text-white px-4 py-2 rounded text-sm font-bold">PostgreSQL :5432</div>
               <span className="text-xs text-gray-600 ml-2">(save execution state)</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-green-700 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Unoverse :4106</div>
+              <div className="bg-green-700 text-white px-4 py-2 rounded text-sm font-bold w-40 text-center">Node runtime :4106</div>
               <ArrowRight className="text-gray-600" />
               <div className="bg-gray-700 text-white px-4 py-2 rounded text-sm font-bold">AI Providers :443</div>
               <span className="text-xs text-gray-600 ml-2">(OpenAI, AWS Bedrock, etc.)</span>
@@ -110,7 +110,7 @@
           <div className="bg-red-50 p-6 rounded-lg border-2 border-red-300">
             <div className="grid grid-cols-5 gap-3 items-center text-center mb-4">
               <div className="bg-green-700 text-white p-3 rounded-lg">
-                <p className="text-sm font-bold">Workflow</p>
+                <p className="text-sm font-bold">Unoverse (engine)</p>
                 <p className="text-xs">(App VM 1)</p>
                 <p className="text-xs mt-1 opacity-75">publishToClient()</p>
               </div>
@@ -126,7 +126,7 @@
                 <ArrowRight size={28} className="text-red-500" strokeWidth={3} />
               </div>
               <div className="bg-green-600 text-white p-3 rounded-lg">
-                <p className="text-sm font-bold">Server</p>
+                <p className="text-sm font-bold">Unoverse</p>
                 <p className="text-xs">(App VM 2)</p>
                 <p className="text-xs mt-1 opacity-75">ws.send(message)</p>
               </div>
@@ -140,7 +140,7 @@
               </div>
             </div>
             <div className="mt-5 bg-white p-3 rounded border border-red-200">
-              <p className="text-xs text-gray-700"><strong>How it works:</strong> Server subscribes to Redis channel when client connects via WebSocket. Workflow publishes to Redis (not directly to WebSocket). Any Server instance holding the client's connection forwards the message. No sticky sessions required between client and workflow.</p>
+              <p className="text-xs text-gray-700"><strong>How it works:</strong> The unoverse instance holding the client's WebSocket subscribes to the Redis channel on connect. The engine publishes to Redis (not directly to the WebSocket). Whichever instance holds the client's connection forwards the message.</p>
             </div>
           </div>
         </div>

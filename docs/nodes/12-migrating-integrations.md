@@ -273,4 +273,4 @@ It's trivial to add a tool to `getSchema` + `handleServiceCall` in a patch relea
 
 ---
 
-**Reference output:** study `packages-marketplace/slack/` for the exact folder layout, the `SlackMCP` service/node split, and the `gravity` field in its `package.json` (see `10-package-marketplace.md`).
+**Reference output:** study the `slack` package for the exact folder layout, the `SlackMCP` service/node split, and the `gravity` field in its `package.json` (see `10-package-marketplace.md`).

@@ -36,7 +36,7 @@ The `install-umap.yml` playbook **auto-detects** the deployment mode:
 
 | Mode       | UMAP_SERVICE_URL                       | Docker network                  |
 | ---------- | -------------------------------------- | ------------------------------- |
-| POC        | `http://umap:5001` (set in compose)    | Same network as workflow (auto) |
+| POC        | `http://umap:5001` (set in compose)    | Same network as unoverse (auto) |
 | Enterprise | `http://<ML_VM_IP>:5001` (set in .env) | Host networking on ML VM        |
 
 ## Steps
@@ -94,7 +94,7 @@ The `test-connectivity.yml` playbook checks:
 
 - UMAP port 5001 is open
 - UMAP `/health` endpoint returns 200
-- Workflow container can resolve `umap:5001` via Docker DNS (POC mode)
+- The unoverse container can resolve `umap:5001` via Docker DNS (POC mode)
 
 ## Expected Output
 
@@ -112,11 +112,11 @@ Internal URL: http://134.209.106.203:5001
 ## How Spatial Search Works
 
 1. User submits a search query
-2. Server proxies to workflow service (`/dictionary/search`)
-3. Workflow generates a 1536D embedding via OpenAI
-4. Workflow sends embedding to UMAP service (`http://umap:5001/transform`)
+2. The unoverse platform runtime handles it (`/dictionary/search`)
+3. The engine generates a 1536D embedding via OpenAI
+4. The engine sends the embedding to the UMAP service (`http://umap:5001/transform`)
 5. UMAP returns 3D coordinates `[x, y, z]`
-6. Workflow queries `dictionary_need_states` table using Euclidean distance:
+6. The engine queries `dictionary_need_states` table using Euclidean distance:
    ```sql
    sqrt(pow(umap_x - $1, 2) + pow(umap_y - $2, 2) + pow(umap_z - $3, 2))
    ```
@@ -130,7 +130,7 @@ Internal URL: http://134.209.106.203:5001
 | Model loading slow             | First startup                   | Wait 2-3 minutes for model to load                   |
 | Out of memory                  | Insufficient RAM                | Increase VM to 16GB+ or set `--memory=4g`            |
 | Connection refused from App VM | Firewall                        | Allow App VM → ML VM on port 5001                    |
-| 500 error on spatial search    | UMAP unreachable                | Check `docker compose logs workflow` for UMAP errors |
+| 500 error on spatial search    | UMAP unreachable                | Check `docker compose logs unoverse` for UMAP errors |
 | "Model may not be trained"     | No UMAP model for workflow      | Train model via Dictionary → Settings in Canvas      |
 
 ## Next Steps

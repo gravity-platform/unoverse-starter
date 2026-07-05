@@ -36,8 +36,8 @@ ssh root@<VM_IP>
 docker compose ps
 
 # Check logs
-docker compose logs --tail=50 server
-docker compose logs --tail=50 workflow
+docker compose logs --tail=50 unoverse
+docker compose logs --tail=50 canvas
 ```
 
 ## Expected Output
@@ -51,8 +51,6 @@ Host: gravity-prod (<YOUR_VM_IP>)
 Docker: OK
 
 Containers:
-  gravity-server running Up 2 hours
-  gravity-workflow running Up 2 hours
   gravity-unoverse running Up 2 hours
   gravity-mcp-server running Up 2 hours
   gravity-memory running Up 2 hours
@@ -63,9 +61,8 @@ Restarting: NONE
 
 ── Ports ──
   - Canvas (3001): OK
-  - Server (4100): OK
-  - Workflow (4101): OK
   - Unoverse (4105): OK
+  - Engine (4101, served by unoverse): OK
   - MCP Server (4103): OK
   - Memory (4104): OK
 
@@ -76,9 +73,8 @@ Database: REACHABLE
   host=your-db.db.ondigitalocean.com port=25060
 
 ── Health Endpoints ──
-  - Server: OK
-  - Workflow: OK
   - Unoverse: OK
+  - Workflow engine: OK
   - MCP Server: OK
   - Memory: OK
 
@@ -116,14 +112,13 @@ Domain: yourdomain.com
 
 | Service      | URL                            | Expected |
 | ------------ | ------------------------------ | -------- |
-| Server       | `http://localhost:4100/health` | 200 OK   |
-| Workflow     | `http://localhost:4101/health` | 200 OK   |
 | Unoverse     | `http://localhost:4105/health` | 200 OK   |
+| Workflow engine (in-process on unoverse) | `http://localhost:4101/health` | 200 OK   |
 | MCP Server   | `http://localhost:4103/health` | 200 OK   |
 | Memory       | `http://localhost:4104/health` | 200 OK   |
 | UMAP         | `http://localhost:5001/health` | 200 OK   |
 
-> Unoverse serves `/health` on its public port `:4105` (host-reachable); it has no `/ready` endpoint. Its internal runtime port `:4106` is never published, so there is nothing to health-check from the host.
+> Unoverse serves `/health` on its public port `:4105` (host-reachable); it has no `/ready` endpoint. Its internal runtime port `:4106` is never published, so there is nothing to health-check from the host. `:4101` is the workflow engine surface — it runs in-process inside the unoverse container.
 
 ## Troubleshooting
 
@@ -141,10 +136,10 @@ Domain: yourdomain.com
 docker compose restart
 
 # Restart specific service
-docker compose restart server
+docker compose restart unoverse
 
 # View logs
-docker compose logs -f server
+docker compose logs -f unoverse
 
 # Check resource usage
 docker stats
@@ -152,7 +147,7 @@ docker stats
 
 ## Local Development Verification
 
-Run these checks after `gravity dev` or `gravity update` to verify everything is working.
+Run these checks after `unoverse dev` or `unoverse update` to verify everything is working.
 
 ### Quick Check (copy-paste this block)
 
@@ -162,7 +157,7 @@ echo ""
 
 # 1. Services running
 echo "1. Services"
-for svc in server workflow unoverse canvas umap mcp-server memory; do
+for svc in unoverse canvas umap mcp-server memory; do
   status=$(docker compose ps --format '{{.Status}}' $svc 2>/dev/null | head -1)
   if echo "$status" | grep -q "Up"; then
     echo "   ✓ $svc — $status"
@@ -174,7 +169,7 @@ echo ""
 
 # 2. Health endpoints
 echo "2. Health Endpoints"
-for url in http://localhost:4100/health http://localhost:4101/health http://localhost:4105/health http://localhost:4104/health http://localhost:5001/health; do
+for url in http://localhost:4105/health http://localhost:4101/health http://localhost:4104/health http://localhost:5001/health; do
   code=$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null)
   name=$(echo "$url" | grep -oE '[0-9]+' | head -1)
   if [ "$code" = "200" ]; then
@@ -213,9 +208,9 @@ echo "   Nodes registered: $node_count"
 echo ""
 
 # 5. Component bundles served
-echo "5. Component Bundles (server → Canvas)"
+echo "5. Component Bundles (unoverse → Canvas)"
 for comp in AIResponse.js Card.js ChatInput.js; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4100/components/$comp" 2>/dev/null)
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4105/components/$comp" 2>/dev/null)
   if [ "$code" = "200" ]; then
     echo "   ✓ /components/$comp — 200"
   else
@@ -242,8 +237,6 @@ echo "=== Done ==="
 === Gravity Platform Health Check ===
 
 1. Services
-   ✓ server — Up 2 minutes
-   ✓ workflow — Up 2 minutes
    ✓ unoverse — Up 2 minutes
    ✓ canvas — Up 2 minutes
    ✓ umap — Up 2 minutes
@@ -251,9 +244,8 @@ echo "=== Done ==="
    ✓ memory — Up 2 minutes
 
 2. Health Endpoints
-   ✓ :4100 — 200 OK
-   ✓ :4101 — 200 OK
    ✓ :4105 — 200 OK
+   ✓ :4101 — 200 OK
    ✓ :4104 — 200 OK
    ✓ :5001 — 200 OK
 
@@ -263,7 +255,7 @@ echo "=== Done ==="
 4. Unoverse Nodes
    Nodes registered: 45
 
-5. Component Bundles (server → Canvas)
+5. Component Bundles (unoverse → Canvas)
    ✓ /components/AIResponse.js — 200
    ✓ /components/Card.js — 200
    ✓ /components/ChatInput.js — 200
@@ -278,11 +270,11 @@ echo "=== Done ==="
 
 | Check                  | Failure                            | Fix                                                       |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------- |
-| Services not running   | Container crashed                  | `docker compose logs <service>` then `gravity update`     |
+| Services not running   | Container crashed                  | `docker compose logs <service>` then `unoverse update`     |
 | Health endpoint failed | Missing `.env` vars                | Check `.env` has `REDIS_HOST`, `DATABASE_URL`, auth vars  |
-| Packages not built     | No `dist/` directory               | `gravity update` (builds all packages)                    |
-| Nodes registered: 0    | unoverse didn't load packages      | Check `docker compose logs unoverse`, then re-run `gravity deploy packages` (or `gravity update`) |
-| Component bundles 404  | Server can't find design-system    | Verify `DESIGN_SYSTEM_PATH` in docker-compose.yml         |
+| Packages not built     | No `dist/` directory               | `unoverse update` (builds all packages)                    |
+| Nodes registered: 0    | unoverse didn't load packages      | Check `docker compose logs unoverse`, then re-run `unoverse deploy packages` (or `unoverse update`) |
+| Component bundles 404  | Unoverse can't find design-system  | Verify the `packages/` mount (`/app/host_packages`) contains `design-system/components/` |
 | Canvas 404             | Container not started              | `docker compose up -d canvas`                             |
 
 ## Next Steps

@@ -38,7 +38,7 @@ If the per-tool descriptions are self-sufficient, omit `instructions`.
 
 ## Example
 
-See `packages-marketplace/smart-document/src/SmartDocument/service/mcpSchema.ts` — the `instructions` field demonstrates guidance for a complex node with multi-step editing protocol.
+See the `smart-document` package (`src/SmartDocument/service/mcpSchema.ts`) — the `instructions` field demonstrates guidance for a complex node with multi-step editing protocol.
 
 ## Relationship to Skills
 

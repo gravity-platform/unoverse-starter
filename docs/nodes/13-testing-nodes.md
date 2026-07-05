@@ -97,12 +97,12 @@ APIFY_API_TOKEN=
 ## Running
 
 ```bash
-cd packages-marketplace
+# from the starter repo root (node packages live in packages/)
 npm install                       # picks up dotenv
-cp <pkg>/.env.example <pkg>/.env  # fill in your dev keys
+cp packages/<pkg>/.env.example packages/<pkg>/.env  # fill in your dev keys
 npm test -w @gravity-platform/<pkg>     # whole package
 # or one node:
-cd <pkg> && npx jest HyperbrowserExtract
+cd packages/<pkg> && npx jest HyperbrowserExtract
 ```
 
 ## Guidelines

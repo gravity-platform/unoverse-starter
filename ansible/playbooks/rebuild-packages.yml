@@ -1,7 +1,7 @@
 ---
 # Rebuild & Restart
 # Rebuilds packages in-place on the server and restarts services.
-# Use this after gravity update / git pull to pick up new components and nodes.
+# Use this after unoverse update / git pull to pick up new components and nodes.
 #
 # Usage:
 #   ansible-playbook -i inventory/production.yml playbooks/rebuild-packages.yml
@@ -9,12 +9,11 @@
 # What it does:
 #   1. npm install (sync dependencies)
 #   2. Build plugin-base (dependency for all other packages)
-#   3. Build all packages (custom nodes, design-system components)
-#   4. Restart unoverse (loads new plugins)
-#   5. Restart workflow + server (picks up new node definitions + component bundles)
+#   3. Build all packages (custom nodes)
+#   4. Restart unoverse (loads new plugins, node definitions and component bundles)
 #
 # When to use:
-#   - After gravity update (new components/nodes from starter repo)
+#   - After unoverse update (new components/nodes from starter repo)
 #   - After git pull in /opt/gravity
 #   - Components not showing in Canvas
 #   - Custom nodes not loading in unoverse
@@ -63,11 +62,6 @@
       register: ns_restart
       ignore_errors: yes
 
-    - name: "[4/4] Restart workflow and server"
-      shell: docker compose -f {{ gravity_dir }}/docker-compose.yml restart workflow server
-      register: svc_restart
-      ignore_errors: yes
-
     - name: "Wait 5s for services to stabilise"
       pause:
         seconds: 5
@@ -81,15 +75,6 @@
       delay: 3
       ignore_errors: yes
 
-    - name: "Verify server health"
-      uri:
-        url: "http://localhost:4100/health"
-        status_code: 200
-      register: server_health
-      retries: 10
-      delay: 3
-      ignore_errors: yes
-
     - name: "=== REBUILD COMPLETE ==="
       debug:
         msg: |
@@ -98,9 +83,8 @@
           ============================================
           Build:        {{ 'OK' if build_result.rc == 0 else 'FAILED' }}
           unoverse:     {{ 'OK' if (ns_health.status | default(0)) == 200 else 'UNHEALTHY' }}
-          server:       {{ 'OK' if (server_health.status | default(0)) == 200 else 'UNHEALTHY' }}
           ============================================
           If unoverse is UNHEALTHY:
             docker compose logs unoverse --tail 30
           If components still not in Canvas:
-            docker compose restart server
+            docker compose restart unoverse

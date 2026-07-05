@@ -165,5 +165,5 @@
             1. Update App VMs .env with:
                UMAP_SERVICE_URL=http://{{ ansible_host }}:5001
             
-            2. Redeploy App VMs or restart workflow service
+            2. Redeploy App VMs or restart the unoverse service
           ============================================

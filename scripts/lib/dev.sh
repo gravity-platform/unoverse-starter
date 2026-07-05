@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity dev
+# unoverse dev
 
 cmd_dev() {
   banner "Gravity Dev Setup"
@@ -31,7 +31,7 @@ cmd_dev() {
   # Re-check after potential cmd_start — bail if still not running
   running_count=$(docker compose -f "$ROOT/docker-compose.yml" ps --format "{{.Name}}" --filter "status=running" 2>/dev/null | wc -l | tr -d ' ')
   if [ "$running_count" -eq 0 ] 2>/dev/null; then
-    fail "Platform failed to start — run ${BOLD}gravity doctor${NC} to diagnose"
+    fail "Platform failed to start — run ${BOLD}unoverse doctor${NC} to diagnose"
     exit 1
   fi
 
@@ -51,12 +51,6 @@ cmd_dev() {
   dev_pkg_count=$(echo "$dev_build_output" | grep -c '> .* build$' || echo "0")
   ok "Packages built ${DIM}(${dev_pkg_count} packages)${NC}"
 
-  # Generate nodes from design system
-  echo ""
-  echo "  Generating nodes from design system..."
-  (cd "$ROOT" && npm run gen:nodes >/dev/null 2>&1) || warn "gen:nodes skipped (no design-system changes)"
-  ok "Node generation complete"
-
   # Restart unoverse (the node plane) to pick up newly built packages
   echo ""
   echo "  Restarting unoverse..."
@@ -67,7 +61,7 @@ cmd_dev() {
     ok "unoverse restarted"
   else
     warn "unoverse is not running (status: ${ns_status:-unknown}) — skipping restart"
-    info "Run ${BOLD}gravity doctor${NC} to diagnose"
+    info "Run ${BOLD}unoverse doctor${NC} to diagnose"
   fi
 
   # Final status check
@@ -78,13 +72,12 @@ cmd_dev() {
   if [ "$running_count" -gt 0 ]; then
     ok "Platform running ($running_count services) — Canvas: http://localhost:3001"
   else
-    warn "Platform may not be fully running — check ${BOLD}gravity status${NC}"
+    warn "Platform may not be fully running — check ${BOLD}unoverse status${NC}"
   fi
   ok "Custom code in ${BOLD}packages/${NC} is mounted into unoverse"
-  ok "Components in ${BOLD}apps/design-system/${NC} ready for editing"
   echo ""
   info "After making changes:"
-  info "  ./gravity build                              # Build all + gen:nodes + restart"
-  info "  ./gravity build @gravity-platform/my-node    # Build one package + restart"
+  info "  ./unoverse build                              # Build all + restart"
+  info "  ./unoverse build @gravity-platform/my-node    # Build one package + restart"
   echo ""
 }

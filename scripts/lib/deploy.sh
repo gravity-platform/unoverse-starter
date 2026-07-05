@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity deploy — deploy to production VM from local
+# unoverse deploy — deploy to production VM from local
 
 cmd_deploy() {
   local env_prod="$ROOT/.env.production"
@@ -138,7 +138,7 @@ EOF
         -e "env_file=$env_prod"
       ;;
     *)
-      echo "Usage: gravity deploy [command]"
+      echo "Usage: unoverse deploy [command]"
       echo ""
       echo "Commands:"
       echo "  (none)     Full deployment (install + packages)"

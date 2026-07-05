@@ -12,9 +12,18 @@
 #   - packages/ (custom nodes, design-system components)
 #
 # OBSERVABILITY (optional, enabled via --profile observability):
-#   - Grafana/Loki/Promtail (POC only)
+#   - Dozzle — single-container live log viewer (http://localhost:8080)
 #
 # =============================================================================
+
+# Bounds the disk Docker's json-file driver uses per container: rotate at 10 MB,
+# keep 3 files → 30 MB ceiling each. Applied to every service via *default-logging.
+# This is what caps log growth on the host (Dozzle just views it; it stores nothing).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   # ===========================================================================
@@ -22,58 +31,65 @@ services:
   # ===========================================================================
   # Images pulled from: registry.digitalocean.com/gravity-repo/
 
-  # Core Server - API gateway (lightweight - just routes requests)
-  server:
-    image: registry.digitalocean.com/gravity-repo/gravity-server:latest
-    ports:
-      - "4100:4100"
-    volumes:
-      - ./packages/design-system:/app/packages/design-system # Component bundles served to Canvas
-    environment:
-      - NODE_ENV=production
-      - PORT=4100
-      - DESIGN_SYSTEM_PATH=/app/packages/design-system
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_TLS=${REDIS_TLS}
-      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
-      - AUTH_ISSUER=${AUTH_ISSUER}
-      - AUTH_AUDIENCE=${AUTH_AUDIENCE}
-      - WORKFLOW_SERVICE_URL=http://workflow:4101
-      # Internal Unoverse runtime (skills/prompt-blocks fetches) — server-to-server lane.
-      - UNOVERSE_SERVICE_URL=http://unoverse:4106
-    labels:
-      - "com.docker.compose.service=server"
-    # depends_on: redis - removed, services connect to REDIS_HOST from .env
-    restart: unless-stopped
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RETIRED at the One Engine completion (ONE_ENGINE.md step 5): the gateway has
+  # zero jobs — the unoverse container serves /api, /ws/gravity, /components,
+  # and the Content Engine. ROLLBACK: uncomment this block and repoint Caddy's
+  # api.{domain} back to :4100. Image still published by CI.
+  # ═══════════════════════════════════════════════════════════════════════════
+  # server:
+  #   image: registry.digitalocean.com/gravity-repo/gravity-server:latest
+  #   ports:
+  #     - "4100:4100"
+  #   volumes:
+  #     - ./packages/design-system:/app/packages/design-system
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=4100
+  #     - DESIGN_SYSTEM_PATH=/app/packages/design-system
+  #     - REDIS_HOST=${REDIS_HOST}
+  #     - REDIS_PORT=${REDIS_PORT}
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD}
+  #     - REDIS_TLS=${REDIS_TLS}
+  #     - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+  #     - AUTH_ISSUER=${AUTH_ISSUER}
+  #     - AUTH_AUDIENCE=${AUTH_AUDIENCE}
+  #     - WORKFLOW_SERVICE_URL=http://unoverse:4101
+  #     - UNOVERSE_SERVICE_URL=http://unoverse:4106
+  #   labels:
+  #     - "com.docker.compose.service=server"
+  #   restart: unless-stopped
 
-  # Workflow Engine - XState orchestration (heavy - manages state machines)
-  workflow:
-    image: registry.digitalocean.com/gravity-repo/gravity-workflow:latest
-    ports:
-      - "4101:4101"
-    environment:
-      - NODE_ENV=production
-      - PORT=4101
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_TLS=${REDIS_TLS}
-      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
-      - DATABASE_URL=${DATABASE_URL}
-      - SERVER_WS_URL=ws://server:4100
-      - UMAP_SERVICE_URL=http://umap:5001
-      # Internal Unoverse runtime port (ungated, never published) — the node catalog source.
-      - UNOVERSE_SERVICE_URL=http://unoverse:4106
-    labels:
-      - "com.docker.compose.service=workflow"
-    # Wait for Unoverse's catalog to be loaded before workflow pulls it (the old
-    # node-service `nodes:ready` reload that covered this race was removed).
-    depends_on:
-      unoverse:
-        condition: service_healthy
-    restart: unless-stopped
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RETIRED at the One Engine cutover (ONE_ENGINE.md step 5): the workflow engine
+  # now runs IN-PROCESS in the unoverse container, which serves the identical
+  # :4101 surface. ROLLBACK: uncomment this block, remove DATABASE_URL from the
+  # unoverse service (its capability gate — prevents double-boot), and point
+  # WORKFLOW_SERVICE_URL back to http://workflow:4101 everywhere. The
+  # gravity-workflow image is still published by CI for exactly this purpose.
+  # ═══════════════════════════════════════════════════════════════════════════
+  # workflow:
+  #   image: registry.digitalocean.com/gravity-repo/gravity-workflow:latest
+  #   ports:
+  #     - "4101:4101"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - PORT=4101
+  #     - REDIS_HOST=${REDIS_HOST}
+  #     - REDIS_PORT=${REDIS_PORT}
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD}
+  #     - REDIS_TLS=${REDIS_TLS}
+  #     - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - SERVER_WS_URL=ws://server:4100
+  #     - UMAP_SERVICE_URL=http://umap:5001
+  #     - UNOVERSE_SERVICE_URL=http://unoverse:4106
+  #   labels:
+  #     - "com.docker.compose.service=workflow"
+  #   depends_on:
+  #     unoverse:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # Canvas UI - React frontend (lightweight - static files via nginx)
   # Runtime config injected via docker-entrypoint.sh at container start
@@ -93,8 +109,8 @@ services:
       - VITE_UNOVERSE_SERVICE_URL=${UNOVERSE_URL:-${DOMAIN:+https://unoverse.${DOMAIN}}}
       - MEMORY_SERVICE_URL=http://memory:4104
     depends_on:
-      - server
       - unoverse
+    logging: *default-logging
     restart: unless-stopped
 
   # UMAP Service - Python ML service
@@ -104,6 +120,7 @@ services:
       - "5001:5001"
     volumes:
       - umap_models:/app/models
+    logging: *default-logging
     restart: unless-stopped
 
   # Unoverse - node plane (author·distribute·execute): the relocated node runtime +
@@ -120,6 +137,7 @@ services:
     #   dockerfile: apps/unoverse/Dockerfile
     ports:
       - "4105:4105" # PUBLIC port only — do NOT add "4106:4106" (keep the runtime internal)
+      - "4101:4101" # workflow surface (engine in-process) — same exposure the workflow service had (host-firewalled)
     environment:
       - NODE_ENV=production
       - UNOVERSE_WORKBENCH=0
@@ -129,7 +147,19 @@ services:
       - AUTH_AUDIENCE=${AUTH_AUDIENCE}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - SERVER_WS_URL=ws://server:4100
-      - WORKFLOW_SERVICE_URL=http://workflow:4101
+      # In-process loopback: the engine runs IN THIS container and binds :4101.
+      - WORKFLOW_SERVICE_URL=http://127.0.0.1:4101
+      # Lifecycle bridge: subscribes gravity:client:* and projects WORKFLOW_STATE
+      # onto MCP /stream sessions (lifecycleBridge.ts).
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_TLS=${REDIS_TLS}
+      # ── ONE_ENGINE CUTOVER ACTIVE: DATABASE_URL is the capability gate that boots
+      # the in-process engine (the retired workflow block above is the rollback).
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
+      - UMAP_SERVICE_URL=http://umap:5001
       # Marketplace installs node packages here at runtime (npm) — nodes are NOT baked
       # into the image; only the core workflow nodes ship with the platform (in the
       # workflow image). This volume persists installs across restarts.
@@ -153,8 +183,7 @@ services:
       start_period: 10s
     labels:
       - "com.docker.compose.service=unoverse"
-    depends_on:
-      - server
+    logging: *default-logging
     restart: unless-stopped
 
   # MCP Server - OpenAI Apps integration (lightweight - HTTP server)
@@ -165,14 +194,14 @@ services:
     environment:
       - NODE_ENV=production
       - DOMAIN=${DOMAIN}
-      - WORKFLOW_SERVICE_URL=http://workflow:4101
+      - WORKFLOW_SERVICE_URL=http://unoverse:4101
       - AUTH_ISSUER=${AUTH_ISSUER}
       - AUTH_AUDIENCE=${AUTH_AUDIENCE}
     labels:
       - "com.docker.compose.service=mcp-server"
     depends_on:
-      - server
-      - workflow
+      - unoverse
+    logging: *default-logging
     restart: unless-stopped
 
   # Memory Server - Evidence-based user memory system (ambient pub/sub, Redis Streams)
@@ -192,51 +221,33 @@ services:
       - AUTH_ISSUER=${AUTH_ISSUER}
       - AUTH_AUDIENCE=${AUTH_AUDIENCE}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - WORKFLOW_SERVICE_URL=http://workflow:4101
+      - WORKFLOW_SERVICE_URL=http://unoverse:4101
     labels:
       - "com.docker.compose.service=memory"
     depends_on:
-      - workflow
+      - unoverse
+    logging: *default-logging
     restart: unless-stopped
 
   # ===========================================================================
-  # OBSERVABILITY STACK (Logs, Traces, Metrics)
+  # OBSERVABILITY — log viewer (optional, enabled via --profile observability)
   # ===========================================================================
-
-  loki:
-    image: registry.digitalocean.com/gravity-repo/gravity-loki:latest
-    container_name: gravity-loki
+  # Dozzle: a single ~30 MB container that tails/searches every container's logs
+  # in a live web UI. Stores NOTHING (streams from the Docker socket on demand),
+  # needs no config, no datasource, no dashboards. Replaces the old
+  # Promtail→Loki→Grafana stack. Long-term retention is bounded by the json-file
+  # log rotation set on each service (x-logging anchor above).
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: gravity-dozzle
     profiles: [observability]
     ports:
-      - "3100:3100"
-    volumes:
-      - loki_data:/loki
-    restart: unless-stopped
-
-  promtail:
-    image: registry.digitalocean.com/gravity-repo/gravity-promtail:latest
-    container_name: gravity-promtail
-    profiles: [observability]
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      - loki
-    restart: unless-stopped
-
-  grafana:
-    image: registry.digitalocean.com/gravity-repo/gravity-grafana:latest
-    container_name: gravity-grafana
-    profiles: [observability]
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - loki
+    logging: *default-logging
     restart: unless-stopped
 
 volumes:
   umap_models:
   unoverse_plugins: # Marketplace-installed node packages (persisted across restarts)
-  loki_data:
-  grafana_data:

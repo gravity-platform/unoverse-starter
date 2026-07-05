@@ -22,7 +22,9 @@
     
     @api host api.{{ caddy_domain }}
     handle @api {
-        reverse_proxy localhost:4100
+        # One Engine: the unoverse public listener serves the full /api surface
+        # (+ /ws/gravity + /components). The gateway (:4100) is retired.
+        reverse_proxy localhost:4105
     }
     
     @mcp host mcp.{{ caddy_domain }}
@@ -59,9 +61,9 @@
     }
 }
 
-# API Server
+# API surface — served by unoverse (One Engine; gateway retired)
 api.{{ caddy_domain }} {
-    reverse_proxy localhost:4100
+    reverse_proxy localhost:4105
 }
 
 # MCP Server (OpenAI integration)

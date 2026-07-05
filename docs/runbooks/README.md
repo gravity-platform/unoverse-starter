@@ -11,7 +11,7 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 | VM Role    | Cores | RAM   | Storage    | Count             | Services                                                   |
 | ---------- | ----- | ----- | ---------- | ----------------- | ---------------------------------------------------------- |
 | **POC**    | 4     | 8 GB  | 100 GB SSD | 1                 | All services                                               |
-| **App VM** | 8     | 32 GB | 200 GB SSD | 2 (Active/Active) | server, workflow, unoverse, mcp-server, memory, canvas |
+| **App VM** | 8     | 32 GB | 200 GB SSD | 2 (Active/Active) | unoverse, mcp-server, memory, canvas |
 | **ML VM**  | 4     | 16 GB | 100 GB SSD | 1 (Dedicated)     | umap-service                                               |
 
 ### External Dependencies
@@ -41,9 +41,9 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 | [04-harden](./04-harden.md)                                                                                          | Security hardening                                                               | `harden.yml`                |
 | [05-caddy](./05-caddy.md)                                                                                            | TLS + reverse proxy (optional)                                                   | `install-caddy.yml`         |
 | [06-test](./06-test.md)                                                                                              | Verify connectivity and health                                                   | `test-connectivity.yml`     |
-| [07-observability](./07-observability.md)                                                                            | Grafana/Loki/Prometheus (POC only)                                               | `install-observability.yml` |
+| [07-observability](./07-observability.md)                                                                            | Dozzle log viewer (POC only)                                                     | `install-observability.yml` |
 | [08-deploy-packages](./08-deploy-packages.md)                                                                        | Deploy customer packages to server                                               | `deploy-packages.yml`       |
-| [Architecture Diagrams](https://gravity-platform.github.io/gravity-starter/docs/runbooks/architecture-diagrams.html) | Interactive system architecture diagrams ([local](./architecture-diagrams.html)) | —                           |
+| [Architecture Diagrams](https://gravity-platform.github.io/unoverse-starter/docs/runbooks/architecture-diagrams.html) | Interactive system architecture diagrams ([local](./architecture-diagrams.html)) | —                           |
 
 ---
 
@@ -58,22 +58,22 @@ Modular runbooks for deploying and managing Gravity Platform VMs.
 cp .env.production.example .env.production
 
 # 2. Deploy everything
-gravity deploy
+unoverse deploy
 
 # 3. Database tables
-gravity deploy db
+unoverse deploy db
 
 # 4. AI model
-gravity deploy umap
+unoverse deploy umap
 
 # 5. TLS
-gravity deploy caddy
+unoverse deploy caddy
 
 # 6. Security hardening
-gravity deploy harden
+unoverse deploy harden
 
 # 7. Verify
-gravity deploy test
+unoverse deploy test
 ```
 
 **Manual path (direct Ansible):**
@@ -139,14 +139,14 @@ Both files live at the project root:
 │    REDIS_PASSWORD=                                               │
 │    REDIS_TLS=false                                               │
 │    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/... │
-│    # DOMAIN is unset — Canvas defaults to localhost:4100         │
+│    # DOMAIN is unset — API_URL points Canvas at localhost:4105   │
 └──────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────┐
 │  .env.production  (project root)                                 │
 │                                                                  │
 │  Purpose: PRODUCTION DEPLOYMENT                                  │
-│  Read by: gravity deploy / Ansible                               │
+│  Read by: unoverse deploy / Ansible                               │
 │  Deployed to: /opt/gravity/.env on the server                    │
 │  Contains: VM target, real Redis, real DB, TLS enabled, DOMAIN   │
 │                                                                  │
@@ -167,7 +167,7 @@ Both files live at the project root:
 - Both files are **gitignored** — they contain secrets and are never committed
 - `.env.example` is the template for local dev
 - `.env.production.example` is the template for production
-- On the server, `gravity deploy` places `.env.production` at `/opt/gravity/.env` where `docker compose` reads it
+- On the server, `unoverse deploy` places `.env.production` at `/opt/gravity/.env` where `docker compose` reads it
 - `DEPLOY_HOST` and `DEPLOY_USER` are deployment-only — they tell Ansible where to SSH
 
 **How `DOMAIN` drives Canvas URLs:**
@@ -176,7 +176,7 @@ When `DOMAIN=yourdomain.com` is set, `docker-compose.yml` automatically derives:
 - `VITE_API_URL=https://api.yourdomain.com`
 - `VITE_SERVER_WS_URL=wss://api.yourdomain.com`
 
-When `DOMAIN` is unset (local dev), Canvas falls back to `http://localhost:4100`.
+When `DOMAIN` is unset (local dev), set `API_URL=http://localhost:4105` in `.env` — Canvas calls the platform's public listener (unoverse `:4105`) directly.
 
 ---
 

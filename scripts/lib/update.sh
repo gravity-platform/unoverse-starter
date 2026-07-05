@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity update + gravity update nodes
+# unoverse update + gravity update nodes
 
 cmd_update() {
   echo ""
@@ -42,10 +42,10 @@ cmd_update() {
     fi
     rm -f "$git_log"
 
-    # Recovery: download latest gravity script from GitHub, then force-sync
+    # Recovery: download latest CLI script from GitHub, then force-sync
     printf "  ${DIM}●${NC} Downloading latest update script..."
     local temp_update=$(mktemp)
-    if curl -fsSL "https://raw.githubusercontent.com/gravity-platform/gravity-starter/main/scripts/lib/update.sh" -o "$temp_update" 2>/dev/null; then
+    if curl -fsSL "https://raw.githubusercontent.com/gravity-platform/unoverse-starter/main/scripts/lib/update.sh" -o "$temp_update" 2>/dev/null; then
       cp "$temp_update" "$GRAVITY_LIB/update.sh"
       rm -f "$temp_update"
       printf "\r\033[2K"
@@ -95,7 +95,7 @@ cmd_update() {
     ok "Images pulled ${DIM}(${total_elapsed}s)${NC}"
   else
     echo ""
-    fail "Image pull failed — check network/registry and run ${BOLD}gravity update${NC} again"
+    fail "Image pull failed — check network/registry and run ${BOLD}unoverse update${NC} again"
     exit 1
   fi
 
@@ -172,13 +172,13 @@ cmd_update() {
     ok "All $up_count services running"
   elif [ "${created_count:-0}" -gt 0 ]; then
     warn "$up_count/$total_count services running — $created_count stuck in Created state"
-    info "Run ${BOLD}gravity doctor${NC} to diagnose"
+    info "Run ${BOLD}unoverse doctor${NC} to diagnose"
   elif [ "${up_count:-0}" -gt 0 ]; then
     warn "$up_count/$total_count services running"
-    info "Run ${BOLD}gravity status${NC} to check"
+    info "Run ${BOLD}unoverse status${NC} to check"
   else
     fail "No services running after restart"
-    info "Run ${BOLD}gravity doctor${NC} to diagnose"
+    info "Run ${BOLD}unoverse doctor${NC} to diagnose"
   fi
 
   # Summary
@@ -186,7 +186,7 @@ cmd_update() {
   echo -e "  ${GREEN}${BOLD}Done${NC} ${DIM}in $(timer_elapsed)${NC}"
   echo ""
   echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-  echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4100${NC}"
+  echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
   echo ""
 }
 

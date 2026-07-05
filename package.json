@@ -1,16 +1,15 @@
 {
-  "name": "gravity-starter",
+  "name": "unoverse-starter",
   "version": "1.0.0",
   "private": true,
-  "description": "Gravity Platform Starter Template",
+  "description": "Unoverse Starter Template",
   "workspaces": [
     "packages/*",
     "apps/*"
   ],
   "scripts": {
     "dev": "turbo run dev --concurrency 20",
-    "build": "turbo run build",
-    "gen:nodes": "npm run gen:nodes -w @gravity-platform/design-system-dev && npm run build -w @gravity-platform/design-system"
+    "build": "turbo run build"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

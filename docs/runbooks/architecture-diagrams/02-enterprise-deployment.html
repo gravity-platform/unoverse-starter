@@ -94,7 +94,7 @@
                   </div>
                   <div className="bg-blue-800 p-1.5 rounded">
                     <p className="font-bold">api.domain.com</p>
-                    <p className="text-blue-200">Server :4100</p>
+                    <p className="text-blue-200">Unoverse :4105</p>
                   </div>
                   <div className="bg-blue-800 p-1.5 rounded">
                     <p className="font-bold">mcp.domain.com</p>
@@ -122,9 +122,7 @@
                   </div>
                   <div className="space-y-1 text-xs">
                     {[
-                      ["server:4100", "API Gateway, WebSocket hub (2GB / 1 CPU)"],
-                      ["workflow:4101", "Agent Orchestration engine (8GB / 4 CPU)"],
-                      ["unoverse:4105", "Node plane; runtime :4106 internal (4GB / 2 CPU)"],
+                      ["unoverse:4105", "Platform runtime: engine + node plane + API + WebSocket hub; :4101/:4106 internal (12GB / 6 CPU)"],
                       ["mcp-server:4103", "MCP integration (1GB / 0.5 CPU)"],
                     ].map(([name, desc]) => (
                       <div

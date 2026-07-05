@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gravity stop
+# unoverse stop
 
 cmd_stop() {
   banner "Stopping Gravity Platform"

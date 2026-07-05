@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# gravity pull
+# unoverse pull
 
 cmd_pull() {
   echo ""
   read -r -p "  Pull platform images now? (~1.2GB first time) [Y/n] " REPLY
   echo ""
   if [[ "$REPLY" =~ ^[Nn]$ ]]; then
-    info "Skipped. Run ${BOLD}./gravity start${NC} later."
+    info "Skipped. Run ${BOLD}./unoverse start${NC} later."
     return
   fi
 
@@ -68,7 +68,7 @@ cmd_pull() {
     ok "All $pulled images pulled"
   elif [ "$pulled" -gt 0 ]; then
     warn "$pulled images pulled (some may need retry)"
-    info "Run ${BOLD}gravity pull${NC} to retry"
+    info "Run ${BOLD}unoverse pull${NC} to retry"
   else
     fail "No images pulled — check your DOCR token and network"
     exit 1

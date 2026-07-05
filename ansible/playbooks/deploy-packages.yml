@@ -1,10 +1,10 @@
 ---
 # Deploy Customer Packages
-# Rsyncs packages/ and apps/design-system/ from local machine to server,
-# builds them, and restarts unoverse (the node plane).
+# Rsyncs packages/ (the customer's custom-node workspace) from local machine
+# to the server, builds it, and restarts unoverse (the node plane).
 #
 # Usage (via gravity CLI — recommended):
-#   gravity deploy packages
+#   unoverse deploy packages
 #
 # Usage (direct ansible):
 #   ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
@@ -18,14 +18,14 @@
     local_root: "{{ playbook_dir }}/../.."
 
   pre_tasks:
-    - name: "[0/5] Ensure rsync is installed"
+    - name: "[0/4] Ensure rsync is installed"
       package:
         name: rsync
         state: present
       become: yes
 
   tasks:
-    - name: "[1/5] Sync packages/ to server"
+    - name: "[1/4] Sync packages/ to server"
       ansible.posix.synchronize:
         src: "{{ local_root }}/packages/"
         dest: "{{ gravity_dir }}/packages/"
@@ -38,21 +38,7 @@
           - "--exclude=*.swp"
           - "--exclude=*.log"
 
-    - name: "[2/5] Sync apps/design-system/ to server"
-      ansible.posix.synchronize:
-        src: "{{ local_root }}/apps/design-system/"
-        dest: "{{ gravity_dir }}/apps/design-system/"
-        delete: yes
-        rsync_opts:
-          - "--exclude=node_modules"
-          - "--exclude=.turbo"
-          - "--exclude=dist"
-          - "--exclude=.storybook-index"
-          - "--exclude=.DS_Store"
-          - "--exclude=*.swp"
-          - "--exclude=*.log"
-
-    - name: "[3/5] Sync workspace config files"
+    - name: "[2/4] Sync workspace config files"
       copy:
         src: "{{ item }}"
         dest: "{{ gravity_dir }}/{{ item | basename }}"
@@ -66,7 +52,7 @@
         label: "{{ item | basename }}"
       ignore_errors: yes
 
-    - name: "[4/5] Build packages"
+    - name: "[3/4] Build packages"
       shell: |
         set -e
         cd {{ gravity_dir }}
@@ -75,11 +61,11 @@
       register: build_result
       timeout: 300
 
-    - name: "[4/5] Build output"
+    - name: "[3/4] Build output"
       debug:
         msg: "{{ build_result.stdout_lines[-10:] | default(['done']) }}"
 
-    - name: "[5/5] Restart unoverse (reloads customer node packages)"
+    - name: "[4/4] Restart unoverse (reloads customer node packages)"
       shell: |
         cd {{ gravity_dir }}
         docker compose restart unoverse 2>&1

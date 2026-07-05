@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# gravity open
+# unoverse open
 
 cmd_open() {
   local target="${1:-canvas}"
   local url
 
   case "$target" in
-    canvas)  url="http://localhost:3001" ;;
-    api)     url="http://localhost:4100" ;;
+    canvas)        url="http://localhost:3001" ;;
+    api)           url="http://localhost:4105" ;;
+    logs|dozzle)   url="http://localhost:8080" ;;
     *)
       fail "Unknown target: $target"
-      info "Options: canvas, api"
+      info "Options: canvas, api, logs"
       return
       ;;
   esac

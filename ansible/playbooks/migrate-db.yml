@@ -140,7 +140,7 @@
     - name: "[6/6] Restart services"
       shell: |
         cd /opt/gravity
-        docker compose restart workflow server
+        docker compose restart unoverse
       register: restart_result
 
     - name: "[6/6] Restart output"

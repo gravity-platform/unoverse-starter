@@ -15,19 +15,19 @@ cd ~/gravity
 git pull
 ```
 
-This updates your `docker-compose.yml`, `gravity` CLI, docs, and any shared config.
+This updates your `docker-compose.yml`, `unoverse` CLI, docs, and any shared config.
 
 ### 2. Update Platform Images
 
 ```bash
-gravity update
+unoverse update
 ```
 
 This pulls the latest Docker images, rebuilds packages, and restarts all services.
 
 > **⚠️ Local changes to tracked files will be discarded.**
 >
-> `gravity update` runs `git checkout -- .` before pulling to ensure a clean merge. This means any uncommitted edits to tracked files (e.g. `docker-compose.yml`, `gravity`, files in `packages/`) will be lost.
+> `unoverse update` runs `git checkout -- .` before pulling to ensure a clean merge. This means any uncommitted edits to tracked files (e.g. `docker-compose.yml`, `gravity`, files in `packages/`) will be lost.
 >
 > **Safe (never touched):** `.env`, `.env.production`, `ansible/inventory/production.yml`, `node_modules/`, `package-lock.json` — these are gitignored.
 >
@@ -37,14 +37,14 @@ This pulls the latest Docker images, rebuilds packages, and restarts all service
 > git checkout -b my-changes
 > git add -A && git commit -m "my local changes"
 > git checkout main
-> gravity update
+> unoverse update
 > git merge my-changes
 > ```
 
 ### 3. Verify
 
 ```bash
-gravity check
+unoverse check
 ```
 
 All 14 checks should pass — services running, health endpoints, packages built, plugins loaded, and Canvas accessible.
@@ -56,10 +56,10 @@ All 14 checks should pass — services running, health endpoints, packages built
 If you've changed packages but don't need new platform images:
 
 ```bash
-gravity update nodes
+unoverse update nodes
 ```
 
-This rebuilds packages, generates nodes, and restarts only unoverse — much faster than a full `gravity update`.
+This rebuilds packages, generates nodes, and restarts only unoverse — much faster than a full `unoverse update`.
 
 ---
 

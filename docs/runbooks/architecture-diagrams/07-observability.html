@@ -64,13 +64,11 @@
               </div>
               <div className="p-4 bg-green-50">
                 <p className="text-xs text-gray-600 mb-3">
-                  Log aggregation stack included for rapid debugging and demo visibility.
+                  Lightweight log viewer included for rapid debugging and demo visibility.
                 </p>
                 <div className="space-y-1.5">
                   {[
-                    ["Grafana", "Dashboards, log querying", "3000"],
-                    ["Loki", "Log aggregation and storage", "3100"],
-                    ["Promtail", "Scrapes Docker logs, pushes to Loki", "-"],
+                    ["Dozzle", "Live web UI over container logs; stores nothing", "8080"],
                   ].map(([name, purpose, port]) => (
                     <div
                       key={name}
@@ -98,7 +96,7 @@
                   No bundled observability. Services output structured JSON logs to stdout.
                 </p>
                 <div className="space-y-1.5 mb-3">
-                  {["Grafana", "Loki", "Promtail"].map((name) => (
+                  {["Dozzle"].map((name) => (
                     <div key={name} className="bg-white p-2 rounded flex items-center gap-3 text-xs">
                       <span className="text-gray-400 line-through font-semibold w-20">{name}</span>
                       <span className="text-gray-400">POC only</span>
@@ -196,8 +194,8 @@
                 </div>
               </div>
               <p className="text-xs text-teal-700 mt-3 pt-2 border-t border-teal-200">
-                <strong>Provided artifacts:</strong> Grafana dashboard JSON, Prometheus alerting rules, Splunk saved
-                searches, Elastic/Kibana dashboards
+                <strong>Log format:</strong> structured JSON (Pino) on stdout — ingest directly into the customer's
+                SIEM (Splunk, Datadog, Elastic, Grafana Cloud) with their standard collectors
               </p>
             </div>
           </div>
