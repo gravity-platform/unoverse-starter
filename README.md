@@ -1,69 +1,105 @@
-# Unoverse Starter Template
+# Unoverse Starter
 
-Build custom AI experiences powered by the Unoverse platform.
+Your workspace for building on the **Unoverse platform** — a self-hosted AI
+platform where you compose agent-powered apps out of three kinds of things:
 
-## Quick Start
+- **Workflows** — built visually on the **Canvas**, wiring nodes into agents,
+  tools, and data flows
+- **UI as data** — components and templates written as JSON definitions
+  (no React, no CSS), rendered live by the platform's SDK
+- **Behavior** — agent skills and prompt blocks in plain markdown
+
+The platform services run as Docker images; **you edit only the three folders
+under `apps/unoverse/`** (see [What you build](#what-you-build)) and they are
+mounted straight into the running platform.
+
+## Prerequisites
+
+- **Docker** + Docker Compose
+- **Node.js 20+** and npm (for building custom nodes)
+- Credentials from your platform admin: a **GitHub PAT** (this repo) and a
+  **read-only registry token** (Docker images)
+- A **Postgres** database, **Redis**, and an **Auth0 (OIDC)** app — all
+  configured in `.env` (`.env.example` documents every variable)
+
+## Quick start
 
 ```bash
-# 1. Setup (configure env, login to registry, pull images)
-./unoverse init
-
-# 2. Start the platform
-./unoverse start
-
-# 3. Install dev dependencies (for building custom nodes & components)
-npm install
+./unoverse init        # setup wizard: env config + registry login + image pull
+./unoverse start       # start the platform
+./unoverse db-setup    # apply database migrations
+./unoverse check       # verify: services, health, node catalog, bundles
+npm install            # dev dependencies (for building custom nodes)
 ```
 
-## Platform Commands
+Then open:
+
+| Surface | URL | |
+|---|---|---|
+| **Canvas** — visual workflow builder | http://localhost:3001 | |
+| **API** — the platform's public listener | http://localhost:4105 | |
+| **Studio** — preview components, templates, skills, nodes | http://localhost:4105 | set `UNOVERSE_WORKBENCH=1` on the `unoverse` service first |
+| **Logs** (Dozzle, live container logs) | http://localhost:8080 | `docker compose --profile observability up -d dozzle` |
+
+## New here? Follow the onboarding
+
+**[`docs/onboarding/`](docs/onboarding/README.md)** walks you from zero to
+shipped, in order: getting started → your first agent → your first node →
+ingesting content → components & templates → MCPs → a client app → deployment.
+Start at [`01-getting-started.md`](docs/onboarding/01-getting-started.md).
+
+## What you build
+
+Three developer-editable folders are mounted into the running platform:
+
+| Folder | What it is | To see changes live |
+|--------|------------|---------------------|
+| `apps/unoverse/rx/`      | **Design** — components, atoms, org templates + styles (JSON definitions) | `./unoverse gendesign` (restyles of existing components apply live) |
+| `apps/unoverse/prompts/` | **Behavior** — agent skills (`skills/`) + prompt blocks (`blocks/`) | `docker compose restart unoverse` |
+| `apps/unoverse/nodes/`   | **Logic** — custom workflow node packages (TypeScript) | `./unoverse build @unoverse-platform/<pkg>` |
+
+### Build with Claude Code
+
+This repo ships an authoring skill at `.claude/skills/unoverse-create`. Open the
+repo in [Claude Code](https://claude.com/claude-code) and ask for what you want —
+*"create a pricing card component"*, *"add a node that calls our inventory
+API"*, *"write a returns-handling skill"* — and it follows the platform's
+authoring rules, validation, and deploy loop for you.
+
+### Docs map
+
+| Read | For |
+|---|---|
+| [`docs/onboarding/`](docs/onboarding/README.md) | guided path through your first agent, node, component, and deploy |
+| [`docs/nodes/`](docs/nodes/README.md) | complete node development guide (types, patterns, credentials, testing) |
+| `docs/unoverse/` | UI authoring: components & templates ([AUTHORING](docs/unoverse/UNOVERSE_AUTHORING.md)), state ([STATE_MODEL](docs/unoverse/UNOVERSE_STATE_MODEL.md)), layers, conformance |
+| [`docs/runbooks/`](docs/runbooks/README.md) | operations: database, hardening, HTTPS, observability, restarts |
+
+## Platform commands
 
 | Command | Purpose |
 |---------|---------|
 | `unoverse init` | Interactive setup wizard |
-| `unoverse start` | Start the platform |
-| `unoverse stop` | Stop the platform |
+| `unoverse start` / `unoverse stop` | Start / stop the platform |
 | `unoverse status` | Show service health |
-| `unoverse logs` | Stream logs (`unoverse logs unoverse` for one service) |
-| `unoverse update` | Pull latest images and restart |
+| `unoverse check` | Health check: services, endpoints, node catalog, bundles |
+| `unoverse logs [service]` | Stream logs |
+| `unoverse build [pkg]` | Build node packages + restart (all, or one) |
+| `unoverse gendesign` | Regenerate component nodes from `rx/` + restart |
+| `unoverse update` | Full update: git sync + pull images + rebuild + restart |
 | `unoverse doctor` | Diagnose issues |
-| `unoverse dev` | Install deps, start dev environment |
-| `unoverse build` | Build all + restart (`unoverse build <pkg>` for one) |
+| `unoverse db-setup` | Apply database migrations |
 
-## Access
+## Something wrong?
 
-- **Canvas** (Workflow Builder): http://localhost:3001
-- **API**: http://localhost:4105
+1. `./unoverse doctor` then `./unoverse check`
+2. `./unoverse logs unoverse` (or Dozzle) for errors
+3. Node built but not appearing? The catalog loads at boot —
+   `docker compose restart unoverse`
+4. Still stuck: `docs/nodes/05-troubleshooting.md` and `docs/runbooks/`
 
-### Optional
+## Production
 
-- **Studio** (Unoverse Studio — components, templates, skills, nodes): http://localhost:4105
-  — enable by setting `UNOVERSE_WORKBENCH=1` on the `unoverse` service in `docker-compose.yml`
-- **Analytics & logs** (Dozzle — live container logs, stores nothing): http://localhost:8080
-  — start with `docker compose --profile observability up -d dozzle`
-
-## Development
-
-Three developer-editable folders are mounted into the running platform — edit
-locally, then `./unoverse build` to pick up changes:
-
-| Folder | What you edit |
-|--------|---------------|
-| `apps/unoverse/nodes/`   | **Node logic** — workflow node packages |
-| `apps/unoverse/rx/`      | **Design** — components, templates, styles (rendered by the SDK) |
-| `apps/unoverse/prompts/` | **Behavior** — agent skills + prompt blocks |
-
-### Custom Nodes
-
-```bash
-# Create a new package in apps/unoverse/nodes/my-custom-node/
-# ... write your node code ...
-
-# Build and restart
-./unoverse build @unoverse-platform/my-custom-node
-```
-
-See `docs/nodes/` for the full node development guide.
-
-## Deployment (Production)
-
-See `ansible/` and `docs/runbooks/` for production deployment.
+Deploy to a server with the `ansible/` playbooks and `docs/runbooks/`
+(HTTPS via Caddy, hardening, observability). Update a running server with
+`./unoverse update`. See [`docs/onboarding/08-deployment.md`](docs/onboarding/08-deployment.md).
