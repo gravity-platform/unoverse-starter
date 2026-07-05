@@ -1,6 +1,6 @@
 # Runbook: Deploy Packages
 
-Deploy customer packages (custom nodes, design-system components) to the server.
+Deploy the developer carve-out (custom nodes, rx design definitions, prompts) to the server.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 
 This playbook:
 
-1. Rsyncs `packages/` and `apps/design-system/` from your local machine to the server
+1. Rsyncs the three developer-editable folders (`apps/unoverse/{nodes,rx,prompts}`) from your local machine to the server
 2. Runs `npm install` + `turbo build` on the server
 3. Restarts `unoverse` to load the built packages (compose mounts `./packages` into the container at `/app/host_packages`; `PACKAGES_PATH=/app/host_packages`)
 

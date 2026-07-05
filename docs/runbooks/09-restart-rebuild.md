@@ -1,29 +1,29 @@
 # Runbook: Restart & Rebuild
 
-Rebuild packages, regenerate nodes, reload components, and restart services so the platform picks up your latest changes.
+Rebuild packages, regenerate component nodes, and restart services so the platform picks up your latest changes.
 
 ## When To Use
 
-- New or updated **design system components** (storybook atoms/components)
-- New or updated **custom node packages** (in `packages/`)
+- New or updated **rx definitions** (components, atoms, templates, styles in `apps/unoverse/rx/`)
+- New or updated **custom node packages** (in `apps/unoverse/nodes/`)
+- New or updated **prompts** (agent skills / prompt blocks in `apps/unoverse/prompts/`)
 - After `git pull` or `unoverse update` when the platform isn't reflecting changes
-- After editing node executor code, templates, or component bundles
 
 ## Quick Commands
 
 ### Local Development
 
 ```bash
-# Full rebuild — builds all packages, regenerates nodes, restarts services
+# Full rebuild — builds all node packages, restarts services
 ./unoverse build
 
 # Build one package only
 ./unoverse build @unoverse-platform/my-package
 
-# Regenerate design system nodes only (after editing storybook components)
+# Regenerate component nodes from rx/ definitions + restart
 ./unoverse gendesign
 
-# Full dev setup — install deps, build, gen:nodes, restart
+# Full dev setup — install deps, build, restart
 ./unoverse dev
 ```
 
@@ -39,47 +39,37 @@ ansible-playbook -i inventory/production.yml playbooks/deploy-packages.yml
 | Step | Command | What happens |
 |------|---------|-------------|
 | **1. Install deps** | `npm install` | Installs workspace dependencies |
-| **2. Build packages** | `npm run build --workspaces` | Compiles TypeScript → `dist/` for all packages |
-| **3. Generate nodes** | `npm run gen:nodes` | Scans `apps/design-system/storybook/` and generates workflow nodes + component bundles in `packages/design-system/` |
-| **4. Restart unoverse** | `docker compose restart unoverse` | Reloads built packages and node definitions into the engine (the workflow engine runs in-process in unoverse, which also serves the component bundles at `/components/*.js`) |
+| **2. Build packages** | `npm run build` | Compiles node packages (TypeScript → `dist/`) |
+| **3. Generate component nodes** | `./unoverse gendesign` | Runs the generator **inside the unoverse container**: reads your mounted `rx/` definitions, writes loadable component nodes to `apps/unoverse/nodes/components`, restarts |
+| **4. Restart unoverse** | `docker compose restart unoverse` | Reloads built packages and node definitions into the engine — the node catalog is loaded **at boot**, so a rebuild without a restart appears to do nothing |
+
+## Which change needs which step?
+
+| You changed | Do |
+|---|---|
+| A node package (`apps/unoverse/nodes/<pkg>/`) | `./unoverse build @unoverse-platform/<pkg>` |
+| An **existing** component/template's look (`rx/`) | nothing — definitions are read live; hard-refresh the client |
+| A **new** component, or props/structure changes (`rx/`) | `./unoverse gendesign` |
+| A skill or prompt block (`prompts/`) | `docker compose restart unoverse` |
 
 ## Manual Step-by-Step (when CLI commands aren't enough)
-
-If you need full control, run each step individually:
 
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Build plugin-base first (other packages depend on it)
-npm run build -w @unoverse-platform/plugin-base
+# 2. Build all node packages
+npm run build
 
-# 3. Build all packages
-npm run build --workspaces --if-present
+# 3. Regenerate component nodes from rx/ (requires unoverse running)
+./unoverse gendesign
 
-# 4. Regenerate nodes from design system
-npm run gen:nodes
-
-# 5. Restart the service that loads packages (the workflow engine runs
+# 4. Restart the service that loads packages (the workflow engine runs
 #    in-process in unoverse, so one restart covers everything)
 docker compose restart unoverse
 
-# 6. Verify
+# 5. Verify
 ./unoverse status
-```
-
-## Component Bundle Reload
-
-Component bundles (the `.js` files served at `http://localhost:4105/components/`) are built by `gen:nodes` and stored in `packages/design-system/components/`. The **unoverse** service serves these files from disk with no caching, so a rebuilt bundle is picked up on the next request — no restart needed.
-
-If components aren't updating in the Canvas:
-
-```bash
-# Regenerate component bundles
-npm run gen:nodes
-
-# Verify a component loads (served fresh — hard-refresh the browser if stale)
-curl -s http://localhost:4105/components/AIResponse.js | head -5
 ```
 
 ## Nuclear Restart (full teardown + rebuild)
@@ -87,17 +77,11 @@ curl -s http://localhost:4105/components/AIResponse.js | head -5
 When things are truly stuck:
 
 ```bash
-# Stop everything
 ./unoverse stop
-
-# Rebuild from scratch
 npm install
-npm run build -w @unoverse-platform/plugin-base
-npm run build --workspaces --if-present
-npm run gen:nodes
-
-# Start fresh
+npm run build
 ./unoverse start
+./unoverse gendesign
 ```
 
 ## Verify
@@ -113,22 +97,18 @@ npm run gen:nodes
 # is JWT-gated, so count from inside the container)
 docker compose exec -T unoverse node -e \
   "fetch('http://127.0.0.1:4106/nodes').then(r=>r.json()).then(d=>console.log((d.nodes||[]).length)).catch(()=>console.log(0))"
-
-# Check component bundles served
-curl -s -o /dev/null -w '%{http_code}' http://localhost:4105/components/AIResponse.js
-# Should return 200
 ```
 
 ## Troubleshooting
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| New component not in Canvas | `gen:nodes` not run | `./unoverse gendesign` |
+| New component not in Canvas | component node not generated | `./unoverse gendesign` |
 | Node shows in Canvas but errors | Package not built | `./unoverse build` |
-| Component renders old version | Browser caching the bundle | `npm run gen:nodes`, then hard-refresh the browser |
+| Component renders old version | Client caching | hard-refresh the browser |
 | `nodes: 0` in status | unoverse didn't load packages | Check `docker compose logs unoverse` |
-| Build fails | Missing plugin-base | `npm run build -w @unoverse-platform/plugin-base` first |
-| gen:nodes fails | design-system not built | `npm run build -w @unoverse-platform/design-system-dev` first |
+| Build fails | Dependencies missing | `npm install`, then `./unoverse build` |
+| gendesign fails | unoverse not running (the generator runs inside the container) | `./unoverse start` first |
 
 ## Related
 

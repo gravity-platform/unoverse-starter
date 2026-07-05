@@ -165,20 +165,24 @@ All checks should pass:
 unoverse build @unoverse-platform/my-custom-node
 ```
 
-### UI Components (Design System)
+### UI Components & Templates
+
+Components, templates, and styles are **JSON definitions** rendered by the platform's
+SDK — no React code, no CSS. See `docs/unoverse/UNOVERSE_AUTHORING.md`.
 
 ```bash
-# Edit components in apps/design-system/storybook/
-# Then regenerate and restart:
+# Edit definitions in apps/unoverse/rx/ (components, atoms, orgs/<org>/{templates,styles})
+# Then regenerate the component nodes and restart:
 unoverse gendesign
+# Restyles/edits of existing components apply live — no regenerate needed
 ```
 
-### Storybook (Component Preview)
+### Studio (Component Preview)
 
-```bash
-npm run storybook -w @unoverse-platform/design-system-dev
-# Opens http://localhost:6006
-```
+Preview components, templates, skills, and nodes in the **Studio** (see Step 7):
+set `UNOVERSE_WORKBENCH=1` on the `unoverse` service, then open http://localhost:4105.
+Mock mode renders each component from its prop `default`s, and the state picker
+walks its states.
 
 ---
 
