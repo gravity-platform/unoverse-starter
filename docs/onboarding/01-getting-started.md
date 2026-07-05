@@ -6,7 +6,7 @@ Set up your local development environment for building on Unoverse.
 
 ## How It Works
 
-[`unoverse-starter`](https://github.com/unoverse-platform/unoverse-starter) is an open-source starter kit. You **fork** it to your own GitHub account, then build your custom nodes, components, and workflows on top of the platform.
+[`unoverse-starter`](https://github.com/unoverse-platform/unoverse-starter) is an open-source starter kit **template**. You use it to create your own copy on GitHub, then build your custom nodes, components, and workflows on top of the platform.
 
 The core platform runs as Docker images — you pull pre-built binaries and build ON TOP of them.
 
@@ -26,21 +26,19 @@ Install these on your machine:
 
 ---
 
-## Step 1: Fork & Clone
+## Step 1: Create your repo from the template
 
-1. Fork [`unoverse-platform/unoverse-starter`](https://github.com/unoverse-platform/unoverse-starter) to your own GitHub account
-2. Clone your fork:
+1. On [`unoverse-platform/unoverse-starter`](https://github.com/unoverse-platform/unoverse-starter), click **Use this template → Create a new repository**. This gives you a clean, independent copy (not a fork).
+2. Clone your new repo into a **new, empty folder**:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/unoverse-starter.git ~/unoverse
 cd ~/unoverse
 ```
 
-3. Add the upstream remote so you can pull future platform updates:
-
-```bash
-git remote add upstream https://github.com/unoverse-platform/unoverse-starter.git
-```
+> **Tip:** clone _before_ opening the folder in your editor — opening it first can create a `.claude/` directory that blocks the clone.
+>
+> **Updates:** the platform runs as Docker images, so you get platform updates by running `./unoverse update` (pulls the latest images + restarts) — not by pulling this repo. Your copy is your own project to build on.
 
 ---
 

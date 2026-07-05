@@ -1,10 +1,12 @@
 {
   "type": "Box",
   "visibleWhen": "hasMessages",
+  "autoScroll": true,
   "style": {
     "flex": 1,
     "minHeight": "0",
-    "direction": "column-reverse",
+    "direction": "column",
+    "justify": "end",
     "overflow": "auto",
     "padding": [
       "6",

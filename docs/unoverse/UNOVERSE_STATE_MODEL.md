@@ -310,9 +310,17 @@ global cross-MCP state**, which is not a `ServerMessage` here (two-lane split,
 ### Action verbs (`core/src/actions.ts` → `dispatchAction`)
 
 Exactly two writes + a server route: `setValue` / `input` → the **component's own slice**;
-`setTemplateValue` → **template state**; any other type → routed to the **workflow**. No UI
+`setTemplateValue` → **template state**; any other type → the **server, as a native MCP call**. No UI
 verbs, no feature names. (Leaf components dispatch via `actions.ts`; template chrome routes
 `setTemplateValue` via `template.tsx`'s `dispatch` — same two-write vocabulary.)
+
+**The server route is native MCP, owned by the SDK — not re-implemented per host** (`UNOVERSE_MCP_TEMPLATE_PROTOCOL.md` §0.3, *One SDK · one interaction path*):
+
+- **Send a message** → `tools/call` on the app's trigger tool. Fire-and-forget: **the result comes back over the component stream, not the call — so no elicitation.**
+- **Submit answers to a waiting app** → native `elicitation`, resolving the **held** `tools/call` (a model is waiting on it, §3.3).
+- **Typing** is not a server route at all — `input` writes the local `draft`.
+
+No bespoke REST, no custom `user_action` message. A host that hand-writes this routing is a bug (that drift is what broke the composer) — every consumer (workbench, native app, external MCP client) shares this one SDK path.
 
 ### Rendering (`react/`)
 

@@ -38,7 +38,7 @@
             "border": "subtle",
             "radius": "2xl",
             "radiusTopLeft": "0",
-            "maxWidth": 560,
+            "maxWidth": "65%",
             "padding": "0",
             "radiusTopRight": "0"
           },

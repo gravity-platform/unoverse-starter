@@ -10,9 +10,14 @@
     },
     {
       "type": "Box",
-      "style": { "direction": "column", "flex": 1, "gap": "sm", "minWidth": 0 },
+      "style": { "direction": "column", "flex": 1, "gap": "sm", "minWidth": 0, "maxWidth": "65%" },
       "children": [
-        { "type": "ComponentSlot", "select": {} },
+        {
+          "type": "Box",
+          "visibleWhen": { "field": "empty", "eq": false },
+          "style": { "background": "surface.sunken", "radius": "2xl", "radiusTopLeft": "0", "padding": ["sm", "md"] },
+          "children": [{ "type": "ComponentSlot", "select": {} }]
+        },
         {
           "type": "Box",
           "visibleWhen": "streaming",
