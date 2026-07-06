@@ -45,8 +45,10 @@ cmd_doctor() {
     return
   fi
 
-  # Required env vars
-  local required_vars="DATABASE_URL REDIS_HOST AUTH_ISSUER AUTH_CLIENT_ID AUTH_AUDIENCE API_URL"
+  # Required env vars. (API_URL is intentionally NOT required: the server/engine
+  # never read it, the canvas bakes its own at build via VITE_API_URL, and the only
+  # runtime user — pdf-render — treats it as an optional fallback.)
+  local required_vars="DATABASE_URL REDIS_HOST AUTH_ISSUER AUTH_CLIENT_ID AUTH_AUDIENCE"
   local placeholders="your- user:password host:5432"
 
   for var in $required_vars; do

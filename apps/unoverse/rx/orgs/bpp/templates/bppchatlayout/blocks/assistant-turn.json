@@ -38,6 +38,7 @@
             "border": "subtle",
             "radius": "2xl",
             "radiusTopLeft": "0",
+            "width": "fit-content",
             "maxWidth": "70%",
             "padding": "0",
             "radiusTopRight": "0"
@@ -66,7 +67,7 @@
               "children": [
                 {
                   "type": "ComponentSlot",
-                  "select": {}
+                  "select": { "type": ["AIResponse", "MarkdownRenderer"] }
                 }
               ]
             }
@@ -75,6 +76,10 @@
             "field": "empty",
             "eq": false
           }
+        },
+        {
+          "type": "ComponentSlot",
+          "select": { "type": ["Card"] }
         },
         {
           "type": "Box",
