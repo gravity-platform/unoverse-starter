@@ -145,11 +145,9 @@ services:
       - "4101:4101" # workflow surface (engine in-process) — same exposure the workflow service had (host-firewalled)
     environment:
       - NODE_ENV=production
-      # Studio (the component/template workbench) on :4105 — for LOCAL DEV only.
-      # Production is deployed via the runbooks (ansible/playbooks/install.yml), which
-      # FORCE this to 0 after copying the compose — Studio can never reach production.
-      # Do NOT make this an env override; the runbook is the structural off-switch.
-      - UNOVERSE_WORKBENCH=1
+      # Studio/workbench is a Vite DEV server — it only runs via `npm run dev` (source),
+      # NOT in this production image. Keep this 0; the Docker runtime serves MCP + API only.
+      - UNOVERSE_WORKBENCH=0
       - UNOVERSE_PORT=4105
       - UNOVERSE_RUNTIME_PORT=4106
       - AUTH_ISSUER=${AUTH_ISSUER}
