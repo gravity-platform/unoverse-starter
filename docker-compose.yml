@@ -3,8 +3,8 @@
 # =============================================================================
 #
 # LAYER 1: CORE PLATFORM (Pre-compiled via GitHub Actions → DOCR)
-#   - unoverse (the platform runtime — engine in-process + node plane), canvas,
-#     umap, mcp-server, memory. Code protected, pulled as images.
+#   - unoverse (the platform runtime — engine in-process + node plane + native MCP),
+#     canvas, umap, memory. Code protected, pulled as images.
 #
 # LAYER 2: DEVELOPER CARVE-OUT (mounted over the unoverse image, dev-editable)
 #   - apps/unoverse/nodes    — node logic
@@ -192,23 +192,28 @@ services:
     logging: *default-logging
     restart: unless-stopped
 
-  # MCP Server - OpenAI Apps integration (lightweight - HTTP server)
-  mcp-server:
-    image: registry.digitalocean.com/gravity-repo/mcp-server:latest
-    ports:
-      - "4103:4103"
-    environment:
-      - NODE_ENV=production
-      - DOMAIN=${DOMAIN}
-      - WORKFLOW_SERVICE_URL=http://unoverse:4101
-      - AUTH_ISSUER=${AUTH_ISSUER}
-      - AUTH_AUDIENCE=${AUTH_AUDIENCE}
-    labels:
-      - "com.docker.compose.service=mcp-server"
-    depends_on:
-      - unoverse
-    logging: *default-logging
-    restart: unless-stopped
+  # RETIRED (2026-07): the standalone mcp-server (external OpenAI-Apps/Claude MCP on
+  # :4103) is superseded by the unoverse server's NATIVE MCP — public :4105/mcp and
+  # internal :4106/mcp (the app-discovery/workflow-MCP path). Source moved to
+  # _legacy/mcp-server; the last gravity-repo/mcp-server image stays in DOCR as the
+  # rollback hatch. ROLLBACK: restore apps/mcp-server from _legacy, re-add to the CI
+  # matrix, uncomment this block, and re-add the mcp.{domain} route in Caddyfile.j2.
+  # mcp-server:
+  #   image: registry.digitalocean.com/gravity-repo/mcp-server:latest
+  #   ports:
+  #     - "4103:4103"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DOMAIN=${DOMAIN}
+  #     - WORKFLOW_SERVICE_URL=http://unoverse:4101
+  #     - AUTH_ISSUER=${AUTH_ISSUER}
+  #     - AUTH_AUDIENCE=${AUTH_AUDIENCE}
+  #   labels:
+  #     - "com.docker.compose.service=mcp-server"
+  #   depends_on:
+  #     - unoverse
+  #   logging: *default-logging
+  #   restart: unless-stopped
 
   # Memory Server - Evidence-based user memory system (ambient pub/sub, Redis Streams)
   memory:

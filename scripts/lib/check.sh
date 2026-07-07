@@ -8,7 +8,7 @@ cmd_check() {
   local pass=0 total=0
 
   # 1. Services
-  for svc in unoverse canvas umap mcp-server memory; do
+  for svc in unoverse canvas umap memory; do
     total=$((total + 1))
     local status
     status=$(docker compose -f "$ROOT/docker-compose.yml" ps --format '{{.Status}}' "$svc" 2>/dev/null | head -1)

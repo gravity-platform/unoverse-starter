@@ -18,7 +18,6 @@
         # unoverse: host-side check uses the published :4105 (/health is public);
         # :4106 (internal node runtime) is deliberately not published by compose.
         - { name: unoverse, port: 4105 }
-        - { name: mcp-server, port: 4103 }
         - { name: memory, port: 4104 }
         - { name: umap, port: 5001 }
       when: item.name in gravity_services
@@ -34,7 +33,6 @@
         # The in-process engine's /ready on :4101 checks Redis + Postgres —
         # the deepest readiness signal the unoverse container offers.
         - { name: unoverse, port: 4101 }
-        - { name: mcp-server, port: 4103 }
         - { name: memory, port: 4104 }
         - { name: umap, port: 5001 }
       when: item.name in gravity_services

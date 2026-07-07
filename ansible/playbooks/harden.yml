@@ -21,7 +21,6 @@
     # Internal ports (only from load balancer / internal network)
     internal_ports:
       - { port: 4101, proto: tcp } # engine (workflow surface, published by unoverse)
-      - { port: 4103, proto: tcp } # mcp-server
       - { port: 4104, proto: tcp } # memory
       - { port: 4105, proto: tcp } # unoverse (public MCP/plugins, JWT-gated in-app)
       # 4106 (unoverse internal node runtime) is NOT listed: compose never publishes

@@ -39,10 +39,7 @@
 #           ansible_user: root
 #       vars:
 #         gravity_services:
-#           - server
-#           - workflow
 #           - unoverse
-#           - mcp-server
 #           - memory
 #           - canvas
 #

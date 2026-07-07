@@ -21,7 +21,7 @@
 
   vars:
     gravity_dir: /opt/gravity
-    core_services: "unoverse mcp-server memory canvas umap"  # server + workflow retired — unoverse serves :4101 (engine in-process) and the public :4105 API surface
+    core_services: "unoverse memory canvas umap"  # server + workflow + mcp-server retired — unoverse serves :4101 (engine in-process), the public :4105 API, and native MCP (:4105/mcp, :4106/mcp internal)
 
   pre_tasks:
     - name: "[1/10] Check current system"
