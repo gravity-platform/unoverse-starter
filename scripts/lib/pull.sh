@@ -12,6 +12,7 @@ cmd_pull() {
 
   local IMAGES=(
     "registry.digitalocean.com/gravity-repo/canvas:latest"
+    "registry.digitalocean.com/gravity-repo/studio:latest"
     "registry.digitalocean.com/gravity-repo/umap:latest"
     "registry.digitalocean.com/gravity-repo/unoverse:latest"
     "registry.digitalocean.com/gravity-repo/memory:latest"
@@ -61,7 +62,7 @@ cmd_pull() {
   pulled=${pulled:-0}
 
   echo ""
-  if [ "$pulled" -ge 4 ]; then
+  if [ "$pulled" -ge 5 ]; then
     ok "All $pulled images pulled"
   elif [ "$pulled" -gt 0 ]; then
     warn "$pulled images pulled (some may need retry)"

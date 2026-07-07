@@ -115,6 +115,19 @@ services:
     logging: *default-logging
     restart: unless-stopped
 
+  # Studio — component/template/asset workbench (static build, served by nginx like Canvas;
+  # proxies /mcp, /dev, /api, /stream to unoverse:4105). DEV-ONLY: the runbook
+  # (ansible/playbooks/install.yml) starts only `core_services`, which does NOT include
+  # studio — so it is structurally excluded from production, no toggle involved.
+  studio:
+    image: registry.digitalocean.com/gravity-repo/studio:latest
+    ports:
+      - "3002:80"
+    depends_on:
+      - unoverse
+    logging: *default-logging
+    restart: unless-stopped
+
   # UMAP Service - Python ML service
   umap:
     image: registry.digitalocean.com/gravity-repo/umap:latest
