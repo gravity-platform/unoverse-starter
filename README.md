@@ -60,11 +60,21 @@ Three developer-editable folders are mounted into the running platform:
 
 ### Build with Claude Code
 
-This repo ships an authoring skill at `.claude/skills/unoverse-create`. Open the
-repo in [Claude Code](https://claude.com/claude-code) and ask for what you want —
-*"create a pricing card component"*, *"add a node that calls our inventory
-API"*, *"write a returns-handling skill"* — and it follows the platform's
-authoring rules, validation, and deploy loop for you.
+This repo ships an authoring skill (`.claude/skills/unoverse-create`) **and a
+builder MCP registration** (`.mcp.json`). Open the repo in
+[Claude Code](https://claude.com/claude-code) and ask for what you want:
+
+- *"create a pricing card component"*, *"add a node that calls our inventory
+  API"*, *"write a returns-handling skill"* — Claude writes the artifacts,
+  following the platform's authoring rules, validation, and deploy loop.
+- *"build me a workflow that …"* — Claude connects to the platform's **builder
+  MCP** and builds the workflow live on your Canvas, one tested stage at a
+  time. You create a new empty workflow in Canvas, give Claude its id
+  (`wf-xxxxxx` from the URL), and watch it build in your browser.
+
+For the workflow builder: the platform must be running (`./unoverse start` —
+the builder is served on `localhost:4106`, reachable from this machine only),
+and approve the `unoverse-builder` server the first time Claude Code asks.
 
 ### Docs map
 

@@ -175,7 +175,7 @@
       {
         "type": "Box",
         "visibleWhen": { "field": "displayState", "ne": "inline" },
-        "style": { "position": "relative", "width": "full", "height": "full", "minHeight": "160", "maxHeight": "180", "container": "inline-size", "direction": "row", "background": "surface.base", "overflow": "hidden" },
+        "style": { "position": "relative", "width": "full", "height": "full", "minHeight": "160", "container": "inline-size", "direction": "row", "background": "surface.base", "overflow": "hidden" },
         "children": [
           {
             "type": "Box",

@@ -1,6 +1,6 @@
 ---
 name: unoverse-create
-description: Create or edit Unoverse platform artifacts — UI components, templates, atoms and styles (rx/), agent skills and prompt blocks (prompts/), and custom workflow nodes (nodes/). Use when the user wants to create, add, build, or modify a component, template, theme, agent skill, prompt block, or custom node in an Unoverse starter repo.
+description: Create or edit Unoverse platform artifacts — UI components, templates, atoms and styles (rx/), agent skills and prompt blocks (prompts/), custom workflow nodes (nodes/), and workflows built live on the Canvas via the builder MCP. Use when the user wants to create, add, build, or modify a component, template, theme, agent skill, prompt block, custom node, or workflow in an Unoverse starter repo.
 ---
 
 # Creating Unoverse Artifacts
@@ -27,6 +27,11 @@ anything**:
 | An agent skill (behavior guide the AI follows) | `references/agent-skill.md` |
 | A prompt block (reusable prompt fragment) | `references/block.md` |
 | A custom workflow node (integration, tool, logic) | `references/node.md` |
+| A workflow (wire nodes into an agent/pipeline on the Canvas) | `references/workflow.md` |
+
+Workflows are the one artifact that is NOT files: they are built live on the running
+platform through the `unoverse-builder` MCP (registered by this repo's `.mcp.json`) —
+the playbook covers the bind/build/test contract.
 
 If it's ambiguous (e.g. "add a card that shows weather"), it's usually a **component**
 (the UI) plus possibly a **node** (the data source) — confirm the scope with the user.

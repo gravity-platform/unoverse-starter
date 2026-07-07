@@ -85,6 +85,25 @@ Click the green **Save** button in the top left.
 
 > **Tip:** Use the ⚡ button to run the entire workflow at once
 
+## Bonus: Have Claude Code build it for you
+
+Everything you just did by hand, Claude Code can drive through the platform's
+**builder MCP** (registered automatically by this repo's `.mcp.json`):
+
+1. Make sure the platform is running, then open this repo in Claude Code
+   (approve the `unoverse-builder` server the first time it asks).
+2. In Canvas, create a **new empty workflow** and copy its id — the `wf-xxxxxx`
+   in the URL.
+3. Ask Claude:
+
+   > Bind workflow wf-xxxxxx, then build a chat agent: input trigger → OpenAI →
+   > response display. Test each stage with runTest before adding the next.
+
+Claude binds to that one canvas (it can't see or touch any other workflow),
+builds one stage at a time, runs each stage, and reads the traces — while you
+watch the nodes appear live in Canvas. You stay the judge: run it yourself when
+it reports done, and ask for changes in plain language.
+
 ## ✅ Challenge Complete
 
 Your agent workflow is built and tested in Canvas! Proceed to [Challenge 3: Create Your First Node](./03-create-your-first-node.md).

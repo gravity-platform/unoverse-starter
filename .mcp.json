@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "unoverse-builder": {
+      "type": "http",
+      "url": "http://localhost:4106/mcp-builder"
+    }
+  }
+}

@@ -128,9 +128,11 @@ services:
   # Unoverse - node plane (author·distribute·execute): the relocated node runtime +
   # workbench + MCP. TWO listeners:
   #   :4105 = PUBLIC (MCP + workbench), JWT-gated — published below.
-  #   :4106 = INTERNAL node runtime (catalog + execute), UNGATED — deliberately NOT
-  #           published. Only the Docker network reaches it; that isolation IS the
-  #           trust boundary (workflow pulls its node catalog from here).
+  #   :4106 = INTERNAL node runtime (catalog + execute) + builder MCP, UNGATED —
+  #           published LOOPBACK-ONLY (127.0.0.1). The Docker network and the host
+  #           machine itself are the trust boundary: nothing off the machine can
+  #           reach it. This is how a dev's local Claude Code drives the workflow
+  #           builder (/mcp-builder); never widen it to "4106:4106".
   unoverse:
     image: registry.digitalocean.com/gravity-repo/unoverse:latest
     # For local development, build from source instead:
@@ -138,7 +140,8 @@ services:
     #   context: .
     #   dockerfile: apps/unoverse/Dockerfile
     ports:
-      - "4105:4105" # PUBLIC port only — do NOT add "4106:4106" (keep the runtime internal)
+      - "4105:4105" # PUBLIC port
+      - "127.0.0.1:4106:4106" # builder MCP + runtime, LOOPBACK ONLY — local Claude Code connects here; never "4106:4106"
       - "4101:4101" # workflow surface (engine in-process) — same exposure the workflow service had (host-firewalled)
     environment:
       - NODE_ENV=production
