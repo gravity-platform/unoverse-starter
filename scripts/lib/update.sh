@@ -187,8 +187,7 @@ cmd_update() {
   echo ""
   echo -e "  ${GREEN}${BOLD}Done${NC} ${DIM}in $(timer_elapsed)${NC}"
   echo ""
-  echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-  echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
+  print_access_urls
   echo ""
 }
 

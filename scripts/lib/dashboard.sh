@@ -28,8 +28,7 @@ cmd_dashboard() {
     if [ "$running" -eq "$total" ] && [ "$total" -gt 0 ]; then
       echo -e "  ${GREEN}●${NC} ${BOLD}Platform running${NC} ${DIM}— $running services${NC}"
       echo ""
-      echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
+      print_access_urls
     elif [ "$created" -gt 0 ] && [ "$running" -eq 0 ]; then
       echo -e "  ${RED}●${NC} ${BOLD}$total containers stuck in Created state${NC}"
       echo ""
@@ -38,8 +37,7 @@ cmd_dashboard() {
     elif [ "$running" -gt 0 ]; then
       echo -e "  ${YELLOW}●${NC} ${BOLD}$running/$total services up${NC}"
       echo ""
-      echo -e "  ${CYAN}Canvas${NC}  ${UNDERLINE}http://localhost:3001${NC}"
-      echo -e "  ${CYAN}API${NC}     ${UNDERLINE}http://localhost:4105${NC}"
+      print_access_urls
     else
       echo -e "  ${RED}●${NC} ${BOLD}Platform not running${NC} ${DIM}— $total containers stopped${NC}"
       echo ""
