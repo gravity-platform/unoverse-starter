@@ -180,41 +180,33 @@
         msg: "{{ start_result.stdout_lines | default(['Services starting...']) }}"
 
   post_tasks:
-    - name: "Wait 10 seconds for services to initialize"
+    # The in-process engine (:4101) initializes AFTER the unoverse server binds :4105 —
+    # give it a head start so the :4101 check usually passes first try (less retry noise).
+    - name: "Wait for services to initialize"
       pause:
-        seconds: 10
+        seconds: 25
 
-    - name: "Health check - Unoverse public (port 4105)"
+    - name: "Health check — Unoverse public (:4105)"
       uri:
         url: "http://localhost:4105/health"
         status_code: 200
-      register: server_health
-      until: server_health.status == 200
+      register: unoverse_health
+      until: unoverse_health.status == 200
       retries: 30
       delay: 2
       ignore_errors: yes
 
-    - name: "Health check - Workflow (port 4101)"
+    - name: "Health check — Engine (in-process, :4101)"
       uri:
         url: "http://localhost:4101/health"
         status_code: 200
-      register: workflow_health
-      until: workflow_health.status == 200
+      register: engine_health
+      until: engine_health.status == 200
       retries: 30
       delay: 2
       ignore_errors: yes
 
-    - name: "Health check - Unoverse (port 4105)"
-      uri:
-        url: "http://localhost:4105/health"
-        status_code: 200
-      register: node_health
-      until: node_health.status == 200
-      retries: 30
-      delay: 2
-      ignore_errors: yes
-
-    - name: "Health check - Memory (port 4104)"
+    - name: "Health check — Memory (:4104)"
       uri:
         url: "http://localhost:4104/health"
         status_code: 200
@@ -228,15 +220,14 @@
       debug:
         msg: |
           ============================================
-          GRAVITY PLATFORM DEPLOYED
+          UNOVERSE PLATFORM DEPLOYED
           ============================================
           Host: {{ inventory_hostname }} ({{ ansible_host }})
 
           Service Health:
-            - Server:       {{ 'OK' if (server_health.status | default(0)) == 200 else 'FAILED' }}
-            - Workflow:     {{ 'OK' if (workflow_health.status | default(0)) == 200 else 'FAILED' }}
-            - Node Service: {{ 'OK' if (node_health.status | default(0)) == 200 else 'FAILED' }}
-            - Memory:       {{ 'OK' if (memory_health.status | default(0)) == 200 else 'FAILED' }}
+            - Unoverse (:4105):  {{ 'OK' if (unoverse_health.status | default(0)) == 200 else 'FAILED' }}
+            - Engine   (:4101):  {{ 'OK' if (engine_health.status | default(0)) == 200 else 'FAILED' }}
+            - Memory   (:4104):  {{ 'OK' if (memory_health.status | default(0)) == 200 else 'FAILED' }}
 
           Access URLs:
             - Canvas:    http://{{ ansible_host }}:3001

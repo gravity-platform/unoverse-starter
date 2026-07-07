@@ -129,6 +129,27 @@ EOF
         "$ansible_dir/playbooks/install-umap.yml" \
         -e "env_file=$env_prod"
       ;;
+    marketplace|nodes)
+      # Install the @unoverse-platform npm packages declared for this deployment.
+      # Prod has no Studio to click Install — the set lives in .env.production and the
+      # runbook applies it (install + persist to Postgres → boot reconciliation heals).
+      local pkgs_csv
+      pkgs_csv=$(grep '^MARKETPLACE_PACKAGES=' "$env_prod" | cut -d= -f2- | tr -d '\r\n"' | xargs)
+      if [ -z "$pkgs_csv" ]; then
+        fail "MARKETPLACE_PACKAGES is not set in .env.production"
+        info "Declare the marketplace packages to install on prod (comma-separated):"
+        info "  MARKETPLACE_PACKAGES=@unoverse-platform/openai,@unoverse-platform/pinecone"
+        rm -f "$tmp_inventory"
+        exit 1
+      fi
+      info "Installing marketplace packages: $pkgs_csv"
+      echo ""
+      ansible-playbook \
+        -i "$tmp_inventory" \
+        "$ansible_dir/playbooks/install-marketplace.yml" \
+        -e "marketplace_packages_csv=$pkgs_csv" \
+        -e "env_file=$env_prod"
+      ;;
     test|check)
       info "Running connectivity test..."
       echo ""
@@ -141,12 +162,13 @@ EOF
       echo "Usage: unoverse deploy [command]"
       echo ""
       echo "Commands:"
-      echo "  (none)     Full deployment (install + packages)"
-      echo "  packages   Deploy packages only (rsync + build)"
-      echo "  db         Run database setup"
-      echo "  caddy      Install Caddy TLS reverse proxy"
-      echo "  umap       Install UMAP AI service"
-      echo "  test       Run connectivity test"
+      echo "  (none)       Full deployment (install + packages)"
+      echo "  packages     Deploy packages only (rsync + build)"
+      echo "  marketplace  Install declared @unoverse-platform npm nodes (MARKETPLACE_PACKAGES)"
+      echo "  db           Run database setup"
+      echo "  caddy        Install Caddy TLS reverse proxy"
+      echo "  umap         Install UMAP AI service"
+      echo "  test         Run connectivity test"
       rm -f "$tmp_inventory"
       exit 1
       ;;
