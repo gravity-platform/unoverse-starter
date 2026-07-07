@@ -121,6 +121,13 @@ EOF
         -e "behind_lb=${behind_lb:-false}" \
         -e "env_file=$env_prod"
       ;;
+    caddy-uninstall|uninstall-caddy)
+      info "Uninstalling Caddy (reverts to direct host ports)..."
+      echo ""
+      ansible-playbook \
+        -i "$tmp_inventory" \
+        "$ansible_dir/playbooks/uninstall-caddy.yml"
+      ;;
     umap)
       info "Installing UMAP service..."
       echo ""
@@ -167,6 +174,7 @@ EOF
       echo "  marketplace  Install declared @unoverse-platform npm nodes (MARKETPLACE_PACKAGES)"
       echo "  db           Run database setup"
       echo "  caddy        Install Caddy TLS reverse proxy"
+      echo "  caddy-uninstall  Remove Caddy (revert to direct host ports)"
       echo "  umap         Install UMAP AI service"
       echo "  test         Run connectivity test"
       rm -f "$tmp_inventory"
