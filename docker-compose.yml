@@ -123,6 +123,11 @@ services:
     image: registry.digitalocean.com/gravity-repo/studio:latest
     ports:
       - "3002:80"
+    environment:
+      # OIDC for the Studio SPA (same as Canvas) — the entrypoint writes these into config.js.
+      - VITE_AUTH_ISSUER=${AUTH_ISSUER}
+      - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
+      - VITE_AUTH_AUDIENCE=${AUTH_AUDIENCE}
     depends_on:
       - unoverse
     logging: *default-logging
