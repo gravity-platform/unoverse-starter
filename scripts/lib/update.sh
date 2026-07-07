@@ -183,7 +183,10 @@ cmd_update() {
     info "Run ${BOLD}unoverse doctor${NC} to diagnose"
   fi
 
-  # Summary
+  # Summary. Re-source the SHARED box helper first: `update` pulled fresh scripts a
+  # moment ago, but the copy loaded at startup is stale — reload so the summary reflects
+  # what we just pulled (fixes the "branded box / Studio line shows one run late" bug).
+  source "$GRAVITY_LIB/common.sh" 2>/dev/null || true
   echo ""
   echo -e "  ${GREEN}${BOLD}Done${NC} ${DIM}in $(timer_elapsed)${NC}"
   echo ""
