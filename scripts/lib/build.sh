@@ -38,7 +38,10 @@ cmd_gendesign() {
   fi
 
   echo "  Generating component nodes from rx/ (in the unoverse container)..."
-  if docker compose -f "$ROOT/docker-compose.yml" exec -T unoverse npm run nodegen:local; then
+  # -w: the container WORKDIR is /app (monorepo root); nodegen:local lives in
+  # apps/unoverse/package.json, and its relative paths (tools/nodegen, nodes/components)
+  # only resolve — and write back to the mounted host folders — from that directory.
+  if docker compose -f "$ROOT/docker-compose.yml" exec -T -w /app/apps/unoverse unoverse npm run nodegen:local; then
     ok "Component nodes generated → apps/unoverse/nodes/components"
   else
     fail "nodegen failed — check the output above"
