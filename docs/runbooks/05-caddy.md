@@ -35,8 +35,7 @@ Point these A records to your VM IP (or Load Balancer IP):
 | Hostname                  | Value     |
 | ------------------------- | --------- | -------------------------------------- |
 | `yourdomain.com`          | `<VM_IP>` |
-| `api.yourdomain.com`      | `<VM_IP>` |
-| `unoverse.yourdomain.com` | `<VM_IP>` |
+| `api.yourdomain.com`      | `<VM_IP>` | Serves API + Unoverse + native MCP (`/mcp`) |
 | `umap.yourdomain.com`     | `<VM_IP>` | Only if `CADDY_INCLUDE_UMAP=true` |
 
 > Do **not** create a `memory.yourdomain.com` record — the memory dashboard is never exposed (see below).
@@ -62,8 +61,7 @@ ansible-playbook -i inventory/production.yml playbooks/install-caddy.yml \
 
 ```bash
 curl https://yourdomain.com
-curl https://api.yourdomain.com/health
-curl https://unoverse.yourdomain.com/health
+curl https://api.yourdomain.com/health  # API + Unoverse + native MCP (/mcp)
 curl https://umap.yourdomain.com/health  # only if CADDY_INCLUDE_UMAP=true
 ```
 
@@ -84,8 +82,7 @@ User → LB (HTTPS Passthrough) → VM → Caddy (TLS) → Services
 | Subdomain             | Service      | Port | Visibility                              |
 | --------------------- | ------------ | ---- | --------------------------------------- |
 | `domain.com`          | Canvas (UI)  | 3001 | Public (always)                          |
-| `api.domain.com`      | API (unoverse public listener; serves native MCP at `/mcp`) | 4105 | Public (always) |
-| `unoverse.domain.com` | Unoverse     | 4105 | Public (always, JWT-gated in-app)        |
+| `api.domain.com`      | API + Unoverse (public listener; serves native MCP at `/mcp`, `/prompt-blocks`, `/plugins`) | 4105 | Public (always, JWT-gated in-app) |
 | `umap.domain.com`     | UMAP Service | 5001 | Public only if `CADDY_INCLUDE_UMAP=true` |
 
 > Only Unoverse's public port (4105) is proxied. The internal node runtime (`:4106`) is Docker-network-only and is never routed through Caddy.
@@ -111,8 +108,7 @@ Mode: Direct (TLS via Lets Encrypt)
 
 Configured routes:
   - https://yourdomain.com -> Canvas (port 3001)
-  - https://api.yourdomain.com -> API (unoverse, port 4105; native MCP at /mcp)
-  - https://unoverse.yourdomain.com -> Unoverse (port 4105)
+  - https://api.yourdomain.com -> API + Unoverse + native MCP (unoverse, port 4105)
   - https://umap.yourdomain.com -> UMAP Service (port 5001)  # only if CADDY_INCLUDE_UMAP=true
 ```
 

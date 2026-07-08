@@ -201,7 +201,6 @@
       loop:
         - { name: "Canvas", sub: "", path: "/" }
         - { name: "API Server", sub: "api.", path: "/health" }
-        - { name: "Unoverse", sub: "unoverse.", path: "/health" }
       register: domain_checks
       ignore_errors: yes
       when: domain_value.stdout | default('') | length > 0 and domain_value.stdout != 'example.com'
