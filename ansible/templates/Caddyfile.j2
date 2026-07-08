@@ -27,11 +27,10 @@
         reverse_proxy localhost:4105
     }
     
-    # Unoverse (MCP defs + node plane + plugin mgmt) rides the SAME api.<domain> :4105
-    # listener — /mcp, /prompt-blocks, /plugins are all served there. No separate
-    # unoverse.<domain> host (it has no DNS and is pure redundancy). External MCP
-    # clients use api.{{ caddy_domain }}/mcp. The internal :4106 node runtime is
-    # Docker-network-only and is NEVER proxied. (mcp.<domain> → :4103 also retired.)
+    # The api.<domain> :4105 listener serves everything — /api, /mcp, /prompt-blocks,
+    # /plugins and the node defs (all JWT-gated in-app). External MCP clients use
+    # api.{{ caddy_domain }}/mcp. The internal :4106 node runtime is Docker-network-only
+    # and is NEVER proxied.
 
 {% if caddy_include_umap %}
     @umap host umap.{{ caddy_domain }}
@@ -55,12 +54,10 @@
     }
 }
 
-# API surface — served by unoverse (One Engine; gateway retired). This ALSO serves the
-# Unoverse plane on the same :4105 listener: MCP natively at /mcp, plus /prompt-blocks,
-# /plugins and the node defs (all JWT-gated in-app). External MCP clients use
-# api.{{ caddy_domain }}/mcp. There is NO separate unoverse.<domain> host — it has no
-# DNS and would be a redundant proxy to the same port. The retired mcp-server's
-# mcp.<domain> → :4103 route is gone; the internal :4106 node runtime is never proxied.
+# API surface — served by unoverse on :4105 (One Engine; gateway retired). This ONE
+# listener serves everything: /api, MCP natively at /mcp, plus /prompt-blocks, /plugins
+# and the node defs (all JWT-gated in-app). External MCP clients use
+# api.{{ caddy_domain }}/mcp. The internal :4106 node runtime is never proxied.
 api.{{ caddy_domain }} {
     reverse_proxy localhost:4105
 }
