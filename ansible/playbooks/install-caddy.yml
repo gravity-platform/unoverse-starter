@@ -25,8 +25,11 @@
 
   vars:
     caddy_domain: "{{ domain | default('localhost') }}"
-    caddy_behind_lb: "{{ behind_lb | default(false) }}"
-    caddy_include_umap: "{{ include_umap | default(false) }}"
+    # `| bool` is REQUIRED: -e passes these as strings, and a non-empty string like
+    # "false" is TRUTHY in Jinja — without the cast, behind_lb=false would wrongly
+    # select the load-balancer (HTTP-only, no :443) branch.
+    caddy_behind_lb: "{{ behind_lb | default(false) | bool }}"
+    caddy_include_umap: "{{ include_umap | default(false) | bool }}"
 
   tasks:
     - name: "[1/5] Install prerequisites (Debian/Ubuntu)"
