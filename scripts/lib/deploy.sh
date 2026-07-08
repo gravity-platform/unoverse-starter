@@ -148,6 +148,16 @@ EOF
         "$ansible_dir/playbooks/install-marketplace.yml" \
         -e "env_file=$env_prod"
       ;;
+    gendesign|nodegen)
+      # Generate + build component nodes ON the server (mirror of the local
+      # `unoverse gendesign`). Reads the already-deployed rx/ defs — run `deploy` or
+      # `deploy packages` first so rx/ is on the box.
+      info "Generating + building component nodes on the server..."
+      echo ""
+      ansible-playbook \
+        -i "$tmp_inventory" \
+        "$ansible_dir/playbooks/gendesign.yml"
+      ;;
     test|check)
       info "Running connectivity test..."
       echo ""
@@ -167,6 +177,7 @@ EOF
       echo "  caddy        Install Caddy TLS reverse proxy"
       echo "  caddy-uninstall  Remove Caddy (revert to direct host ports)"
       echo "  umap         Install UMAP AI service"
+      echo "  gendesign    Generate + build component nodes on the server (from deployed rx/)"
       echo "  test         Run connectivity test"
       rm -f "$tmp_inventory"
       exit 1

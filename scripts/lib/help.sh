@@ -34,6 +34,7 @@ cmd_help() {
   echo -e "    ${GREEN}deploy caddy-uninstall${NC}  Remove Caddy (revert to direct host ports)"
   echo -e "    ${GREEN}deploy umap${NC}      Install UMAP AI service"
   echo -e "    ${GREEN}deploy harden${NC}    Security hardening"
+  echo -e "    ${GREEN}deploy gendesign${NC}  Generate + build component nodes on the server"
   echo -e "    ${GREEN}deploy test${NC}      Run connectivity test"
   echo ""
 }

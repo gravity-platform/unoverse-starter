@@ -1,0 +1,67 @@
+---
+# Generate + build component nodes ON the production server.
+#
+# Mirrors the local `unoverse gendesign` (scripts/lib/build.sh), but runs inside the
+# prod unoverse container. Reads the deployed rx/ defs, writes nodes/components, compiles
+# to dist/, and restarts unoverse so the runtime loads them.
+#
+# Prereq: the rx/ defs must already be on the server (run `unoverse deploy` / `deploy
+# packages` first — that rsyncs apps/unoverse/{nodes,rx,prompts}).
+#
+# Usage:
+#   ansible-playbook -i inventory playbooks/gendesign.yml
+
+- name: Generate + build component nodes on the server
+  hosts: all
+  become: yes
+
+  vars:
+    gravity_dir: /opt/gravity
+
+  tasks:
+    - name: "[1/3] Generate component nodes from rx/ (nodegen)"
+      shell: |
+        cd {{ gravity_dir }}
+        docker compose exec -T -w /app/apps/unoverse unoverse npm run nodegen:local 2>&1 | tail -25
+      register: gen_result
+
+    - name: "[1/3] nodegen output"
+      debug:
+        msg: "{{ gen_result.stdout_lines[-25:] | default(['done']) }}"
+
+    # tsc ignores NODE_PATH and the pruned image links no plugin-base — the only built
+    # copy is in the plugins volume. Symlink it into node_modules so tsc resolves it,
+    # then compile. (Same logic as the local gendesign build step.)
+    - name: "[2/3] Compile component nodes to dist (tsc)"
+      shell: |
+        cd {{ gravity_dir }}
+        docker compose exec -T unoverse sh -c '
+          if [ ! -d /app/plugins/node_modules/@unoverse-platform/plugin-base ]; then
+            echo "plugin-base not installed in the plugins volume — run: unoverse deploy marketplace"; exit 1
+          fi
+          mkdir -p /app/node_modules/@unoverse-platform
+          ln -sfn /app/plugins/node_modules/@unoverse-platform/plugin-base /app/node_modules/@unoverse-platform/plugin-base
+          cd /app/apps/unoverse/nodes/components && npm run build
+        ' 2>&1 | tail -15
+      register: build_result
+
+    - name: "[2/3] build output"
+      debug:
+        msg: "{{ build_result.stdout_lines[-15:] | default(['done']) }}"
+
+    - name: "[3/3] Restart unoverse (load the generated nodes)"
+      shell: |
+        cd {{ gravity_dir }}
+        docker compose restart unoverse 2>&1
+      register: restart_result
+
+    - name: "=== GENDESIGN COMPLETE ==="
+      debug:
+        msg: |
+          ============================================
+          COMPONENT NODES GENERATED + BUILT ON SERVER
+          ============================================
+          Host:    {{ inventory_hostname }} ({{ ansible_host }})
+          Build:   {{ 'OK' if build_result.rc == 0 else 'FAILED' }}
+          Restart: {{ 'OK' if restart_result.rc == 0 else 'FAILED' }}
+          ============================================
