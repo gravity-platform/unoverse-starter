@@ -106,9 +106,10 @@ services:
       - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
       - VITE_AUTH_AUDIENCE=${AUTH_AUDIENCE}
       # Unoverse public URL (JWT-gated :4105) — the browser calls it directly for
-      # component/template defs (MCP) and plugin management. Derived from DOMAIN
-      # (Caddy route unoverse.<domain>) unless UNOVERSE_URL overrides it.
-      - VITE_UNOVERSE_SERVICE_URL=${UNOVERSE_URL:-${DOMAIN:+https://unoverse.${DOMAIN}}}
+      # component/template defs (MCP), prompt-blocks, and plugin management. This is the
+      # SAME :4105 backend as api.<domain>, so default to the api host (one public entry,
+      # one cert, no extra DNS). UNOVERSE_URL can still override for a dedicated MCP host.
+      - VITE_UNOVERSE_SERVICE_URL=${UNOVERSE_URL:-${DOMAIN:+https://api.${DOMAIN}}}
       - MEMORY_SERVICE_URL=http://memory:4104
     depends_on:
       - unoverse
