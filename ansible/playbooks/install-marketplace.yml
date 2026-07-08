@@ -1,46 +1,31 @@
 ---
-# Install Marketplace (npm) Node Packages
+# Reconcile Marketplace (npm) Node Packages against the DB
 #
-# Production runs no Studio (it is dev-only, structurally excluded from core_services),
-# so there is no interactive "Install" click on a prod box. Instead the set of
-# @unoverse-platform marketplace packages a deployment should run is DECLARED
-# (MARKETPLACE_PACKAGES in .env.production) and applied here.
+# The DB (Postgres installed_plugins) is the source of truth for which
+# @unoverse-platform packages a deployment runs — a Studio Install records it there.
+# Production has no Studio, so this playbook brings a box in line with the DB: it
+# POSTs the unoverse INTERNAL runtime (loopback :4106, ungated — Docker-network trust
+# boundary), which re-reads Postgres and npm-installs any recorded package missing
+# from disk (the same self-healing boot reconciliation, run live — no restart).
 #
-# Each package is POSTed to the unoverse INTERNAL node-runtime (loopback :4106,
-# ungated — Docker-network/loopback trust boundary). That endpoint npm-installs the
-# package AND records it in Postgres (installed_plugins), so boot-time reconciliation
-# self-heals every VM afterwards. Installs are allowlist-restricted to the
-# @unoverse-platform scope server-side (install.ts ALLOWED_SCOPES).
-#
-# This is ADDITIVE (install-if-declared). It does not uninstall packages absent from
-# the list — remove those deliberately if needed.
+# There is NO package list here or anywhere else on disk: the DB is the only source
+# of truth. Additive — it does not uninstall packages absent from the DB.
 #
 # Usage (via CLI — recommended):
 #   unoverse deploy marketplace
 #
 # Usage (direct ansible):
-#   ansible-playbook -i inventory/production.yml playbooks/install-marketplace.yml \
-#     -e "marketplace_packages_csv=@unoverse-platform/openai,@unoverse-platform/pinecone"
+#   ansible-playbook -i inventory/production.yml playbooks/install-marketplace.yml
 
-- name: Install marketplace node packages
+- name: Reconcile marketplace node packages against the DB
   hosts: all
   become: yes
 
   vars:
-    # Runtime (internal, loopback-only) — where install/uninstall/list live ungated.
+    # Runtime (internal, loopback-only) — install/uninstall/reconcile live ungated here.
     unoverse_internal: "http://127.0.0.1:4106"
-    # CSV → trimmed list, keeping only @unoverse-platform packages (the allowlist). An
-    # empty/unset CSV collapses to [] because the empty split entry fails the match.
-    marketplace_packages: >-
-      {{ (marketplace_packages_csv | default(''))
-         .split(',') | map('trim')
-         | select('match', '^@unoverse-platform/') | list }}
 
   tasks:
-    - name: "Packages declared for this deployment"
-      debug:
-        msg: "{{ marketplace_packages if (marketplace_packages | length > 0) else 'none — MARKETPLACE_PACKAGES is empty, nothing to install' }}"
-
     - name: "Unoverse internal runtime is reachable"
       uri:
         url: "{{ unoverse_internal }}/health"
@@ -49,32 +34,21 @@
       retries: 5
       delay: 3
       until: rt_health.status is defined and rt_health.status == 200
-      when: marketplace_packages | length > 0
 
-    - name: "Install each declared package (npm install + persist to Postgres)"
+    - name: "Reconcile installed packages from the DB (install any missing from disk)"
       uri:
-        url: "{{ unoverse_internal }}/plugins/install"
+        url: "{{ unoverse_internal }}/plugins/reconcile"
         method: POST
-        body_format: json
-        body:
-          name: "{{ item }}"
         status_code: 200
-        timeout: 180
-      loop: "{{ marketplace_packages }}"
-      loop_control:
-        label: "{{ item }}"
-      register: install_results
-      when: marketplace_packages | length > 0
+        timeout: 300
+      register: reconcile
 
-    - name: "=== MARKETPLACE INSTALL COMPLETE ==="
+    - name: "=== MARKETPLACE RECONCILE COMPLETE ==="
       debug:
         msg: |
           ============================================
-          MARKETPLACE NODES INSTALLED
+          MARKETPLACE RECONCILED AGAINST THE DB
           ============================================
-          {% for r in (install_results.results | default([])) %}
-          {{ r.item }} → {{ 'OK (' ~ (r.json.nodes | default([]) | length) ~ ' nodes)' if (r.status | default(0)) == 200 else 'FAILED' }}
-          {% endfor %}
+          Installed (per DB): {{ reconcile.json.installed | default([]) | join(', ') | default('none', true) }}
           ============================================
-          Persisted to Postgres — fresh VMs self-heal these on boot.
-      when: marketplace_packages | length > 0
+          The DB is the source of truth; this box now matches it.
