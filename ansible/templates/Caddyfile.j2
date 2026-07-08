@@ -3,16 +3,6 @@
 #
 # Mode: {% if caddy_behind_lb %}Behind Load Balancer (HTTP only){% else %}Direct (TLS via Lets Encrypt){% endif %}
 
-# Global options — DISABLE HTTP/3 (QUIC). QUIC runs over UDP 443 and is unreliable behind
-# cloud firewalls / networks that don't cleanly pass UDP 443, which surfaces in the browser
-# as ERR_QUIC_PROTOCOL_ERROR / QUIC_PACKET_READ_ERROR (esp. on the api.<domain> XHR calls).
-# Force stable HTTP/1.1 + HTTP/2 over TCP 443.
-{
-    servers {
-        protocols h1 h2
-    }
-}
-
 {% if caddy_behind_lb %}
 # Behind Load Balancer - HTTP only (LB terminates TLS)
 :80 {

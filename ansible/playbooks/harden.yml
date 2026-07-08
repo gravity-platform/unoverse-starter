@@ -17,8 +17,6 @@
       - { port: 22, proto: tcp } # SSH
       - { port: 80, proto: tcp } # HTTP (redirect to HTTPS)
       - { port: 443, proto: tcp } # HTTPS
-      - { port: 443, proto: udp } # HTTP/3 (QUIC) — Caddy serves h3; without UDP 443 open,
-                                  # browsers hit ERR_QUIC_PROTOCOL_ERROR (QUIC blocked)
 
     # Internal ports (only from load balancer / internal network)
     internal_ports:
