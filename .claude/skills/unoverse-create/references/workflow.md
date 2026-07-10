@@ -12,11 +12,13 @@ in the developer's browser as you build.
 2. **The MCP is connected**: `unoverse-builder` should show connected with 14 tools.
    If it shows failed, the platform wasn't up when the session started — reconnect
    via `/mcp` after starting it.
-3. **The developer gives you a workflow id.** Ask them to create a **new empty
-   workflow in Canvas** (http://localhost:3001) and paste its id (`wf-xxxxxx`, from
-   the Canvas URL). There is deliberately no way to list or discover workflows from
-   here — the id must come from the developer. Prefer a fresh workflow: saves are
-   provenance-scoped, so wiring into nodes you didn't create may be rejected.
+3. **The developer gives you a pairing code.** Ask them to open a **new empty
+   workflow in Canvas** (http://localhost:3001), click **"Connect agent"** in the
+   toolbar, and paste the short code it shows (e.g. `FW9D-6QKA`). The code binds you
+   to that one workflow — single use, expires in 10 minutes. There is deliberately no
+   way to list or discover workflows from here — the code must come from the developer.
+   Prefer a fresh workflow: saves are provenance-scoped, so wiring into nodes you
+   didn't create may be rejected.
 
 ## The contract
 
@@ -44,7 +46,7 @@ in the developer's browser as you build.
 
 | Symptom | Cause / fix |
 |---|---|
-| Every tool returns "No workflow bound" | Call `bindWorkflow` with the id the developer gave you |
-| Bind fails "not found in database" | Wrong/mistyped id — ask the developer to re-copy it from the Canvas URL |
+| Every tool returns "No workflow bound" | Call `bindWorkflow` with the pairing code from Canvas "Connect agent" |
+| Bind fails "invalid or expired pairing code" | Codes are single-use + 10-min TTL — ask the developer to click "Connect agent" again for a fresh one |
 | Tool calls error after working earlier | The platform restarted mid-session — `/mcp` → reconnect |
 | saveWorkflow rejects an edge into an existing node | Provenance guard: that node wasn't built this session — build on a fresh workflow, or recreate the stage yourself |
