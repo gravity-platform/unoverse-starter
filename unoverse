@@ -47,6 +47,8 @@ source "$GRAVITY_LIB/doctor.sh"
 source "$GRAVITY_LIB/dev.sh"
 source "$GRAVITY_LIB/build.sh"
 source "$GRAVITY_LIB/check.sh"
+source "$GRAVITY_LIB/lint.sh"
+source "$GRAVITY_LIB/new.sh"
 source "$GRAVITY_LIB/dashboard.sh"
 source "$GRAVITY_LIB/help.sh"
 source "$GRAVITY_LIB/open.sh"
@@ -76,6 +78,9 @@ case "${1:-}" in
   db-verify) cmd_db_verify ;;
   deploy)    cmd_deploy "${2:-}" ;;
   build)     cmd_build "${2:-}" ;;
+  gendesign) cmd_gendesign ;;
+  lint)      cmd_lint "${2:-}" ;;
+  new)       shift; cmd_new "$@" ;;
   open)      cmd_open "${2:-}" ;;
   help|--help|-h) cmd_help ;;
   "")        cmd_dashboard ;;

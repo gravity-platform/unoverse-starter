@@ -9,10 +9,10 @@
       "children": [
         {
           "type": "Box",
-          "style": { "direction": "row", "align": "center", "gap": "sm", "padding": ["2", "4"], "radius": "full", "background": "action.subtle" },
+          "style": { "direction": "row", "align": "center", "gap": "md", "padding": ["3", "5"], "radius": "full", "background": "surface.base", "border": "subtle", "shadow": "sm" },
           "children": [
-            { "type": "Box", "style": { "width": "2", "height": "2", "radius": "full", "background": "action.primary", "animation": { "name": "wave", "duration": "1s", "easing": "ease-in-out" } } },
-            { "type": "Text", "bind": { "value": "userSpeakingLabel" }, "style": { "font": "body.sm", "color": "action.primary" } }
+            { "type": "Box", "style": { "width": "2", "height": "2", "radius": "full", "background": "action.primary", "animation": { "name": "dotPulse", "duration": "1.4s", "easing": "ease-in-out" } } },
+            { "type": "Text", "bind": { "value": "userSpeakingLabel" }, "style": { "font": "body.sm", "weight": "medium", "color": "action.primary" } }
           ]
         }
       ]

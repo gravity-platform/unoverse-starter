@@ -1,6 +1,8 @@
 ---
 name: complaints-handling
-description: Guide for handling customer complaints professionally, with empathy and clear escalation paths. Use when customers express frustration, dissatisfaction, or want to make a formal complaint.
+title: Complaints Handling
+description: Guide for handling customer complaints professionally, with empathy and clear escalation paths.
+whenToUse: Handle an unhappy customer — a complaint, frustration, dissatisfaction, or a request to escalate or speak to a manager. Acknowledges feelings first, then resolves or escalates with a clear path.
 version: 1.0.0
 category: ai
 triggers:

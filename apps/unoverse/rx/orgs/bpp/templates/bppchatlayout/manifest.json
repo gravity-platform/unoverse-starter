@@ -1,9 +1,10 @@
 {
   "name": "BPP Assistant",
-  "description": "The BPP Assistant — greets the learner with AI-guided journeys (find a course, qualifications, apprenticeships) and answers questions about BPP courses, professional qualifications and apprenticeships. The default conversational surface for BPP.",
+  "description": "The BPP learning-support chat for questions about studying with BPP.",
+  "whenToUse": "Ask BPP a question or get general guidance about studying — the conversational home and fallback for learners. Choosing the right course or journey has its own focused finder; everything else starts here.",
   "category": "Assistant",
   "version": "1.0.0",
-  "mode": "template",
+  "defaultState": "template",
   "width": "70vw",
   "inputSchema": {
     "type": "object",

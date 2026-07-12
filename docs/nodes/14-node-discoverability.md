@@ -1,6 +1,8 @@
-# 14 — Node Discoverability: writing meta the AI will actually pick
+# 14 — Discoverability: writing meta the AI will actually pick
 
 > **This is critical, not cosmetic.** A node that works perfectly but never gets *selected* by the workflow-building agent (UNO / Universe Copilot) is dead code. Discoverability is decided entirely by three string fields on the node definition — `name`, `description`, `whenToUse` — and the `category`. Getting them wrong silently buries a specialized node under a generic one. This doc is the authoritative guide for those fields; `whenToUse` in particular.
+
+> **This contract is NOT nodes-only.** Templates (MCP apps) and agent skills are embedded into spatial and selected by *user intent* (`findIntent`) with the **same fields and the same formula** — every rule in this doc applies to them verbatim. See the final section, "Templates and skills use this contract too."
 
 ---
 
@@ -112,3 +114,50 @@ This supersedes the old "always lead with *attach via a service edge*" guidance.
 5. Is every claim grounded in the code, not in what the node sounds like it does?
 
 > Marketplace nodes are ranked off the **live registry** (Redis-registered package nodes). Editing the source isn't enough — rebuild, republish, and let unoverse reconcile before the new meta affects selection.
+
+---
+
+## Templates and skills use this contract too
+
+Nodes are selected by a *planner's task query*; **templates (MCP apps) and agent skills are selected by the USER'S OWN INTENT** — the spatial engine (`findIntent`) ranks them against what the user literally asks for ("transfer money to Kieran", "I want to complain"). Same fields, same formula, higher stakes: mechanism-first meta makes an entire app invisible.
+
+**Where the fields live:**
+
+| Artifact | Meta lives in | Embedded discovery text |
+| --- | --- | --- |
+| Node | node definition (`node/index.ts`) | `` `${name}. ${whenToUse \|\| description} [${category}]` `` |
+| Template / MCP app | `manifest.json` in the template folder | `` `${title}. ${whenToUse \|\| description} [${category}]` `` |
+| Agent skill | `SKILL.md` frontmatter | `name + whenToUse + description + instructions` (full text) |
+
+**One job per field — never blend them:**
+
+- `name` — human display name ("Bank Transfer").
+- `description` — what it **is** (shows in listings). No "use when…" inside it, and **one short line (≤ 120 chars)** — it's the listing subtitle, not a spec; detail belongs in `whenToUse`/instructions.
+- `whenToUse` — the **selection text**. For templates/skills, write it in the **end user's vocabulary**, not a developer's: lead with what the user would say ("Transfer or send money — pay a beneficiary or move funds…"), never with the layout or mechanism ("Two-column split: streamed text + card on the left…" ranks near *layout* concepts and loses every intent query).
+
+**Utterance-shaped, never selector-shaped.** Nodes are picked by a planner, so "Pick when a step needs X" works there. Templates/skills are ranked against the user's OWN message — so phrases like "Pick when the user asks to…" are dev-framing that dilutes the embedding with words no user ever types. Write the words the user would actually say:
+
+```jsonc
+// ❌ selector-shaped (instructions to an agent about "the user")
+"whenToUse": "Pick when the user asks to talk, use voice, or wants a phone-style assistant."
+
+// ✅ utterance-shaped (the user's own vocabulary)
+"whenToUse": "Talk to the assistant by voice — a live, hands-free audio call instead of typing."
+```
+
+Watch for **cross-artifact collisions** too: a voice surface claiming "asks to talk / speak" poaches *human-agent* intents ("speak to someone" belongs to live support / complaints). Own the modality or the job — cede the neighbor by property.
+- `category` — the domain of the job (Payments, Cards, Assistant, …).
+
+**The generalist trap (chat homes / assistant surfaces).** A default/fallback surface must NOT enumerate its siblings' jobs ("ask about cards, transfers, …") — that vocabulary makes it outrank the focused apps for *their* intent queries. A fallback owns *general help, questions, reaching a person*, and cedes specific jobs by property, naming none:
+
+```jsonc
+// ❌ poaches the focused apps' queries
+"whenToUse": "Chat with the assistant — ask about accounts, cards, transfers or any banking question."
+
+// ✅ owns the fallback, cedes by property
+"whenToUse": "Ask a banking question or get general help from customer support — including reaching a live agent. The conversational home and fallback: specific jobs like moving money or choosing a product have their own focused apps; everything else starts here."
+```
+
+**Registry meta embeds AS-IS** — no LLM rewrite ("convert-to-need") for templates or skills; what you author is exactly what ranks. Editing `whenToUse` changes the content hash, so the item re-embeds on the next train. The reconcile warns for any enabled template missing `whenToUse`.
+
+Authoring homes for the details: `docs/unoverse/UNOVERSE_AUTHORING.md` §8 (templates) and the `unoverse-create` skill's `references/template.md` / `references/agent-skill.md`.

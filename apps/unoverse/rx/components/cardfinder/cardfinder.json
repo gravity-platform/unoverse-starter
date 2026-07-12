@@ -7,7 +7,7 @@
   "description": "An interactive card-recommendation finder: a guided questionnaire of eligibility and preference questions with a phase stepper and progress bar, an eligibility summary, then a best-fit result card — match score, card name and image, key benefits, annual fee, tier, and why-it-fits reasons — beside a hero image.",
   "whenToUse": "Help a user find or choose the right card by answering a few eligibility and preference questions, then present a personalised best-fit recommendation with a match score and reasons. Pick when the outcome is a guided question-and-answer flow that ends in a single tailored recommendation.",
   "props": {
-    "displayState": { "type": "string", "default": "focused" },
+    "defaultState": { "type": "string", "default": "focused" },
     "focusable": { "type": "boolean", "default": true },
     "focusLabel": { "type": "string", "default": "Card Finder" },
     "inlinePrimary": { "type": "string", "default": "Find your perfect card" },
@@ -129,8 +129,8 @@
     "children": [
       {
         "type": "Button",
-        "visibleWhen": { "field": "displayState", "eq": "inline" },
-        "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "focused" }], "then": { "type": "setTemplateValue", "values": [{ "key": "mode", "value": "focus" }] } },
+        "visibleWhen": { "field": "defaultState", "eq": "inline" },
+        "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "focused" }], "then": { "type": "setTemplateValue", "values": [{ "key": "defaultState", "value": "focus" }] } },
         "style": { "position": "relative", "cursor": "pointer", "padding": "0", "direction": "row", "align": "stretch", "width": "full", "maxWidth": "140", "minHeight": "40", "background": "surface.base", "border": "subtle", "radius": "xl", "shadow": "sm", "overflow": "hidden", "transition": "all 150ms ease", "hover": { "shadow": "md" } },
         "children": [
           {
@@ -196,7 +196,7 @@
       },
       {
         "type": "Box",
-        "visibleWhen": { "field": "displayState", "ne": "inline" },
+        "visibleWhen": { "field": "defaultState", "ne": "inline" },
         "style": { "position": "relative", "width": "full", "height": "full", "minHeight": "160", "container": "inline-size", "direction": "row", "background": "surface.base", "overflow": "hidden" },
         "children": [
       {
@@ -312,7 +312,7 @@
           { "type": "Image", "bind": { "src": "heroImage", "alt": "headerTitle" }, "style": { "width": "full", "height": "full", "fit": "cover" } }
         ]
       },
-      { "type": "Ref", "ref": "close-button", "visibleWhen": "focusable", "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "inline" }], "then": { "type": "setTemplateValue", "values": [{ "key": "mode", "value": null }] } }, "style": { "position": "absolute", "inset": "0 0 auto auto", "margin": "4" } }
+      { "type": "Ref", "ref": "close-button", "visibleWhen": "focusable", "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "inline" }], "then": { "type": "setTemplateValue", "values": [{ "key": "defaultState", "value": null }] } }, "style": { "position": "absolute", "inset": "0 0 auto auto", "margin": "4" } }
         ]
       }
     ]

@@ -36,14 +36,21 @@ the playbook covers the bind/build/test contract.
 If it's ambiguous (e.g. "add a card that shows weather"), it's usually a **component**
 (the UI) plus possibly a **node** (the data source) — confirm the scope with the user.
 
+**New to design artifacts?** The guided learning journey at `docs/design/` (README →
+01-quick-start → … → 09-troubleshooting) teaches components, templates, the state model
+(incl. locked voice/native state), tokens, Studio, and validation in order;
+`docs/design/CLAUDE.md` is the condensed agent rulebook. The playbooks here assume that
+material.
+
 ## Step 2 — Hard rules (apply to every artifact)
 
 1. **Only edit the three carve-out folders.** Never touch, vendor, or work around the
    SDK, engine, or server — they are not yours to change. If a task seems to require an
    SDK change, the answer is almost always "express it as data" — re-read the playbook.
-2. **Docs are the source of truth.** The playbooks point at `docs/unoverse/` and
-   `docs/nodes/` in this repo. When the user's request goes beyond the playbook, read
-   the pointed doc section — do not improvise conventions.
+2. **Docs are the source of truth.** The playbooks point at `docs/design/` (the design
+   journey), `docs/unoverse/` (deep reference), and `docs/nodes/` in this repo. When the
+   user's request goes beyond the playbook, read the pointed doc section — do not
+   improvise conventions.
 3. **UI is data.** No pixels, hex colors, or CSS anywhere — token names only. No logic
    in definitions — anything computed (totals, formatting, chosen colors) is computed in
    the node and sent as a plain field.
@@ -52,9 +59,14 @@ If it's ambiguous (e.g. "add a card that shows weather"), it's usually a **compo
 
 ## Step 3 — Deploy loop (after the artifact is written)
 
+Scaffold design artifacts with `./unoverse new component <name>` / `./unoverse new template
+<org> <name>` (conformant skeleton), and ALWAYS run `./unoverse lint` before deploying —
+it enforces the schema, token law, and state rules with doc-cited messages (0 errors
+required; justify any warning).
+
 | Artifact | To see it live |
 |---|---|
-| Component / atom / template / style | `./unoverse gendesign` — regenerates component nodes + restarts |
+| Component / atom / template / style | `./unoverse lint`, then `./unoverse gendesign` — regenerates component nodes + restarts |
 | Existing component restyle/edit only | takes effect live (SDK reads `rx/` directly) |
 | Agent skill / prompt block | `docker compose restart unoverse` |
 | Node | `./unoverse build @unoverse-platform/<pkg>` (or `./unoverse update nodes` for all) |
@@ -63,4 +75,5 @@ Verify with `./unoverse check` (services, node catalog, bundles). Preview compon
 the Studio: set `UNOVERSE_WORKBENCH=1` on the `unoverse` service, open the API port.
 
 > In the platform monorepo (not the starter), the node docs live at
-> `docs-starter/nodes/` and the dev loop is `npm run dev` + `npm run nodegen:local`.
+> `docs-starter/nodes/`, the design journey at `docs-starter/design/`, and the dev loop
+> is `npm run dev` + `npm run nodegen:local`.

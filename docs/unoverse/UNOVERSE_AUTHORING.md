@@ -27,7 +27,7 @@ never *how to move between states* (that's just `setValue` writing a field, then
 
 | React | Unoverse definition |
 |---|---|
-| `useState` | a field in the component's data slice (`step`, `displayState`) |
+| `useState` | a field in the component's data slice (`step`, `defaultState`) |
 | `setState(...)` | `action: { "type": "setValue", "values": [...] }` |
 | re-render on change | the store notifies → the renderer **redraws the whole tree** |
 | `{cond && <X/>}` | **`visibleWhen`** |
@@ -77,7 +77,7 @@ the workbench renders):
 ```jsonc
 "props": {
   "title":        { "type": "string", "default": "Lightsaber Combat Training" },
-  "displayState": { "type": "string", "default": "inline" },     // a view-state field
+  "defaultState": { "type": "string", "default": "inline" },     // a view-state field
   "step":         { "type": "string", "default": "source" },     // a discriminant
   "accounts":     { "type": "array",  "input": true, "default": [ /* mock rows */ ] }
 }
@@ -115,17 +115,17 @@ A focusable card that expands inline → focused. File: `rx/components/mywidget/
   "props": {
     "title":        { "type": "string", "default": "My widget" },
     "detail":       { "type": "string", "default": "The expanded detail goes here." },
-    "displayState": { "type": "string", "default": "inline" },
+    "defaultState": { "type": "string", "default": "inline" },
     "focusable":    { "type": "boolean", "default": true }
   },
   "root": {
     "type": "Switch",
-    "on": "displayState",
+    "on": "defaultState",
     "cases": {
       "inline": {
         "type": "Button",
         "visibleWhen": "focusable",
-        "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "focused" }] },
+        "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "focused" }] },
         "style": { "direction": "row", "align": "center", "gap": "3", "padding": "4", "radius": "lg", "border": "subtle" },
         "children": [{ "type": "Text", "bind": { "value": "title" }, "style": { "font": "body.md", "weight": "semibold", "color": "text.primary" } }]
       },
@@ -137,7 +137,7 @@ A focusable card that expands inline → focused. File: `rx/components/mywidget/
           { "type": "Text", "bind": { "value": "detail" }, "style": { "font": "body.md", "color": "text.secondary" } },
           {
             "type": "Ref", "ref": "close-button",
-            "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "inline" }] }
+            "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "inline" }] }
           }
         ]
       }
@@ -146,7 +146,7 @@ A focusable card that expands inline → focused. File: `rx/components/mywidget/
 }
 ```
 
-That's a complete, stateful component: `displayState` is the state, `Switch` picks the view,
+That's a complete, stateful component: `defaultState` is the state, `Switch` picks the view,
 `setValue` flips it, the renderer redraws. Drop the folder in `rx/components/` — it's
 discoverable immediately (no registration).
 
@@ -192,8 +192,8 @@ A "state" is just field values in one of three buckets (full detail:
 
 | Bucket | Holds | Write with |
 |---|---|---|
-| **Component state** | one slice per component — data **and** its view-state (`step`, `displayState`) | `setValue` (or streamed `COMPONENT_DATA`) |
-| **Template state** | the template's bag — `draft` + dev-named keys (`openPanel`, `focusMode`) | `setTemplateValue` |
+| **Component state** | one slice per component — data **and** its view-state (`step`, `defaultState`) | `setValue` (or streamed `COMPONENT_DATA`) |
+| **Template state** | the template's bag — `draft` + dev-named keys (`openPanel`) + the standard `defaultState` key (`"focus"`) | `setTemplateValue` |
 | **Conversation** | the turn timeline; `isStreaming`/`isEmpty` are **derived**, not stored | the stream |
 
 You pick the key **and** the bucket — the SDK hardcodes no UI concept.
@@ -265,7 +265,7 @@ conversation go, using two template-only primitives.
   ```
   Selection is **timeline-ordered, oldest first**: `from: "all"` walks every turn's
   components from the start of the conversation and `limit` slices from the front. A
-  global slot (e.g. a `mode: "focus"` surface) must therefore **pin `type`** — an
+  global slot (e.g. a `defaultState: "focus"` surface) must therefore **pin `type`** — an
   untyped `{ "from": "all", "limit": 1 }` shows the conversation's *first-ever*
   component forever, and the component the workflow just streamed in never surfaces.
   (It only looks right in a fresh conversation, where newest and oldest coincide.)
@@ -284,7 +284,8 @@ conversation go, using two template-only primitives.
 ```jsonc
 {
   "name": "Acme Smart Assistant",
-  "description": "…",
+  "description": "…",              // human "what it is" — shows in the Content library list
+  "whenToUse": "…",                // SELECTION text — see "Template discoverability" below
   "category": "Assistant",
   "version": "1.0.0",
   "inputSchema": { "type": "object", "properties": { "message": { "type": "string" } } },
@@ -298,7 +299,25 @@ conversation go, using two template-only primitives.
 }
 ```
 
-**`type` is the one signal the router branches on.** `template` → the channel **swaps the whole surface** (`resources/read unoverse://templates/<app>`); the conversation survives because the template owns nothing. `component` → the channel **does NOT swap**; it fires the binding (`autoTrigger`), and the workflow streams the component into the **current** chat history at `chatId:nodeId`, rendered inline by the active template's `Timeline`/`ComponentSlot` (the component self-manages focus via `displayState` `inline`↔`focused`). What streams is **whatever the workflow emits** — `previewComponents` only says what to expect. See `UNOVERSE_MCP_TEMPLATE_PROTOCOL.md` §4b.
+**`type` is the one signal the router branches on.** `template` → the channel **swaps the whole surface** (`resources/read unoverse://templates/<app>`); the conversation survives because the template owns nothing. `component` → the channel **does NOT swap**; it fires the binding (`autoTrigger`), and the workflow streams the component into the **current** chat history at `chatId:nodeId`, rendered inline by the active template's `Timeline`/`ComponentSlot` (the component self-manages focus via `defaultState` `inline`↔`focused`). What streams is **whatever the workflow emits** — `previewComponents` only says what to expect. See `UNOVERSE_MCP_TEMPLATE_PROTOCOL.md` §4b.
+
+### Template discoverability — `whenToUse` (essential, like nodes)
+
+Templates are added to spatial and discovered by intent (`findIntent`), exactly like MCP
+tools and nodes. Discovery embeds `` `${title}. ${whenToUse || description} [${category}]` ``
+— the **same contract as the node catalog**, so the same writing rules apply
+(`docs-starter/nodes/14-node-discoverability.md`):
+
+- **`whenToUse` is the selection text** — when present it *replaces* `description` in the
+  embedding. Write it **outcome-first in the user's vocabulary** ("Transfer or send money —
+  pay a beneficiary or move funds…"), never mechanism-first ("Two-column split layout…" ranks
+  near layout concepts, not near what users ask for — the template becomes invisible).
+- **`description` stays the human "what it is"** (the Content library list line).
+- Disqualify by **property**, never by naming a sibling template.
+- The manifest wins over the template def for every meta field; the reconcile warns for any
+  enabled template missing `whenToUse`. Registry items embed their authored meta **AS-IS**
+  (no LLM convert-to-need). Editing `whenToUse` changes the content hash → re-ingests on the
+  next train.
 
 ---
 
@@ -321,7 +340,7 @@ Run each definition against these. A "no" is a finding to fix.
 - [ ] Workflow-fed fields are marked **`input: true`**; the rest are static content/config.
 
 **State & reactivity (the heart)**
-- [ ] State is a **few shallow discriminants** (`step`, `displayState`) — not a soup of booleans.
+- [ ] State is a **few shallow discriminants** (`step`, `defaultState`) — not a soup of booleans.
 - [ ] **Whole-view swaps use `Switch`** (one place), **not** N siblings each with `visibleWhen eq`.
 - [ ] **Conditional styling uses `style.when`** — **no element cloned** under opposite
       `eq`/`ne` `visibleWhen`s just to change a style.
@@ -380,7 +399,11 @@ token** in your org's `styles/` and reference it — never inline it.
 ## 12. Seeing your states (workbench)
 
 Because a state is just field values, the workbench shows any state by setting those fields and
-letting the design react. The Storybook-style **state picker** (Mock mode) reads a small
-`*.states.json` fixture naming useful combinations — e.g.
-`"Step 3 – Amount": { "displayState": "focused", "step": "amount" }`. The fixture is the only
-new artifact; the design already reacts.
+letting the design react. The Storybook-style **state picker** (Mock mode) is the definition's
+own **`states/` folder** (`UNOVERSE_LAYERS.md` §7 — the folder IS the registry): one pill per
+layer file, for templates AND components. Clicking a pill activates the state by setting its
+selector — a template state's `visibleWhen`, or (component wizard steps) the root `Switch`
+discriminant whose case matches the state's name. Mock data comes from prop `default`s. No
+fixture file exists — add a state file and the pill appears everywhere (workbench + the served
+manifest's `states` projection) with nothing to register. (The earlier `*.states.json` fixture
+mechanism is retired — nothing reads it.)

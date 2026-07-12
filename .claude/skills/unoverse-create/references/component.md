@@ -2,7 +2,8 @@
 
 **Read first:** `docs/unoverse/UNOVERSE_AUTHORING.md` §1–§7 (mental model, envelope,
 props/bind, walkthrough, composition, state, the four moves). This playbook is the
-workflow; that doc is the law.
+workflow; that doc is the law. If the model or the state rules are unfamiliar, the
+guided path is `docs/design/` (esp. `03-components.md` and `04-state.md`).
 
 ## Where files go
 
@@ -29,7 +30,7 @@ case-insensitive by filename.
    - Leaves: `Text` `Image` `Button` `Input` `Markdown` `Skeleton` `Icon`
    - Helpers: `Ref` (atom), `$include` (sibling file)
    There is no Chart/Card/Loader leaf — compose them from `Box` + `Each` + data.
-5. **State = a few shallow discriminants** (`step`, `displayState`), not boolean soup.
+5. **State = a few shallow discriminants** (`step`, `defaultState`), not boolean soup.
    The four moves: `visibleWhen` (small show/hide), `Switch` (whole-view swap),
    `Each` (repeat over data), `style.when` (same element restyles). Never clone an
    element under opposite `eq`/`ne` conditions just to change a style.
@@ -52,5 +53,7 @@ it — never inline it. Never invent component-named tokens (`cardMin`, `tile`).
 2. **Audit** against the conformance checklist — AUTHORING §9, every box.
 3. `./unoverse gendesign` to (re)generate the component's node and restart; restyles of
    existing components take effect live.
-4. Preview states in the Studio; a `*.states.json` fixture names useful state
-   combinations (AUTHORING §12).
+4. Preview in the Studio: mock renders from prop `default`s, and the component's
+   `states/` folder IS the state picker (one pill per layer, activated via the root
+   `Switch` discriminant — AUTHORING §12 / LAYERS §7). Never create `*.states.json`
+   fixtures — nothing reads them.

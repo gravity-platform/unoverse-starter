@@ -82,7 +82,8 @@ and approve the `unoverse-builder` server the first time Claude Code asks.
 |---|---|
 | [`docs/onboarding/`](docs/onboarding/README.md) | guided path through your first agent, node, component, and deploy |
 | [`docs/nodes/`](docs/nodes/README.md) | complete node development guide (types, patterns, credentials, testing) |
-| `docs/unoverse/` | UI authoring: components & templates ([AUTHORING](docs/unoverse/UNOVERSE_AUTHORING.md)), state ([STATE_MODEL](docs/unoverse/UNOVERSE_STATE_MODEL.md)), layers, conformance |
+| [`docs/design/`](docs/design/README.md) | the design learning journey: build components & templates as SDUI data, state model, tokens, Studio, validate & ship |
+| `docs/unoverse/` | deep reference behind the journey ([AUTHORING](docs/unoverse/UNOVERSE_AUTHORING.md), [STATE_MODEL](docs/unoverse/UNOVERSE_STATE_MODEL.md), layers, conformance) |
 | [`docs/runbooks/`](docs/runbooks/README.md) | operations: database, hardening, HTTPS, observability, restarts |
 
 ## Platform commands

@@ -33,7 +33,7 @@ violation — see §8.
 |---|---|---|---|
 | **Conversation** | the timeline of turns (user + assistant); each assistant turn points at the components it produced; the turn's status (streaming / complete); **the voice transcript (what was said)** | the conversation | the stream; the voice service (transcript) |
 | **Component state** | one slice per component — its live data **and** its own view state (tab, edit mode, wizard step, expand/collapse) | the component's **unique id** | streamed `COMPONENT_DATA`, or locally via the `setValue` action |
-| **Template state** | the active template's own bag — **draft** plus any keys the dev names: e.g. `openPanel` (disclosure), suggestion/FAQ data, a `focusMode` flag, **voice call state** (connecting / speaking / muted) | the active template | the workflow; `setTemplateValue` actions; producer services (voice call state) |
+| **Template state** | the active template's own bag — **draft** plus any keys the dev names: e.g. `openPanel` (disclosure), suggestion/FAQ data, the `defaultState` key (`"focus"`), **voice call state** (connecting / speaking / muted) | the active template | the workflow; `setTemplateValue` actions; producer services (voice call state) |
 
 ### The whole write API — two generic actions
 
@@ -86,6 +86,16 @@ template state** and **transcript → conversation**. The template reads voice s
 **same way** it reads `draft` or `suggestions` — there is no voice-specific path and no
 voice name in `core`. (The dead in-`core` voice machine has already been removed.)
 
+**The standard call-phase field — `callState`.** So a voice template branches its
+call-phase states off **one** value (exactly like `defaultState` for focus, §5a), the service
+projects a single derived `callState`: **`idle` · `active` · `agentSpeaking` ·
+`userSpeaking`** (from `connectionStatus` + the speaking flags — agent wins over user on
+barge-in). The template's states are then `visibleWhen: { field: "callState", eq: "…" }`
+— the phase axis — while `defaultState: "focus"` is the orthogonal surface axis. The channel
+spreads the service's flat state (incl. `callState`) into the scope via `props`, so any
+voice template keys off the same vocabulary with zero per-template wiring. The raw booleans
+(`isAssistantSpeaking`, `isMuted`, …) stay available for finer reads (e.g. a mute icon).
+
 > **The rule services follow:** a service may *own native I/O*, but its *state lives in
 > the normal buckets*. If state that drives UI lives only inside a service hook, that is
 > the same leak as a feature name in `core` — surfaced as a props side-channel instead
@@ -99,51 +109,52 @@ There is **no focus concept in the SDK** — no `focusedId`, no derivation, no v
 mode" is built like anything else, and the dev picks where the state lives:
 
 - **A self-expanding widget** (a product finder, a transfer wizard) → its focused/inline look is
-  **its own state**: `setValue { displayState: "focused" | "inline" }` into its slice, read
-  via `visibleWhen: { field: "displayState", … }`. One component, its own business.
+  **its own state**: `setValue { defaultState: "focused" | "inline" }` into its slice, read
+  via `visibleWhen: { field: "defaultState", … }`. One component, its own business.
 - **A screen-wide "something is focused" signal** (e.g. hide the chat input while a widget
-  is expanded) → a **template-state** key the dev names: `setTemplateValue { focusMode: true }`,
-  read via `visibleWhen`. A widget can chain both with `then` — set its own `displayState`,
+  is expanded) → the **template-state** key **`defaultState`** (a value, not a boolean — §5a; renamed from `mode`, July 2026):
+  `setTemplateValue { defaultState: "focus" }`, read via `visibleWhen: { field: "defaultState", eq: "focus" }`.
+  A widget can chain both with `then` — set its own `defaultState`,
   *then* flag the template.
 
 The SDK neither stores nor derives focus — it just moves the dev's keys. (An earlier
-`focusedId` / renderer-derived-`displayState` design was removed: it hardcoded a focus
+`focusedId` / renderer-derived-`defaultState` design was removed: it hardcoded a focus
 concept, which is exactly what this model forbids.)
 
 | Behavior | Where the dev puts it | How it's read |
 |---|---|---|
-| A widget's own focused/inline look | its slice via `setValue { displayState }` | `visibleWhen: { field: "displayState", … }` |
-| A screen-wide focus flag (hide input, etc.) | template state via `setTemplateValue { focusMode }` | `visibleWhen: "focusMode"` |
+| A widget's own focused/inline look | its slice via `setValue { defaultState }` | `visibleWhen: { field: "defaultState", … }` |
+| A screen-wide focus surface (hide input, etc.) | template state via `setTemplateValue { defaultState: "focus" }` | `visibleWhen: { field: "defaultState", eq: "focus" }` |
 
-### 5a. Focus rendering is **template-local** — same `mode`, different surface per template
+### 5a. Focus rendering is **template-local** — same `defaultState`, different surface per template
 
-The screen-wide signal is a single template-state key, **`mode`** (a *value*, not a per-feature
+The screen-wide signal is a single template-state key, **`defaultState`** (a *value*, not a per-feature
 boolean — so future modes branch with zero protocol change). *How* a mode looks is **each
-template's own business**: every template branches on `mode` (`visibleWhen: { field: "mode", eq:
+template's own business**: every template branches on `defaultState` (`visibleWhen: { field: "defaultState", eq:
 "focus" }` or a `Switch`) and renders **its own surface** — the SDK neither knows nor imposes a
 shape:
 
-| Template | `mode: "focus"` surface |
+| Template | `defaultState: "focus"` surface |
 |---|---|
 | a **chat** template | a **fluid overlay covering header→input** — a full-screen takeover laid over the conversation |
 | a **voice** template | a **right-hand focus panel** that streamed cards slide into during the call |
 
-Same `mode: "focus"`, two completely different renderings — because the surface lives in the
+Same `defaultState: "focus"`, two completely different renderings — because the surface lives in the
 template definition, not the SDK. A new template (or a new mode value) can present any way it
 likes (modal, sheet, split) with zero SDK change.
 
 **Who sets it, on load.** The **component's own node** does — derived from its meta. A widget
-that declares `displayState` default `"focused"` is a focus widget; nodegen reads that
-(`metadata.mode`) and the generated node emits `TEMPLATE_DATA { mode: "focus" }` **on publish**,
+that declares `defaultState` default `"focused"` is a focus widget; nodegen reads that
+(`metadata.defaultState` — declared in the definition, `defaultState` derivation as legacy fallback) and the generated node emits `TEMPLATE_DATA { defaultState: "focus" }` **on publish**,
 alongside its `COMPONENT_INIT`. So the active template opens its focus surface the instant the
 widget streams in — the load-time equivalent of a user expanding it. The user's own
-expand/close actions write the same key (`setTemplateValue { mode: "focus" }` / `{ mode: null }`).
+expand/close actions write the same key (`setTemplateValue { defaultState: "focus" }` / `{ defaultState: null }`).
 The **component stays fit-to-content** (its own card); the **template** decides the framing.
 
-This pairs with the **app**-level `mode` (manifest; `template` = fluid surface · `focus` = fit
+This pairs with the **app**-level `defaultState` (manifest, formerly `mode` — still read as fallback; `template` = fluid surface · `focus` = fit
 content — [`UNOVERSE_MCP_TEMPLATE_PROTOCOL.md`](./UNOVERSE_MCP_TEMPLATE_PROTOCOL.md) §4b): the
-manifest `mode` sets the app's height/routing, the streamed component's node sets the live
-`mode` template-state value the surface reads. Same vocabulary, both layers.
+manifest `defaultState` sets the app's height/routing, the streamed component's node sets the live
+`defaultState` template-state value the surface reads. Same vocabulary, both layers.
 
 ---
 
@@ -209,7 +220,7 @@ never from holding everything in the browser. The only trade-off: scrolling back
                         ├─────────────────────────────────────────────┤
    workflow         ──► │  TEMPLATE STATE   draft · the dev's keys:    │
    setTemplateValue ──► │                   openPanel · suggestions ·  │
-   voice svc (call) ──► │                   focusMode · voice state    │
+   voice svc (call) ──► │                   mode · voice state         │
                         └─────────────────────────────────────────────┘
         services (voice I/O) sit OUTSIDE — native, can't be data —
         but write their STATE into the buckets above, like any producer.
@@ -226,8 +237,8 @@ never from holding everything in the browser. The only trade-off: scrolling back
 - ✅ **Suggestions de-leaked.** No `suggestions` slice, no `SUGGESTIONS_UPDATE` case — one
   generic `TEMPLATE_DATA → mergeTemplateState`; faq-shape normalization lives in the node.
 - ✅ **Focus is no longer a concept.** A widget's focused/inline look is its own
-  `displayState` (`setValue`); a screen-wide flag is a dev-named `setTemplateValue` key. The
-  store no longer holds `focusedId`; the renderer no longer derives `displayState`.
+  `defaultState` (`setValue`); a screen-wide flag is a dev-named `setTemplateValue` key. The
+  store no longer holds `focusedId`; the renderer no longer derives `defaultState`.
 - ✅ **Voice removed from the store** — native service; its call state is a producer write.
 - ✅ **100-turn eviction** — `maxTurns` frees evicted components' data.
 - ✅ **Suggestions node emits generic `TEMPLATE_DATA`** (was `SUGGESTIONS_UPDATE`); the
@@ -236,7 +247,7 @@ never from holding everything in the browser. The only trade-off: scrolling back
   cross-MCP state**, not per-app component/template data (two-lane split — see
   `UNOVERSE_MCP_TEMPLATE_PROTOCOL.md` §5b).
 - ✅ **Defs migrated** — `suggestions.json` (panel → `setTemplateValue openPanel`), and the
-  focusable widgets + `close-button` (focus → `setValue displayState`).
+  focusable widgets + `close-button` (focus → `setValue defaultState`).
 - ✅ **Guard tests** freeze it (`core/test/state-model.test.mjs`): the source scan now fails
   the build on `faq/suggestion/voice` **and** any `togglePanel/openFocus/…` verb in `core`.
 
@@ -325,7 +336,7 @@ No bespoke REST, no custom `user_action` message. A host that hand-writes this r
 ### Rendering (`react/`)
 
 - `StreamedUnoverseComponent` (`streamed.tsx`) — renders one component from its merged slice
-  data. No focus/`displayState` injection — `displayState` is just a data field the def
+  data. No focus/`defaultState` injection — `defaultState` is just a data field the def
   wrote via `setValue`.
 - `StreamedUnoverseTemplate` (`template.tsx`) — root scope = `...getTemplateState()` +
   conversation-derived flags (`isEmpty`/`isStreaming`/…); routes `setTemplateValue`.

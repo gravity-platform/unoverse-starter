@@ -18,6 +18,7 @@
         "category": { "type": "string" },
         "description": { "type": "string" },
         "whenToUse": { "type": "string", "description": "When an author/agent should pick this (REQUIRED for components; keep generic — no hardcoded agent/workflow names)." },
+        "defaultState": { "type": "string", "description": "The named state this component opens in — an OPEN name (e.g. \"focus\"), written to template state on publish; templates branch on it by name. Omit for a plain inline component. (Legacy fallback: displayState default \"focused\" ⇒ \"focus\".)" },
         "nodeSize": { "$ref": "#/definitions/nodeSize" },
         "props": { "$ref": "#/definitions/props" },
         "outputs": { "$ref": "#/definitions/outputs" },
@@ -85,7 +86,7 @@
           "description": "The closed primitive set (UNOVERSE_AUTHORING.md §10). Adding to it is an SDK change gated by guard tests.",
           "enum": ["Box", "Stack", "Row", "Column", "Each", "Switch", "ComponentSlot", "Timeline", "Text", "Image", "Button", "Input", "Markdown", "Skeleton", "Icon", "Ref"]
         },
-        "style": { "type": "object", "description": "Token names only — never raw px/rem/#hex (LAW 1). Values live in rx/styles." },
+        "style": { "$ref": "#/definitions/style" },
         "bind": { "type": "object", "description": "targetProp → data field, e.g. { \"value\": \"title\" }." },
         "children": { "type": "array", "items": { "$ref": "#/definitions/node" } },
         "visibleWhen": { "$ref": "#/definitions/condition" },
@@ -109,6 +110,44 @@
         { "if": { "properties": { "type": { "const": "Ref" } }, "required": ["type"] }, "then": { "required": ["ref"] } },
         { "if": { "properties": { "type": { "const": "ComponentSlot" } }, "required": ["type"] }, "then": { "required": ["select"] } }
       ]
+    },
+
+    "style": {
+      "type": "object",
+      "description": "Token names only — never raw px/rem/#hex (LAW 1); values live in rx/styles. KEYS are the closed cross-platform vocabulary (the set the SDK style interpreter maps — sdk/style.ts); an unknown key is a typo or a web-ism no renderer implements.",
+      "propertyNames": {
+        "enum": [
+          "width", "height", "maxWidth", "minWidth", "minHeight", "maxHeight", "flex",
+          "padding", "margin", "gap", "overflow",
+          "position", "inset", "top", "right", "bottom", "left", "zIndex",
+          "direction", "wrap", "align", "justify", "display", "columns", "container", "hideBelow",
+          "background", "radial", "border", "borderTop", "borderRight", "borderBottom", "borderLeft",
+          "outline", "shadow", "radius", "radiusTopLeft", "radiusTopRight", "radiusBottomLeft", "radiusBottomRight",
+          "font", "weight", "lineHeight", "color", "textAlign", "fit",
+          "transform", "transition", "animation", "animationDelay", "cursor",
+          "hover", "active", "when"
+        ]
+      },
+      "properties": {
+        "hover": { "$ref": "#/definitions/style" },
+        "active": { "$ref": "#/definitions/style" },
+        "when": {
+          "type": "array",
+          "description": "Data-driven style variants: entries whose condition holds merge `apply` over the base (docs: the four moves).",
+          "items": {
+            "type": "object",
+            "required": ["field", "apply"],
+            "properties": {
+              "field": { "type": "string" },
+              "eq": {},
+              "ne": {},
+              "in": { "type": "array" },
+              "apply": { "$ref": "#/definitions/style" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
     },
 
     "condition": {

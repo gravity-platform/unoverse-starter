@@ -3,8 +3,9 @@
 **Read first:** `docs/unoverse/UNOVERSE_AUTHORING.md` §8 (templates + manifest),
 `docs/unoverse/UNOVERSE_LAYERS.md` (the blocks/ + states/ structure — the shape of every
 non-trivial template), and `docs/unoverse/UNOVERSE_STATE_MODEL.md` (the 3 state buckets,
-focus/mode). Everything in the component playbook (closed vocabulary, tokens,
-conformance) applies here too.
+focus/defaultState). Everything in the component playbook (closed vocabulary, tokens,
+conformance) applies here too. Guided path: `docs/design/05-templates.md` (templates as
+MCP Apps) and `docs/design/04-state.md` (state incl. locked voice/native state).
 
 ## What a template is
 
@@ -27,7 +28,7 @@ Templates are **org-scoped**. A rich template follows the LAYERS structure exact
 ```
 apps/unoverse/rx/orgs/<org>/templates/<name>/
   <name>.json        # ROOT — the selector: Switch on the discriminant + always-on shell
-  manifest.json      # the app contract (binding, type, …)
+  manifest.json      # the app contract (binding, defaultState, …)
   states/            # one thin file per LAYER (welcome, conversation, focus…)
   blocks/            # shared shapes (header, user-turn, composer-bar…) — see rule below
 ```
@@ -61,27 +62,58 @@ org folder name becomes the address: apps are `unoverse://apps/<org>/<name>`, th
 
 ## manifest.json (the app contract)
 
-Required: explicit **`type`** (`"template"` = swaps the whole surface · `"component"` =
-streams into the current chat history) and **`binding`** (`workflow` + `trigger`).
+Required: **`defaultState`** (the named state the app LOADS in — an OPEN name the org's
+templates branch on: `"template"` = swaps the whole surface · `"focus"` = opens taken-over ·
+`"component"` = inline card in the timeline · or any new name you design for) and
+**`binding`** (`workflow` + `trigger`). `type`/`fluidHeight` are legacy DERIVED fields —
+never author them; `mode` is the pre-rename alias of `defaultState` (still read, don't write).
+
+**Discoverability meta is NOT optional.** Templates are embedded into spatial and
+selected by user intent (`findIntent`) — exactly like nodes in the node catalog — so
+every manifest carries FOUR meta fields, each with one job:
+
+- `name` — human display name ("Bank Transfer").
+- `description` — what it IS (shows in content listings). Never blend "use when…" in;
+  ONE short line (≤ 120 chars) — the listing subtitle, not a spec.
+- `whenToUse` — the **selection text**, embedded as
+  `` `${title}. ${whenToUse || description} [${category}]` `` and ranked against what
+  the user asks for. Write it **outcome-first in the USER'S vocabulary** ("Transfer or
+  send money — pay a beneficiary or move funds…"), never mechanism/layout-first
+  ("Two-column split layout…" ranks near layout concepts — the template becomes
+  invisible to intent queries). The full rules are
+  `docs/nodes/14-node-discoverability.md` — they apply to templates verbatim.
+- `category` — the domain of the job (Payments, Cards, Assistant, …).
+
+**The generalist trap (chat homes / assistant surfaces):** a default surface must NOT
+enumerate its siblings' jobs ("ask about cards, transfers, …") — that vocabulary makes
+it outrank the focused apps for THEIR intent queries. A fallback owns *general help,
+questions, reaching a person* and cedes specific jobs by property ("specific jobs like
+moving money have their own focused apps"), naming none.
+
+**Utterance-shaped, never selector-shaped:** templates rank against the user's OWN
+words, so "Pick when the user asks to…" is dev-framing that no user ever types. Write
+the user's vocabulary directly ("Talk to the assistant by voice — a hands-free call
+instead of typing"), and don't claim neighboring intents (a voice surface saying
+"asks to speak to someone" poaches the live-support/complaints job).
 
 - `binding.workflow` is the id of the workflow this app fires (`wf-…` — from the
   workflow's page on the Canvas); `binding.trigger` is the id of that workflow's
   trigger node. The app **owns** its workflow — a template without a real, working
   workflow binding is not done.
-- `autoTrigger` matches the mode (component apps usually `true`; template apps wait for
-  the user).
-- Height is derived from `type` — only set `fluidHeight` to override.
-  `previewComponents` is a hint, never a gate.
+- `autoTrigger` matches the defaultState (focus/component apps usually `true`; template
+  apps wait for the user).
+- Height is derived from `defaultState` (`template` = fluid, anything else = fit) — only
+  set `fluidHeight` to override. `previewComponents` is a hint, never a gate.
 
 See AUTHORING §8 for the full annotated example.
 
 ## State rules
 
-- Template's own bag (`setTemplateValue`): dev-named keys like `openPanel`, `mode`.
-- Screen-wide "focus" is **not an SDK concept** — it's a template-state key (`mode`),
+- Template's own bag (`setTemplateValue`): dev-named keys like `openPanel`, `defaultState`.
+- Screen-wide "focus" is **not an SDK concept** — it's a template-state key (`defaultState`),
   and each template renders its own focus surface by branching on it (`Switch` or
   `visibleWhen`). A widget's own inline↔focused look is component state
-  (`displayState` via `setValue`), never the template's.
+  (`defaultState` via `setValue`), never the template's.
 - Ephemeral UI chrome (an open FAQ, a tab) that belongs to the host app stays in the
   **channel** (host props), projected via `visibleWhen` — not in the store.
 - Conditions read fields; they never compute. Derived values come from the node.
@@ -91,8 +123,8 @@ See AUTHORING §8 for the full annotated example.
 1. Schema-check every file — the envelope AND each bare-node partial in `blocks/` and
    `states/` validate against `rx/_schema/unoverse.schema.json`.
 2. Audit: AUTHORING §9 — especially the **Templates only** section (slots pin type,
-   manifest has explicit `type` + `binding`) and the sizing rule (a focused/full layer
-   caps its height and scrolls its body only — LAYERS §4b).
+   manifest has explicit `defaultState` + `binding`) and the sizing rule (a focused/full
+   layer caps its height and scrolls its body only — LAYERS §4b).
 3. `./unoverse gendesign` to regenerate + restart.
 4. **See it**: open the Studio (`UNOVERSE_WORKBENCH=1` on the `unoverse` service) —
    Mock mode renders the template from prop defaults, and the state picker walks its

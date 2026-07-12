@@ -24,7 +24,7 @@
             { "key": "questionLabel", "value": "" },
             { "key": "headerTitle", "value": "Your learning journey" },
             { "key": "inlinePrimary", "value": "Finding your courses…" },
-            { "key": "displayState", "value": "inline" }
+            { "key": "defaultState", "value": "inline" }
           ],
           "then": { "type": "submit" }
         }

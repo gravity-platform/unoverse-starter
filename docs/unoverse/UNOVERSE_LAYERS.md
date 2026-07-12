@@ -5,7 +5,7 @@
 > already have, given a name). A rich stateful component is the natural first migration target.
 > **Companion to**: [`UNOVERSE_STATE_MODEL.md`](./UNOVERSE_STATE_MODEL.md) (the state buckets),
 > [`UNOVERSE_AUTHORING.md`](./UNOVERSE_AUTHORING.md) (writing definitions),
-> [`UNOVERSE_MCP_TEMPLATE_PROTOCOL.md`](./UNOVERSE_MCP_TEMPLATE_PROTOCOL.md) (`mode` at the app level).
+> [`UNOVERSE_MCP_TEMPLATE_PROTOCOL.md`](./UNOVERSE_MCP_TEMPLATE_PROTOCOL.md) (`defaultState` at the app level).
 >
 > **One line:** a UI — template *or* rich component — is a **stack of layers**, and a single
 > **state value names the active layer**. You never turn parts on/off; you switch the state and
@@ -19,15 +19,15 @@ Stop thinking of a definition as a fixed tree with bits toggled on and off (a so
 `visibleWhen` booleans you coordinate by hand). Think of it as a **stack of layers**, where a
 single **discriminant** (a state field) names which layer is active:
 
-- `displayState` → `inline` | `focused`
+- `defaultState` → `inline` | `focused`
 - `step` → `income` | `summary` | `result`
-- `mode` → `base` | `focus` | `modal`
+- `defaultState` → `base` | `focus` | `modal`
 
 **One value = one layer.** `Switch on <discriminant>` draws the active layer; changing the value
 redraws the next one. There is one question per surface — *"which layer?"* — answered by one
 value, instead of many independent on/off flags.
 
-Focus stopped being special the moment it became a template-state *value* (`mode`); layers make
+Focus stopped being special the moment it became a template-state *value* (`defaultState`, formerly `mode`); layers make
 **everything** that way — inline↔focused, wizard steps, tabs, disclosure, empty/loading/loaded,
 focus/modal surfaces are all **the same pattern: a discriminant naming a layer.**
 
@@ -36,7 +36,7 @@ focus/modal surfaces are all **the same pattern: a discriminant naming a layer.*
 A template has layers; a template-layer holds components; a component has layers; a
 component-layer holds sub-views. Every node owns its own discriminant and picks its own active
 layer. Recursive and uniform. (A "layered thing" can also have **several orthogonal
-discriminants** — a widget may carry `displayState` *and* `step`, each its own `Switch`.)
+discriminants** — a widget may carry `defaultState` *and* `step`, each its own `Switch`.)
 
 ### State selects the view; data fills it
 
@@ -222,7 +222,7 @@ shape, used by a single state, stays **inline** in it:
 
 ```
 wizard/
-  wizard.json      (root: Switch on displayState → inline|focused;
+  wizard.json      (root: Switch on defaultState → inline|focused;
                     inside focused, the always-on stepper + shell, then Switch on step → states/)
   states/
     question.json  (the ONE question shape; binds the current step's {heading, options} —
@@ -274,7 +274,7 @@ The same enumeration is **injected into the served app manifest** (`loadAppManif
 reaches beyond the workbench to **any MCP caller** — `resources/read unoverse://apps/{id}`,
 `resources/list`, discovery — as `manifest.states` (each entry = `name` + its `when` selector,
 in root order). So a caller doesn't just know *which* states exist; it knows *how to activate*
-each (e.g. `{ field: "mode", eq: "focus" }`).
+each (e.g. `{ field: "defaultState", eq: "focus" }`).
 
 Crucially this is **auto-derived, never hand-written** in `manifest.json`: the `states/` folder
 stays the single source of truth, the served manifest is a **projection** of it. Add a state →

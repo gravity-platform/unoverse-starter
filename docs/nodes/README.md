@@ -20,7 +20,7 @@
 6. **[Service Connectors](./07-service-connectors.md)** - Inter-node communication
 7. **[MCP Services](./08-mcp-services.md)** - AI tool discovery and integration
 8. **[Signal Routing](./09-signal-routing.md)** - Workflow execution flow
-9. **[Node Discoverability](./14-node-discoverability.md)** - ⭐ **Critical** - writing `name`/`description`/`whenToUse` so the AI workflow builder actually selects your node (how `getNodeCatalog` ranks it; outcome-first rule)
+9. **[Discoverability](./14-node-discoverability.md)** - ⭐ **Critical** - writing `name`/`description`/`whenToUse` so the AI actually selects your artifact (how `getNodeCatalog` ranks it; outcome-first rule). **Applies to nodes, templates (MCP apps), AND agent skills** — templates/skills rank against the user's own intent
 
 ### Reference
 

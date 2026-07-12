@@ -7,7 +7,7 @@
   "description": "An interactive bank-transfer widget: step through choosing a source account, picking a beneficiary, entering an amount and memo, reviewing the transfer, and a success confirmation — with a step progress bar and a hero image. Renders the account and beneficiary lists, the entered amount and fee, and a confirmation number.",
   "whenToUse": "Walk a user through sending money or paying a beneficiary — choose a source account, pick a recipient, enter an amount, review, and confirm. Pick when the outcome is a multi-step money-movement flow that ends in a transfer confirmation.",
   "props": {
-    "displayState": { "type": "string", "default": "focused" },
+    "defaultState": { "type": "string", "default": "focused" },
     "focusable": { "type": "boolean", "default": true },
     "focusLabel": { "type": "string", "default": "Bank Transfer" },
 
@@ -88,8 +88,8 @@
     "children": [
       {
         "type": "Button",
-        "visibleWhen": { "field": "displayState", "eq": "inline" },
-        "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "focused" }] },
+        "visibleWhen": { "field": "defaultState", "eq": "inline" },
+        "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "focused" }] },
         "style": { "position": "relative", "cursor": "pointer", "padding": "0", "direction": "row", "align": "stretch", "width": "full", "maxWidth": "140", "minHeight": "40", "background": "surface.base", "border": "subtle", "radius": "xl", "shadow": "sm", "overflow": "hidden", "transition": "all 150ms ease", "hover": { "shadow": "md" } },
         "children": [
           {
@@ -155,7 +155,7 @@
       },
       {
         "type": "Box",
-        "visibleWhen": { "field": "displayState", "ne": "inline" },
+        "visibleWhen": { "field": "defaultState", "ne": "inline" },
         "style": { "position": "relative", "width": "full", "height": "full", "minHeight": "160", "container": "inline-size", "direction": "row", "background": "surface.base", "border": "subtle", "radius": "lg", "shadow": "lg", "overflow": "hidden" },
         "children": [
       {
@@ -228,7 +228,7 @@
           { "type": "Image", "bind": { "src": "heroImage", "alt": "headerTitle" }, "style": { "width": "full", "height": "full", "fit": "cover" } }
         ]
       },
-      { "type": "Ref", "ref": "close-button", "visibleWhen": "focusable", "action": { "type": "setValue", "values": [{ "key": "displayState", "value": "inline" }] }, "style": { "position": "absolute", "inset": "0 0 auto auto", "margin": "4" } }
+      { "type": "Ref", "ref": "close-button", "visibleWhen": "focusable", "action": { "type": "setValue", "values": [{ "key": "defaultState", "value": "inline" }] }, "style": { "position": "absolute", "inset": "0 0 auto auto", "margin": "4" } }
     ]
       }
     ]

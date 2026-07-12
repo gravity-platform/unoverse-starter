@@ -1,14 +1,18 @@
 {
   "name": "SAB Smart Assistant",
-  "description": "The SAB branded chat home — greets the user, offers starter prompts (travel cards, transfers, new card, live support), and routes their request to the right flow. Use as the default conversational assistant when the user just wants to chat or isn't sure where to start.",
+  "description": "The SAB customer-support chat, with a route to live support.",
+  "whenToUse": "Ask SAB a banking question or get general help from customer support — including reaching a live support agent. The conversational home and fallback: specific jobs like moving money or choosing a product have their own focused apps; everything else starts here.",
   "category": "Assistant",
   "version": "1.0.0",
-  "mode": "template",
+  "defaultState": "template",
   "width": "60vw",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "message": { "type": "string", "description": "The user's request" }
+      "message": {
+        "type": "string",
+        "description": "The user's request"
+      }
     }
   },
   "binding": {

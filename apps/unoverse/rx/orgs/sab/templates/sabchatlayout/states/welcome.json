@@ -33,7 +33,7 @@
         "children": [
           {
             "type": "Box",
-            "style": { "align": "center", "justify": "center", "padding": "sm", "radius": "lg", "background": "action.subtle" },
+            "style": { "width": "10", "height": "10", "direction": "row", "align": "center", "justify": "center", "radius": "xl", "background": "action.subtle" },
             "children": [
               { "type": "Icon", "bind": { "name": "icon" }, "style": { "width": "5", "height": "5", "color": "action.primary" } }
             ]

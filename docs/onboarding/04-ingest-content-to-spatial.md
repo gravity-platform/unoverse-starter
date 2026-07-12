@@ -41,6 +41,16 @@ Add content to the spatial search index for semantic discovery.
 3. Click **Apply Clustering**
 4. Wait for training to complete
 
+> **How training works (further reading):** training reduces each item's
+> 1536-dimension embedding to a 3D position with UMAP, and learns a model that
+> can also place *new* queries onto the same map. Placing out-of-sample points
+> accurately is a known hard problem in UMAP — standard `transform()`
+> systematically pushes new points toward cluster peripheries. The platform's
+> approach (a trained per-workflow model serving `transform`, with a
+> parametric neural-encoder variant for exact placement) follows the analysis
+> and fixes in [*On Out-of-sample Embedding in UMAP* (arXiv 2606.04451, 2026)](https://arxiv.org/html/2606.04451v1)
+> and [Parametric UMAP](https://umap-learn.readthedocs.io/en/latest/parametric_umap.html).
+
 ## Step 5: Explore Your Data
 
 Once training is complete:

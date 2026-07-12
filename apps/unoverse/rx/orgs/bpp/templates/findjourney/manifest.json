@@ -1,9 +1,10 @@
 {
   "name": "Find Journey",
-  "description": "Route users to a guided learning-journey finder: six quick questions about career stage, situation, subject, route, study mode and time commitment, then a course search that returns matched recommendations. Use when the user wants to find a course, professional qualification, apprenticeship, degree or learning journey.",
+  "description": "A guided finder that matches learners to the right course or learning journey.",
+  "whenToUse": "Find a course, professional qualification, apprenticeship, degree or learning journey — six quick questions about the learner's situation, then matched course recommendations.",
   "category": "Courses",
   "version": "1.0.0",
-  "mode": "focus",
+  "defaultState": "focus",
   "inputSchema": {
     "type": "object",
     "properties": {

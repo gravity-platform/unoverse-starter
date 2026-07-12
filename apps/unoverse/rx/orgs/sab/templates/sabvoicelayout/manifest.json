@@ -1,13 +1,19 @@
 {
   "name": "SAB Voice Assistant",
-  "description": "Hands-free voice conversation with the SAB assistant — the user taps to talk, the assistant answers in real time over a live audio call, and any cards or confirmations it surfaces open in a side focus panel. Use when the user wants to speak rather than type, or asks for a voice/phone-style assistant.",
+  "description": "Hands-free voice conversation with the SAB assistant.",
+  "whenToUse": "Talk to the SAB assistant by voice — a live, hands-free audio call instead of typing. Use voice, talk hands-free, have a phone-style conversation with the assistant. Wanting a human or live agent is a different job, not this.",
   "category": "Assistant",
   "version": "1.0.0",
-  "mode": "template",
+  "defaultState": "template",
+  "width": "70vw",
+  "focusWidth": "82vw",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "message": { "type": "string", "description": "The user's request" }
+      "message": {
+        "type": "string",
+        "description": "The user's request"
+      }
     }
   },
   "binding": {

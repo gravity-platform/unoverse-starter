@@ -4,7 +4,7 @@
   "name": "BPPChatLayout",
   "category": "Layout",
   "description": "BPP-branded chat surface: a brand-gradient welcome (editorial Poppins headline with highlighted word + full-bleed photo journey cards) that gives way to a white conversation sheet — slate assistant cards, cobalt user bubbles — with a pill composer.",
-  "whenToUse": "The default BPP branded chat surface.",
+  "whenToUse": "General learning-support conversation — the fallback surface when no focused app fits.",
   "props": {
     "logoUrl": {
       "type": "string",
@@ -131,7 +131,7 @@
           {
             "type": "Box",
             "visibleWhen": {
-              "field": "mode",
+              "field": "defaultState",
               "ne": "focus"
             },
             "style": {

@@ -1,33 +1,36 @@
-# Unoverse templates
+# Unoverse templates — BPP
 
 Template (layout / MCP-App) definitions — neutral primitive trees that read the
 **single shared state** (history + components) and arrange it. A template **owns
 nothing**: it reads the store and lays out what it finds, so it is swappable
 without losing the conversation (`UNOVERSE_SPEC.md` §2e-0).
 
+## Discoverability meta (REQUIRED — templates are essential, like MCPs)
+
+Every template's `manifest.json` carries the same four meta fields nodes have —
+they decide whether `findIntent` can ever surface it in spatial discovery:
+
+- **`name`** — human display name ("Find Journey").
+- **`description`** — what it is (shows in the Content library list).
+- **`whenToUse`** — the **selection text**: embedded as
+  `` `${title}. ${whenToUse || description} [${category}]` `` and ranked against
+  user intent. Write it **outcome-first in the user's vocabulary** ("Find a
+  course, qualification or apprenticeship — …"), never mechanism-first. Full
+  rules: `docs-starter/nodes/14-node-discoverability.md` — they apply verbatim.
+- **`category`** — the domain of the job (Assistant, Courses, …).
+
+The manifest wins over the template def; the reconcile warns for any enabled
+template missing `whenToUse`. Registry meta embeds AS-IS (no LLM rewrite).
+
 ## Authored
 
-- **`keyservice.json`** — split layout. Reference template; exercises
-  `ComponentSlot` (filter components by type into layout regions) + `Skeleton`
-  fallbacks. See `UNOVERSE_SPEC.md` §2e ("Template primitives").
-
-- **`sabchatlayout/`** (folder; entry `sabchatlayout.json` + `$include` parts) —
-  the SAB-branded chat surface, composed entirely in **data**:
-  - **Welcome screen** on `isEmpty` — logo, brand, subtitle, and starter-prompt
-    buttons (`Each` over `suggestions`; each `Button` sends its prompt).
-  - **Conversation** on `hasMessages` — a bottom-anchored `Timeline` whose `user`
-    turns are red bubbles (`user-turn.json`) and `assistant` turns are an avatar +
-    `ComponentSlot` + a relative timestamp (`assistant-turn.json`).
-  - **Thinking dots** (`thinking-dots.json`) shown while a turn is `streaming` AND
-    `empty` — pure data, animated via the served `wave` keyframe (`style.animation`).
-  - **Pill composer** (`composer-bar.json`) — leading `chat` icon + a controlled
-    `Input` (binds the shared `draft`) + `mic`/`send` icons; Enter or the send
-    button submits.
-
-  The workflow selects this template via `WORKFLOW_STARTED` `metadata.template`
-  (`UNOVERSE_SPEC.md` §5b); the channel loads it with the official
-  `resources/read unoverse://templates/SABChatLayout`. It is **never** streamed as
-  a component.
+- **`bppchatlayout/`** — the BPP-branded chat home (`mode: template`): greets
+  the learner with AI-guided journey starters and free-form conversation about
+  courses, qualifications and apprenticeships. Selected via `WORKFLOW_STARTED`
+  `metadata.template`; loaded with `resources/read unoverse://templates/BPPChatLayout`.
+- **`findjourney/`** — focused guided learning-journey finder (`mode: focus`):
+  six quick questions (career stage, situation, subject, route, study mode,
+  time commitment), then a course search returning matched recommendations.
 
 ## Primitives & vocab it relies on (all implemented in the web SDK)
 
