@@ -103,13 +103,21 @@ cmd_update() {
   local build_log
   build_log=$(mktemp)
 
-  # Only run npm install if package-lock.json changed or node_modules missing
+  # Only run npm install if the dependency inputs changed or node_modules is
+  # missing. Hash every package.json alongside the lockfile: a pulled range
+  # bump (e.g. plugin-base ^1.2.0 → ^1.2.1) changes no lockfile — the starter
+  # doesn't ship one — so hashing only package-lock.json would skip the install
+  # that the bump exists to force.
+  dep_inputs_hash() {
+    cat "$ROOT/package-lock.json" "$ROOT"/package.json "$ROOT"/apps/unoverse/nodes/*/package.json 2>/dev/null \
+      | { md5 -q 2>/dev/null || md5sum 2>/dev/null | cut -d' ' -f1; }
+  }
   local need_install=false
   if [ ! -d "$ROOT/node_modules" ]; then
     need_install=true
   elif [ -f "$ROOT/.package-lock.hash" ]; then
     local old_hash=$(cat "$ROOT/.package-lock.hash" 2>/dev/null || echo "")
-    local new_hash=$(md5 -q "$ROOT/package-lock.json" 2>/dev/null || md5sum "$ROOT/package-lock.json" 2>/dev/null | cut -d' ' -f1 || echo "new")
+    local new_hash=$(dep_inputs_hash || echo "new")
     [ "$old_hash" != "$new_hash" ] && need_install=true
   else
     need_install=true
@@ -120,8 +128,7 @@ cmd_update() {
     if $need_install; then
       npm install --silent >/dev/null 2>&1 || true
       # Save hash for next run
-      md5 -q "$ROOT/package-lock.json" 2>/dev/null > "$ROOT/.package-lock.hash" || \
-      md5sum "$ROOT/package-lock.json" 2>/dev/null | cut -d' ' -f1 > "$ROOT/.package-lock.hash" || true
+      dep_inputs_hash > "$ROOT/.package-lock.hash" || true
     fi
     # Turbo handles build dependencies, no need to build plugin-base separately
     npm run build --workspaces --if-present >> "$build_log" 2>&1 || true
