@@ -53,7 +53,11 @@ build_component_nodes() {
         echo "  ✗ @unoverse-platform/plugin-base not installed in the plugins volume"; exit 1
       fi
       mkdir -p /app/node_modules/@unoverse-platform
-      ln -sfn /app/plugins/node_modules/@unoverse-platform/plugin-base /app/node_modules/@unoverse-platform/plugin-base
+      # Link ONLY if the image has no plugin-base (pre-v1.12.36 images).
+      # Never override a baked copy — the plugins-volume one may be older.
+      if [ ! -e /app/node_modules/@unoverse-platform/plugin-base ]; then
+        ln -sfn /app/plugins/node_modules/@unoverse-platform/plugin-base /app/node_modules/@unoverse-platform/plugin-base
+      fi
       cd /app/apps/unoverse/nodes/components && npm run build
     '; then
       ok "Component-node package built → apps/unoverse/nodes/components/dist"

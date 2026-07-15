@@ -75,9 +75,9 @@
     # so the turbo build above never compiles it — and the rsync excludes dist/
     # (--delete never removes excluded dest files), so a stale dist can survive a
     # deploy. ALWAYS build it in-container: a skip-if-present would silently run
-    # old executor code. It's a small tsc (seconds). tsc ignores NODE_PATH and the
-    # pruned image links no plugin-base — the only built copy is in the plugins
-    # volume, so symlink it into node_modules first.
+    # old executor code. It's a small tsc (seconds). The image bakes plugin-base since v1.12.36;
+    # the symlink below keeps older images working and pins tsc to the plugins-volume
+    # copy when present.
     - name: "[3b/4] Build the universal component-node package (tsc, in-container)"
       shell: |
         cd {{ gravity_dir }}
@@ -86,7 +86,11 @@
             echo "plugin-base not installed in the plugins volume — run: unoverse deploy marketplace"; exit 1
           fi
           mkdir -p /app/node_modules/@unoverse-platform
-          ln -sfn /app/plugins/node_modules/@unoverse-platform/plugin-base /app/node_modules/@unoverse-platform/plugin-base
+          # Link ONLY if the image has no plugin-base (pre-v1.12.36 images).
+          # Never override a baked copy — the plugins-volume one may be older.
+          if [ ! -e /app/node_modules/@unoverse-platform/plugin-base ]; then
+            ln -sfn /app/plugins/node_modules/@unoverse-platform/plugin-base /app/node_modules/@unoverse-platform/plugin-base
+          fi
           cd /app/apps/unoverse/nodes/components && npm run build
         ' 2>&1 | tail -15
       register: component_build_result
