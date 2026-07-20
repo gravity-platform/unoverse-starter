@@ -168,6 +168,13 @@ EOF
         "$ansible_dir/playbooks/test-connectivity.yml" \
         -e "env_file=$env_prod"
       ;;
+    harden)
+      info "Hardening VM (SSH, firewall, updates)..."
+      echo ""
+      ansible-playbook \
+        -i "$tmp_inventory" \
+        "$ansible_dir/playbooks/harden.yml"
+      ;;
     *)
       echo "Usage: unoverse deploy [command]"
       echo ""
@@ -183,6 +190,7 @@ EOF
       echo "  caddy        Install Caddy TLS reverse proxy"
       echo "  caddy-uninstall  Remove Caddy"
       echo "  umap         Install UMAP AI service"
+      echo "  harden       Security hardening (SSH, firewall, updates)"
       echo "  test         Run connectivity test"
       rm -f "$tmp_inventory"
       exit 1

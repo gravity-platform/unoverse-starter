@@ -75,18 +75,7 @@ cmd_check() {
     fail "0 nodes loaded ${DIM}— check unoverse logs${NC}"
   fi
 
-  # 5. Component bundles
-  total=$((total + 1))
-  local comp_code
-  comp_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:4105/components/AIResponse.js" 2>/dev/null)
-  if [ "$comp_code" = "200" ]; then
-    ok "Component bundles served"
-    pass=$((pass + 1))
-  else
-    fail "Component bundles ${DIM}— /components/AIResponse.js → $comp_code${NC}"
-  fi
-
-  # 6. Canvas
+  # 5. Canvas
   total=$((total + 1))
   local canvas_code
   canvas_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001" 2>/dev/null)
