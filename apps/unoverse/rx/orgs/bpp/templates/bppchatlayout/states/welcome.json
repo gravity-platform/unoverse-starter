@@ -37,7 +37,7 @@
             "direction": "row",
             "wrap": "wrap",
             "justify": "start",
-            "gap": "3"
+            "gap": "1"
           },
           "children": [
             {
@@ -45,6 +45,7 @@
               "style": {
                 "font": "display",
                 "color": "white",
+                "lineHeight": "none",
                 "align": "start"
               },
               "value": "Built to transform"
@@ -54,6 +55,7 @@
               "style": {
                 "font": "display",
                 "color": "brand.bpp.sky",
+                "lineHeight": "none",
                 "align": "start"
               },
               "value": "careers."
@@ -67,7 +69,7 @@
             "color": "brand.bpp.white-dim",
             "align": "start"
           },
-          "value": "Courses, qualifications and apprenticeships \u2014 ask me anything."
+          "value": "Courses, qualifications and apprenticeships. Ask me anything."
         }
       ]
     },
@@ -225,13 +227,20 @@
                 "type": "Box",
                 "style": {
                   "width": "full",
+                  "direction": "row",
                   "align": "center",
                   "justify": "center",
-                  "padding": "sm",
-                  "radius": "full",
-                  "background": "action.primary",
+                  "gap": "2",
+                  "padding": [
+                    "2",
+                    "5"
+                  ],
+                  "radius": "md",
+                  "minHeight": "10",
+                  "background": "transparent",
+                  "border": "thick brand.bpp.cobalt-bright",
                   "margin": [
-                    "xs",
+                    "sm",
                     "0",
                     "0",
                     "0"
@@ -246,8 +255,18 @@
                     },
                     "style": {
                       "font": "button",
-                      "color": "action.primary-text",
+                      "weight": "bold",
+                      "color": "brand.bpp.cobalt-bright",
                       "lineHeight": "tight"
+                    }
+                  },
+                  {
+                    "type": "Icon",
+                    "icon": "arrowRight",
+                    "style": {
+                      "width": "4",
+                      "height": "4",
+                      "color": "brand.bpp.cobalt-bright"
                     }
                   }
                 ]
@@ -258,22 +277,22 @@
       },
       "items": [
         {
-          "image": "https://www.datocms-assets.com/106045/1727947826-woman-on-computer-edited.png?auto=format&fit=crop&w=520&h=760",
+          "image": "https://www.datocms-assets.com/106045/1744115651-woman-working-files.jpg?fmt=webp&w=840&fit=crop&h=1160",
           "col": "a",
           "tag": "Courses",
           "title": "Find a course",
-          "subtitle": "Share your career goals \u2014 I'll match you to the right course.",
-          "cta": "Find my course",
+          "subtitle": "Share your career goals and I'll match you to the right course.",
+          "cta": "Explore",
           "text": "Help me find the right course or learning journey for my career goals"
         },
         {
-          "image": "https://www.datocms-assets.com/106045/1727865777-mock-trial-edited.png?auto=format&fit=crop&w=520&h=760",
+          "image": "https://www.datocms-assets.com/106045/1720427740-leadership_management.jpg?fmt=webp&w=840&fit=crop&h=1160",
           "col": "b",
           "tag": "Professional",
           "title": "Qualifications",
-          "subtitle": "ACCA, ACA, SQE \u2014 compare routes and find your right fit.",
-          "cta": "Compare options",
-          "text": "Which professional qualification should I take?"
+          "subtitle": "ACCA, ACA, SQE. Compare routes and find your right fit.",
+          "cta": "Explore",
+          "text": "Which professional accounting qualification should I take?"
         },
         {
           "image": "https://www.datocms-assets.com/106045/1720167177-data_and_tech.jpg?auto=format&fit=crop&w=520&h=760",
@@ -281,7 +300,7 @@
           "tag": "Earn & learn",
           "title": "Apprenticeships",
           "subtitle": "Routes that pay you a salary while you train for a career.",
-          "cta": "Explore routes",
+          "cta": "Explore",
           "text": "What apprenticeship routes are available?"
         }
       ]

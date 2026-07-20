@@ -10,20 +10,20 @@
     ]
   },
   "style": {
-    "direction": "row",
+    "direction": "column",
     "width": "full",
-    "minHeight": "50",
     "padding": "0",
-    "background": "surface.base",
-    "border": "subtle",
+    "background": "brand.bpp.coal",
+    "border": "thin brand.bpp.coal-soft",
     "radius": "xl",
     "shadow": "sm",
     "overflow": "hidden",
     "cursor": "pointer",
     "textAlign": "start",
-    "transition": "all 150ms ease",
+    "transition": "all 200ms ease",
     "hover": {
-      "shadow": "md"
+      "shadow": "lg",
+      "border": "thin brand.bpp.cobalt-bright"
     }
   },
   "children": [
@@ -31,8 +31,8 @@
       "type": "Box",
       "style": {
         "flex": "0 0 auto",
-        "width": "40",
-        "height": "full",
+        "width": "full",
+        "height": "40",
         "overflow": "hidden"
       },
       "children": [
@@ -54,10 +54,8 @@
       "type": "Box",
       "style": {
         "direction": "column",
-        "flex": 1,
-        "minWidth": "0",
-        "gap": "1",
-        "padding": "4",
+        "gap": "3",
+        "padding": "5",
         "textAlign": "start"
       },
       "children": [
@@ -67,10 +65,10 @@
             "value": "title"
           },
           "style": {
-            "font": "title",
+            "font": "headline.sm",
             "weight": "semibold",
             "lineHeight": "tight",
-            "color": "text.primary"
+            "color": "brand.bpp.paper-tint"
           }
         },
         {
@@ -81,16 +79,18 @@
           },
           "style": {
             "font": "body.sm",
-            "color": "text.secondary"
+            "lineHeight": "snug",
+            "color": "brand.bpp.mist-dim"
           }
         },
         {
           "type": "Box",
           "style": {
             "direction": "row",
-            "justify": "start",
+            "align": "center",
+            "gap": "2",
             "margin": [
-              "2",
+              "1",
               "0",
               "0",
               "0"
@@ -98,42 +98,23 @@
           },
           "children": [
             {
-              "type": "Box",
+              "type": "Text",
+              "value": "View course",
               "style": {
-                "direction": "row",
-                "align": "center",
-                "gap": "xs",
-                "padding": [
-                  "2",
-                  "4"
-                ],
-                "background": "action.primary",
-                "radius": "full",
-                "transition": "all 150ms ease"
-              },
-              "children": [
-                {
-                  "type": "Text",
-                  "bind": {
-                    "value": "tagline"
-                  },
-                  "style": {
-                    "font": "body.sm",
-                    "weight": "medium",
-                    "color": "action.primary-text",
-                    "lineHeight": "tight"
-                  }
-                },
-                {
-                  "type": "Icon",
-                  "icon": "arrowRight",
-                  "style": {
-                    "width": "3",
-                    "height": "3",
-                    "color": "action.primary-text"
-                  }
-                }
-              ]
+                "font": "button",
+                "weight": "semibold",
+                "lineHeight": "tight",
+                "color": "brand.bpp.cobalt-bright"
+              }
+            },
+            {
+              "type": "Icon",
+              "icon": "arrowRight",
+              "style": {
+                "width": "4",
+                "height": "4",
+                "color": "brand.bpp.cobalt-bright"
+              }
             }
           ]
         }

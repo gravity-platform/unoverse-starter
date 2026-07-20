@@ -54,16 +54,7 @@
     "type": "Box",
     "style": {
       "width": "full",
-      "container": "inline-size",
-      "when": [
-        {
-          "field": "defaultState",
-          "eq": "courses",
-          "apply": {
-            "width": "90"
-          }
-        }
-      ]
+      "container": "inline-size"
     },
     "children": [
       {

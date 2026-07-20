@@ -502,7 +502,7 @@
         },
         {
           "type": "Text",
-          "value": "Share your details and a course advisor will reach out to talk you through the course — no commitment.",
+          "value": "Share your details and a course advisor will reach out to talk you through the course, with no commitment.",
           "style": {
             "font": "caption",
             "color": "text.tertiary",

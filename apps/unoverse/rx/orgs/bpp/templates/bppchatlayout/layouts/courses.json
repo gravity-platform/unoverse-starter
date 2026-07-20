@@ -28,7 +28,7 @@
           "height": "full",
           "direction": "column",
           "overflow": "hidden",
-          "background": "brand.bpp.coal"
+          "background": "brand.bpp.night"
         },
         "children": [
           {
@@ -70,9 +70,7 @@
               "flex": 1,
               "minHeight": "0",
               "overflow": "auto",
-              "direction": "row",
-              "wrap": "wrap",
-              "align": "start",
+              "columns": 2,
               "gap": "md",
               "padding": [
                 "0",

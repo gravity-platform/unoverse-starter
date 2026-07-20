@@ -27,15 +27,43 @@
           "minWidth": 0,
           "height": "full",
           "direction": "column",
-          "gap": "md",
-          "padding": "md",
-          "overflow": "auto",
+          "overflow": "hidden",
           "borderLeft": "subtle",
           "background": "surface.sunken"
         },
         "children": [
           {
-            "type": "ComponentSlot"
+            "type": "Box",
+            "style": {
+              "flex": "0 0 auto",
+              "direction": "row",
+              "justify": "end",
+              "align": "center",
+              "padding": "md",
+              "paddingBottom": "0"
+            },
+            "children": [
+              {
+                "type": "Ref",
+                "ref": "close-button"
+              }
+            ]
+          },
+          {
+            "type": "Box",
+            "style": {
+              "flex": "1 1 auto",
+              "minHeight": 0,
+              "direction": "column",
+              "gap": "md",
+              "padding": "md",
+              "overflow": "auto"
+            },
+            "children": [
+              {
+                "type": "ComponentSlot"
+              }
+            ]
           }
         ]
       }
