@@ -64,7 +64,7 @@
       },
       "display": {
         "lg": {
-          "$value": "clamp(2.25rem, 2rem + 1vw, 3rem)"
+          "$value": "clamp(2.75rem, 2.25rem + 1.6vw, 3.75rem)"
         },
         "md": {
           "$value": "clamp(1.875rem, 1.625rem + 0.75vw, 2.5rem)"

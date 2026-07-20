@@ -5,7 +5,7 @@
     "width": "full",
     "height": "full",
     "overflow": "hidden",
-    "background": "brand.bpp.gradient"
+    "background": "brand.bpp.gradient-dark"
   },
   "children": [
     {
@@ -13,7 +13,7 @@
     },
     {
       "type": "ComponentSlot",
-      "appWidth": "rail",
+      "appWidth": "flex",
       "select": {
         "from": "all",
         "where": {
@@ -25,16 +25,67 @@
         "type": "Box",
         "style": {
           "minWidth": 0,
+          "height": "full",
           "direction": "column",
-          "gap": "md",
-          "padding": "md",
-          "overflow": "auto",
-          "borderLeft": "subtle",
-          "background": "surface.sunken"
+          "overflow": "hidden",
+          "background": "brand.bpp.coal"
         },
         "children": [
           {
-            "type": "ComponentSlot"
+            "type": "Box",
+            "style": {
+              "direction": "column",
+              "justify": "center",
+              "gap": "1",
+              "height": "20",
+              "padding": [
+                "0",
+                "lg"
+              ],
+              "background": "brand.bpp.ink-emphasis"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "value": "Courses",
+                "style": {
+                  "font": "headline.sm",
+                  "weight": "semibold",
+                  "color": "text.inverse"
+                }
+              },
+              {
+                "type": "Text",
+                "value": "Explore programmes matched to you",
+                "style": {
+                  "font": "body.sm",
+                  "color": "text.inverse"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Box",
+            "style": {
+              "flex": 1,
+              "minHeight": "0",
+              "overflow": "auto",
+              "direction": "row",
+              "wrap": "wrap",
+              "align": "start",
+              "gap": "md",
+              "padding": [
+                "0",
+                "lg",
+                "lg",
+                "lg"
+              ]
+            },
+            "children": [
+              {
+                "type": "ComponentSlot"
+              }
+            ]
           }
         ]
       }

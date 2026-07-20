@@ -53,13 +53,7 @@
               "type": "Text",
               "style": {
                 "font": "display",
-                "color": "action.primary-text",
-                "background": "action.primary",
-                "padding": [
-                  "0",
-                  "2"
-                ],
-                "radius": "sm",
+                "color": "brand.bpp.sky",
                 "align": "start"
               },
               "value": "careers."
@@ -81,6 +75,7 @@
       "type": "Each",
       "style": {
         "direction": "row",
+        "align": "start",
         "gap": "md",
         "width": "full",
         "padding": [
@@ -108,7 +103,34 @@
           "hover": {
             "shadow": "xl",
             "transform": "scale(1.02)"
-          }
+          },
+          "when": [
+            {
+              "field": "col",
+              "eq": "b",
+              "apply": {
+                "height": "100",
+                "margin": [
+                  "10",
+                  "0",
+                  "0",
+                  "0"
+                ]
+              }
+            },
+            {
+              "field": "col",
+              "eq": "c",
+              "apply": {
+                "margin": [
+                  "5",
+                  "0",
+                  "0",
+                  "0"
+                ]
+              }
+            }
+          ]
         },
         "children": [
           {
@@ -207,7 +229,7 @@
                   "justify": "center",
                   "padding": "sm",
                   "radius": "full",
-                  "background": "white",
+                  "background": "action.primary",
                   "margin": [
                     "xs",
                     "0",
@@ -224,7 +246,7 @@
                     },
                     "style": {
                       "font": "button",
-                      "color": "brand.bpp.night",
+                      "color": "action.primary-text",
                       "lineHeight": "tight"
                     }
                   }
@@ -237,6 +259,7 @@
       "items": [
         {
           "image": "https://www.datocms-assets.com/106045/1727947826-woman-on-computer-edited.png?auto=format&fit=crop&w=520&h=760",
+          "col": "a",
           "tag": "Courses",
           "title": "Find a course",
           "subtitle": "Share your career goals \u2014 I'll match you to the right course.",
@@ -245,6 +268,7 @@
         },
         {
           "image": "https://www.datocms-assets.com/106045/1727865777-mock-trial-edited.png?auto=format&fit=crop&w=520&h=760",
+          "col": "b",
           "tag": "Professional",
           "title": "Qualifications",
           "subtitle": "ACCA, ACA, SQE \u2014 compare routes and find your right fit.",
@@ -253,6 +277,7 @@
         },
         {
           "image": "https://www.datocms-assets.com/106045/1720167177-data_and_tech.jpg?auto=format&fit=crop&w=520&h=760",
+          "col": "c",
           "tag": "Earn & learn",
           "title": "Apprenticeships",
           "subtitle": "Routes that pay you a salary while you train for a career.",

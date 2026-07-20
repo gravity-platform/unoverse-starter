@@ -13,7 +13,7 @@
 #   Everything else under apps/unoverse (engine, server, web, tools, plugin-base)
 #   stays image-only. Marketplace nodes install from npm at runtime (Canvas storefront).
 #
-# OBSERVABILITY (optional, enabled via --profile observability):
+# OBSERVABILITY (runs by default):
 #   - Dozzle — single-container live log viewer (http://localhost:8080)
 #
 # =============================================================================
@@ -188,6 +188,11 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_NAMESPACE=${REDIS_NAMESPACE}
       - UMAP_SERVICE_URL=http://umap:5001
+      # Agent nodes POST conversation turns to the memory server (ingestConversationTurn).
+      # Without this the code falls back to http://localhost:4104 — nothing inside THIS
+      # container — so every ingest silently fails (fire-and-forget) and memory never
+      # updates on deployed envs. The memory server is the sibling `memory` container.
+      - MEMORY_SERVICE_URL=http://memory:4104
       # Marketplace installs node packages here at runtime (npm) — nodes are NOT baked
       # into the image; only the core workflow nodes ship with the platform (in the
       # workflow image). This volume persists installs across restarts.
@@ -271,17 +276,20 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
-  # OBSERVABILITY — log viewer (optional, enabled via --profile observability)
+  # OBSERVABILITY — log viewer (runs by default)
   # ===========================================================================
   # Dozzle: a single ~30 MB container that tails/searches every container's logs
   # in a live web UI. Stores NOTHING (streams from the Docker socket on demand),
   # needs no config, no datasource, no dashboards. Replaces the old
   # Promtail→Loki→Grafana stack. Long-term retention is bounded by the json-file
   # log rotation set on each service (x-logging anchor above).
+  #
+  # No `profiles:` — logs are core, so dozzle starts with a plain `up -d` and
+  # survives `unoverse update` (a profiled service is skipped by up -d and would
+  # silently stay down after every update).
   dozzle:
     image: amir20/dozzle:latest
     container_name: gravity-dozzle
-    profiles: [observability]
     ports:
       - "8080:8080"
     volumes:

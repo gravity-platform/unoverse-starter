@@ -5,7 +5,7 @@
     "width": "full",
     "height": "full",
     "overflow": "hidden",
-    "background": "brand.bpp.gradient"
+    "background": "brand.bpp.gradient-dark"
   },
   "children": [
     {

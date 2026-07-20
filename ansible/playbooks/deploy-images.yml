@@ -25,23 +25,33 @@
     gravity_dir: /opt/gravity
 
   tasks:
-    - name: "[1/3] Pull latest platform images"
+    # Sync the compose FIRST so config changes (env vars, ports, new services) ship with
+    # a normal `deploy` — not only via `deploy init`. Previously deploy just re-ran the
+    # server's existing compose, so a new env var (e.g. MEMORY_SERVICE_URL) silently never
+    # reached prod even though the image had the code. `.env` (per-server values) is left
+    # untouched — only the canonical compose is refreshed from the repo.
+    - name: "[1/4] Sync docker-compose.yml (config travels with the deploy)"
+      copy:
+        src: "{{ playbook_dir }}/../../docker-compose.yml"
+        dest: "{{ gravity_dir }}/docker-compose.yml"
+
+    - name: "[2/4] Pull latest platform images"
       shell: |
         cd {{ gravity_dir }}
         docker compose pull 2>&1 | tail -8
       register: pull_result
 
-    - name: "[1/3] Pull output"
+    - name: "[2/4] Pull output"
       debug:
         msg: "{{ pull_result.stdout_lines[-8:] | default(['done']) }}"
 
-    - name: "[2/3] Restart on the new images (marketplace converges at boot)"
+    - name: "[3/4] Restart on the new images (marketplace converges at boot)"
       shell: |
         cd {{ gravity_dir }}
         docker compose up -d 2>&1 | tail -6
       register: up_result
 
-    - name: "[3/3] Service status"
+    - name: "[4/4] Service status"
       shell: |
         cd {{ gravity_dir }}
         docker compose ps --format '{{ '{{' }}.Name{{ '}}' }}: {{ '{{' }}.Status{{ '}}' }}' 2>&1

@@ -319,6 +319,9 @@
         "gradient": {
           "$value": "linear-gradient(165deg, #4481EC 0%, #669DFD 32%, #94BCFF 58%, #A592E5 80%, #FF69A2 112%)"
         },
+        "gradient-dark": {
+          "$value": "linear-gradient(165deg, #221D17 0%, #13110D 58%, #13110D 100%)"
+        },
         "glass": {
           "$value": "rgba(255,255,255,0.14)"
         },
@@ -341,7 +344,7 @@
           "$value": "#ECE8E1"
         },
         "card-scrim": {
-          "$value": "linear-gradient(to top, rgba(19,17,13,0.94) 0%, rgba(19,17,13,0.82) 35%, rgba(19,17,13,0.45) 60%, rgba(19,17,13,0.0) 85%)"
+          "$value": "linear-gradient(to top, rgba(19,17,13,0.92) 0%, rgba(19,17,13,0.62) 28%, rgba(19,17,13,0.18) 52%, rgba(19,17,13,0.0) 72%)"
         }
       }
     }

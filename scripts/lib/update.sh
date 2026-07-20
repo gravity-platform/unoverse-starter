@@ -174,9 +174,12 @@ cmd_update() {
   # Verify services actually started (not stuck in Created)
   sleep 2
   local up_count=0 created_count=0 total_count=0
-  total_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Name}}" 2>/dev/null | grep -c . || echo "0")
-  up_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Status}}" 2>/dev/null | grep -ci "up\|running" || echo "0")
-  created_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Status}}" 2>/dev/null | grep -ci "created" || echo "0")
+  # `grep -c` already PRINTS "0" (and exits 1) on no match, so `|| echo "0"` printed a
+  # SECOND "0" → the var became "0\n0", which `[ -eq ]` rejects ("integer expression
+  # expected"). Use `|| true` to swallow grep's exit code without emitting a stray line.
+  total_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Name}}" 2>/dev/null | grep -c . || true)
+  up_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Status}}" 2>/dev/null | grep -ci "up\|running" || true)
+  created_count=$(docker compose -f "$ROOT/docker-compose.yml" ps -a --format "{{.Status}}" 2>/dev/null | grep -ci "created" || true)
 
   if [ "${up_count:-0}" -eq "${total_count:-0}" ] && [ "${total_count:-0}" -gt 0 ]; then
     ok "All $up_count services running"

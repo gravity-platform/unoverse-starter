@@ -10,8 +10,9 @@
     ]
   },
   "style": {
-    "direction": "column",
+    "direction": "row",
     "width": "full",
+    "minHeight": "50",
     "padding": "0",
     "background": "surface.base",
     "border": "subtle",
@@ -30,8 +31,8 @@
       "type": "Box",
       "style": {
         "flex": "0 0 auto",
-        "width": "full",
-        "height": "40",
+        "width": "40",
+        "height": "full",
         "overflow": "hidden"
       },
       "children": [
@@ -53,8 +54,10 @@
       "type": "Box",
       "style": {
         "direction": "column",
+        "flex": 1,
+        "minWidth": "0",
         "gap": "1",
-        "padding": "3",
+        "padding": "4",
         "textAlign": "start"
       },
       "children": [

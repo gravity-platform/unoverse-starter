@@ -91,10 +91,14 @@ call-phase states off **one** value (exactly like `defaultState` for focus, §5a
 projects a single derived `callState`: **`idle` · `active` · `agentSpeaking` ·
 `userSpeaking`** (from `connectionStatus` + the speaking flags — agent wins over user on
 barge-in). The template's states are then `visibleWhen: { field: "callState", eq: "…" }`
-— the phase axis — while `defaultState: "focus"` is the orthogonal surface axis. The channel
-spreads the service's flat state (incl. `callState`) into the scope via `props`, so any
-voice template keys off the same vocabulary with zero per-template wiring. The raw booleans
-(`isAssistantSpeaking`, `isMuted`, …) stay available for finer reads (e.g. a mute icon).
+— the phase axis — while `defaultState: "focus"` is the orthogonal surface axis. The service
+is instantiated by the **shared renderer** (`StreamedUnoverseTemplate`), not by each host: a
+template that declares `service: "voice"` gets the service for free, and its flat state (incl.
+`callState`) is written into template state by the producer (`mergeTemplateState`) — so every
+host reads the same vocabulary with zero per-template *and* zero per-host wiring. The voice
+**actions** (`startCall` / `endCall` / `toggleMute`) are answered in that same renderer, never
+hand-wired in a channel — the one thing that kept two hosts from behaving identically. The raw
+booleans (`isAssistantSpeaking`, `isMuted`, …) stay available for finer reads (e.g. a mute icon).
 
 > **The rule services follow:** a service may *own native I/O*, but its *state lives in
 > the normal buckets*. If state that drives UI lives only inside a service hook, that is
@@ -372,10 +376,11 @@ never from holding everything in the browser. The only trade-off: scrolling back
   the build on `faq/suggestion/voice` **and** any `togglePanel/openFocus/…` verb in `core`.
 
 **Remaining:**
-1. **Voice call state still via a props side-channel** — the channel spreads `voice.state`
-   into the template's `props`. Target: the producer writes it via `setTemplateValue` /
-   `mergeTemplateState` (one uniform path). **Blocked on publishing** — the workbench builds
-   against the *published* SDK, which has no `mergeTemplateState` yet.
+1. ✅ **Voice call state is a uniform producer write** — the service (instantiated by the
+   shared renderer, `StreamedUnoverseTemplate`) writes its flat state via `mergeTemplateState`,
+   the same path as any global key; the old `props` side-channel is gone. This also collapsed
+   the two hosts onto one code path — voice actions are answered in the renderer, so a host can
+   no longer wire (or forget to wire) them differently.
 2. **Propagate + the legacy break** — publish `core` + `react` (bumped), reinstall at the
    unoverse root, restart Vite, then verify focus + FAQ disclosure in the workbench.
    ⚠️ Publishing flips a **migration break live**: the Suggestions node now emits
@@ -459,9 +464,14 @@ No bespoke REST, no custom `user_action` message. A host that hand-writes this r
   data. No focus/`defaultState` injection — `defaultState` is just a data field the def
   wrote via `setValue`.
 - `StreamedUnoverseTemplate` (`template.tsx`) — root scope = `...getTemplateState()` +
-  conversation-derived flags (`isEmpty`/`isStreaming`/…); routes `setTemplateValue`.
+  conversation-derived flags (`isEmpty`/`isStreaming`/…); routes `setTemplateValue`. Also
+  **instantiates the voice service** for a `service: "voice"` app (given the host's connection
+  config) and answers its actions — so voice lives in one shared place, not per host. The audio
+  WS lane is derived here from the client's own server origin, never from the host (a sandboxed
+  `srcdoc` iframe's `location.origin` is the string `"null"`).
 - `useVoiceService` (`voice.tsx`) — the native voice **service** (WS audio lane); its call
-  state is a producer that flows into template state (see §4 / §8 #1).
+  state is a producer that flows into template state (see §4). Called by the renderer above,
+  not by each host.
 
 ---
 
