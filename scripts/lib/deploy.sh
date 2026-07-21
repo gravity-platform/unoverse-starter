@@ -2,6 +2,58 @@
 # unoverse deploy — deploy to production VM from local
 
 cmd_deploy() {
+  # ── deploy runtime <workflow-id> — push a canvas to the kit's runtime ──
+  # No VM, no ansible, no .env.production: the PLATFORM compiles the workflow and
+  # pushes the artifact to the runtime (same path as the Canvas Deploy button).
+  #   PLATFORM_URL (default http://localhost:4105)  UNOVERSE_TOKEN (bearer; empty in dev)
+  # The runtime target is the platform's RUNTIME_URL (default http://localhost:4107).
+  if [ "${1:-}" = "runtime" ]; then
+    local wf_id="${2:-}"
+    if [ -z "$wf_id" ]; then
+      fail "Usage: unoverse deploy runtime <workflow-id>"
+      info "The workflow id is in the Canvas URL: /workflow/<id>"
+      exit 1
+    fi
+    local platform="${PLATFORM_URL:-http://localhost:4105}"
+    local auth_args=()
+    [ -n "${UNOVERSE_TOKEN:-}" ] && auth_args=(-H "Authorization: Bearer $UNOVERSE_TOKEN")
+
+    banner "Deploying workflow $wf_id to the runtime"
+    echo ""
+    local resp http_code body
+    resp=$(curl -s -w "\n%{http_code}" -X POST "${auth_args[@]}" \
+      -H "Content-Type: application/json" \
+      "$platform/api/workflows/$wf_id/deploy" 2>&1) || {
+      fail "Platform unreachable at $platform — is the dev stack running?"
+      exit 1
+    }
+    http_code=$(echo "$resp" | tail -1)
+    body=$(echo "$resp" | sed '$d')
+
+    if [ "$http_code" = "200" ]; then
+      ok "Deployed"
+      echo "$body" | python3 -c '
+import json,sys
+d = json.load(sys.stdin)
+rt = d.get("runtime", {})
+print("  workflow:  %s (%s)" % (rt.get("name") or "?", rt.get("workflowId") or "?"))
+print("  nodes:     %s" % rt.get("nodeCount", "?"))
+print("  runtime:   %s  (open for status/runs)" % d.get("runtimeUrl", "?"))
+' 2>/dev/null || echo "  $body"
+    else
+      fail "Deploy failed (HTTP $http_code)"
+      echo "  $body"
+      case "$http_code" in
+        401|403) info "Set UNOVERSE_TOKEN=<jwt> when the platform's auth is on" ;;
+        404)     info "No workflow with that id — check the Canvas URL: /workflow/<id>" ;;
+        502)     info "The runtime isn't reachable from the platform — start it (RUNTIME_URL, default :4107)" ;;
+      esac
+      exit 1
+    fi
+    echo ""
+    return 0
+  fi
+
   local env_prod="$ROOT/.env.production"
 
   if [ ! -f "$env_prod" ]; then
@@ -180,6 +232,9 @@ EOF
       echo ""
       echo "  (none)       Deploy your platform: pull images + ship your work"
       echo "               (your nodes built locally, rx, prompts) + restart."
+      echo ""
+      echo "Runtime:"
+      echo "  runtime <workflow-id>   Compile + push a canvas to the kit's runtime (:4107)"
       echo ""
       echo "Fast lane:"
       echo "  design       rx/ definitions only: rsync + restart (no build)"
