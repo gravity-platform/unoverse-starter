@@ -12,6 +12,7 @@
   "style": {
     "direction": "column",
     "width": "full",
+    "height": "full",
     "padding": "0",
     "background": "brand.bpp.coal",
     "border": "thin brand.bpp.coal-soft",

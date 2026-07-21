@@ -19,8 +19,7 @@
     "conversation",
     "focus",
     "courses",
-    "course",
-    "apply"
+    "course"
   ],
   "preview": {
     "conversation": [
@@ -34,17 +33,12 @@
     "course": [
       "coursecard"
     ],
-    "apply": [
-      "coursecard"
-    ],
     "focus": [
       "journeyfinder"
     ]
   },
   "autoTrigger": false,
-  "expose": {
-    "openaiApps": false
-  },
+  "default": true,
   "binding": {
     "workflow": "wf-8koixv",
     "trigger": "inputtrigger1"

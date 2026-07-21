@@ -45,6 +45,7 @@
     }
   },
   "state": {
+    "step": "detail",
     "firstName": "",
     "lastName": "",
     "email": "",
@@ -66,9 +67,6 @@
           },
           "course": {
             "$include": "layouts/course"
-          },
-          "apply": {
-            "$include": "layouts/apply"
           }
         }
       }

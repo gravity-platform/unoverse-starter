@@ -30,8 +30,7 @@
     "agent-speaking",
     "user-speaking",
     "courses",
-    "course",
-    "apply"
+    "course"
   ],
   "preview": {
     "courses": [
@@ -40,9 +39,6 @@
       "coursecard"
     ],
     "course": [
-      "coursecard"
-    ],
-    "apply": [
       "coursecard"
     ]
   }

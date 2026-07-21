@@ -99,8 +99,8 @@
             "type": "setValue",
             "values": [
               {
-                "key": "defaultState",
-                "value": "course"
+                "key": "step",
+                "value": "detail"
               }
             ]
           },
@@ -143,7 +143,7 @@
           "children": [
             {
               "type": "Text",
-              "value": "Learn more about",
+              "value": "Request a callback",
               "style": {
                 "font": "label",
                 "weight": "semibold",
@@ -164,10 +164,7 @@
             },
             {
               "type": "Text",
-              "visibleWhen": "tagline",
-              "bind": {
-                "value": "tagline"
-              },
+              "value": "Leave your details and a BPP course advisor will call you back to talk through this course and help you learn more, with no commitment.",
               "style": {
                 "font": "body.md",
                 "color": "text.secondary"
@@ -492,22 +489,13 @@
           "children": [
             {
               "type": "Text",
-              "value": "Request a call back",
+              "value": "Request a callback",
               "style": {
                 "font": "button",
                 "color": "action.primary-text"
               }
             }
           ]
-        },
-        {
-          "type": "Text",
-          "value": "Share your details and a course advisor will reach out to talk you through the course, with no commitment.",
-          "style": {
-            "font": "caption",
-            "color": "text.tertiary",
-            "textAlign": "center"
-          }
         }
       ]
     }

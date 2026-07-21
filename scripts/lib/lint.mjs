@@ -179,6 +179,32 @@ if (existsSync(orgsDir))
   }
 }
 
+// ── one DEFAULT app per org (the /mcp/<org> front door) ──
+// Exactly one app is an org's home; a host opens the app whose manifest sets `default: true`
+// as the conversation's entry point. Two defaults = ambiguous front door → error.
+if (existsSync(orgsDir))
+  for (const org of readdirSync(orgsDir)) {
+    const tdir = join(orgsDir, org, "templates");
+    if (!(existsSync(tdir) && statSync(tdir).isDirectory())) continue;
+    const defaults = [];
+    for (const e of readdirSync(tdir)) {
+      const mf = join(tdir, e, "manifest.json");
+      if (!existsSync(mf)) continue;
+      try {
+        if (JSON.parse(readFileSync(mf, "utf8")).default === true) defaults.push(mf);
+      } catch {
+        /* malformed manifest is reported elsewhere */
+      }
+    }
+    if (defaults.length > 1)
+      for (const mf of defaults)
+        report(
+          "error",
+          mf,
+          `org "${org}" has ${defaults.length} apps with "default": true — an org has exactly ONE default app (its /mcp/${org} front door). Keep it on one manifest, remove it from the others (docs/unoverse/UNOVERSE_MCP_TEMPLATE_PROTOCOL.md §4b)`,
+        );
+  }
+
 // ── condition (visibleWhen / style.when entry) ──
 function checkCondition(vw, file, where) {
   if (typeof vw === "string") return; // bare truthy field

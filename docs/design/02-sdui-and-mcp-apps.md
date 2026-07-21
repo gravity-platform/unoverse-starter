@@ -66,6 +66,19 @@ Definitions compose ONLY these. The set is frozen — adding to it is an SDK cha
 
 **The rule:** a host must NEVER hand-roll its own transport — no bespoke REST send, no custom `user_action` message, no side-channel state push. The SDK owns the one interaction path; every consumer (Studio, a native app, an external MCP client) shares it. If your channel needs something the path doesn't do, that's a platform gap to raise — not a workaround to build.
 
+### The org endpoint + its default app (the front door)
+
+Each org is its own MCP endpoint — a self-contained connector / "experience":
+
+```
+https://api.<domain>/mcp          → all orgs (flattened)
+https://api.<domain>/mcp/<org>    → only that org's apps, as one connector
+```
+
+Within an org, **exactly one app's `manifest.json` sets `"default": true`** — the org's **home** (typically its chat template, e.g. `acmechatlayout`). The endpoint tags that tool with `_meta["unoverse/default"]`, so a client knows which app to open first as the conversation's entry point. A lint rule enforces **at most one `default` per org**.
+
+MCP is pull-based (no "auto-open on connect"): our SDK reads that flag and opens the home app immediately, rendering its arrival `defaultState`; a foreign host (ChatGPT) surfaces it when the user first engages. `default` only answers *"which app is the front door"* — the app's own `defaultState`/`autoTrigger`/`binding` behave exactly as usual. (The old per-app `expose` flag is removed — org scoping is the boundary now.)
+
 ### The two lanes (know which carries what)
 
 | Lane | Carries | Scope |
