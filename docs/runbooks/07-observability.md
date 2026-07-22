@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Observability"
+---
+
 # Runbook: Observability (Log Viewer)
 
 Install the bundled log viewer for POC/demo environments.
@@ -53,5 +57,3 @@ ssh root@<VM_IP> "cd /opt/gravity && docker compose stop dozzle && docker compos
 For enterprise deployments, ship container logs to the customer's system instead
 of viewing them locally — point the Docker daemon's logging driver (or a sidecar
 shipper) at Splunk / ELK / Datadog.
-
-See [ENTERPRISE_DEPLOYMENT.md](../../docs/architecture/ENTERPRISE_DEPLOYMENT.md) for details.

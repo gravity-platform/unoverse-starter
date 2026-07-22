@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Config Schema"
+---
+
 # Config Schema Reference
 
 **Complete guide to configSchema options for node configuration UI**

@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Deployment"
+---
+
 # Challenge 8: Deployment
 
 Deploy Unoverse to production VMs.
@@ -59,7 +63,7 @@ Everything else (DATABASE_URL, Auth0, OpenAI) stays the same as your local `.env
 
 ## Runbooks
 
-For detailed step-by-step guides, see the [Runbooks](../runbooks/README.md):
+For detailed step-by-step guides, see the [Runbooks](../runbooks/overview.md):
 
 | Runbook                                             | Description                    |
 | --------------------------------------------------- | ------------------------------ |

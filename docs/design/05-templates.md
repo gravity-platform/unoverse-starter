@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Templates"
+---
+
 # 05 — Templates (MCP Apps)
 
 **A template is a set of LAYOUTS — full arrangements selected by the component views they're named after. Its manifest IS its envelope.**

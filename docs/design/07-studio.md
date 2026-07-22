@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Studio"
+---
+
 # 07 — Studio
 
 **View and test your work — mock states in isolation, or live against the real platform, on every channel at once.**

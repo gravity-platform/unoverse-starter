@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Core Services"
+---
+
 # Runbook: Core Services
 
 Deploy the core Gravity Platform services to a VM.

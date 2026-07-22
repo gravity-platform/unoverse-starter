@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Signal Routing"
+---
+
 # Signal Routing System
 
 **Understanding how workflow execution flows between nodes**

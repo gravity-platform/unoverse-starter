@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Service Connectors"
+---
+
 # Service Connectors & MCP Integration
 
 **Connect nodes to share capabilities through service connectors**

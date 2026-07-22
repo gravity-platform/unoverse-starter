@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Quick Start"
+---
+
 # 01 — Quick Start
 
 **Build your first component, validate it, deploy it, and see it render in Studio.**

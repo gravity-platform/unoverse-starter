@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Node Discoverability"
+---
+
 # 14 — Discoverability: writing meta the AI will actually pick
 
 > **This is critical, not cosmetic.** A node that works perfectly but never gets *selected* by the workflow-building agent (UNO / Universe Copilot) is dead code. Discoverability is decided entirely by three string fields on the node definition — `name`, `description`, `whenToUse` — and the `category`. Getting them wrong silently buries a specialized node under a generic one. This doc is the authoritative guide for those fields; `whenToUse` in particular.

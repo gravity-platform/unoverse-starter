@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Caddy (TLS)"
+---
+
 # Runbook: Caddy (TLS + Reverse Proxy)
 
 Configure Caddy for TLS termination and hostname-based routing.

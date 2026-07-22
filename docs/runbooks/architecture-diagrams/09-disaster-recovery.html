@@ -97,7 +97,7 @@
               {[
                 ["PostgreSQL", "pg_dump / streaming", "Hourly", "30 days", "Customer"],
                 ["Redis", "RDB snapshots", "Hourly", "7 days", "Customer"],
-                ["UMAP models", "File backup", "Daily", "90 days", "Gravity"],
+                ["UMAP models", "File backup", "Daily", "90 days", "unoverse"],
                 ["Configuration", "Git + Ansible vars", "On change", "Indefinite", "Both"],
               ].map(([component, method, freq, retention, owner], i) => (
                 <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -108,7 +108,7 @@
                   <td className="p-2 text-center">
                     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                       owner === "Customer" ? "bg-orange-100 text-orange-800" :
-                      owner === "Gravity" ? "bg-blue-100 text-blue-800" :
+                      owner === "unoverse" ? "bg-blue-100 text-blue-800" :
                       "bg-gray-200 text-gray-700"
                     }`}>{owner}</span>
                   </td>
@@ -124,9 +124,9 @@
           <div className="space-y-3">
             {[
               { step: 1, label: "Provision new VMs", desc: "Customer provisions replacement VMs per spec", owner: "Customer", color: "bg-orange-500" },
-              { step: 2, label: "Run Ansible install", desc: "ansible-playbook -i inventory/dr.yml playbooks/install.yml", owner: "Gravity", color: "bg-blue-600" },
+              { step: 2, label: "Run Ansible install", desc: "ansible-playbook -i inventory/dr.yml playbooks/install.yml", owner: "unoverse", color: "bg-blue-600" },
               { step: 3, label: "Restore database", desc: "pg_restore -d gravity /backups/gravity_latest.dump", owner: "Customer", color: "bg-orange-500" },
-              { step: 4, label: "Restore UMAP models", desc: "ansible-playbook playbooks/restore.yml -e restore_umap=true -e backup_path=...", owner: "Gravity", color: "bg-blue-600" },
+              { step: 4, label: "Restore UMAP models", desc: "ansible-playbook playbooks/restore.yml -e restore_umap=true -e backup_path=...", owner: "unoverse", color: "bg-blue-600" },
               { step: 5, label: "Verify health", desc: "ansible-playbook -i inventory/dr.yml playbooks/health-check.yml", owner: "Both", color: "bg-green-600" },
             ].map(({ step, label, desc, owner, color }, i) => (
               <div key={step}>
@@ -137,7 +137,7 @@
                       <p className="font-bold text-gray-800">{label}</p>
                       <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                         owner === "Customer" ? "bg-orange-100 text-orange-800" :
-                        owner === "Gravity" ? "bg-blue-100 text-blue-800" :
+                        owner === "unoverse" ? "bg-blue-100 text-blue-800" :
                         "bg-green-100 text-green-800"
                       }`}>{owner}</span>
                     </div>
@@ -150,7 +150,7 @@
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 text-right mt-6">Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL</p>
+        <p className="text-xs text-gray-400 text-right mt-6">unoverse platform architecture specification v1.2</p>
       </div>
     );
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);

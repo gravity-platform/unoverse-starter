@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Troubleshooting"
+---
+
 # 09 — Troubleshooting
 
 **Symptom → cause → fix.** Debug in Studio's DevTools order: stream log → state inspector → definition ([07](./07-studio.md)). See the data before editing anything.

@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Package Marketplace"
+---
+
 # Package Marketplace Schema
 
 This document defines the ideal `gravity` field schema for `package.json` that powers the unified Package Marketplace in Canvas.

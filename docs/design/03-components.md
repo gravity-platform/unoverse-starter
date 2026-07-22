@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Components"
+---
+
 # 03 — Components (contained microapps)
 
 **A component is a light, self-contained app: its manifest is the contract, its layouts are its faces, and everything it shows has exactly one home.**

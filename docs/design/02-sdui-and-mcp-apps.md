@@ -1,3 +1,7 @@
+---
+sidebarTitle: "SDUI & MCP Apps"
+---
+
 # 02 — SDUI & MCP Apps
 
 **UI is data. MCP is the transport. This is the standard — not one option among several.**

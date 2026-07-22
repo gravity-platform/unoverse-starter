@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Restart & Rebuild"
+---
+
 # Runbook: Restart & Rebuild
 
 Rebuild packages and restart services so the platform picks up your latest changes. Component nodes are definition-backed — they re-synthesize from `rx/` at boot; there is no generation step, ever.

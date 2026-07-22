@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Styles & Tokens"
+---
+
 # 06 — Styles & Tokens
 
 **LAW 1: definitions own ZERO style values. Token names only.**

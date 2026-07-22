@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Agent Skills"
+---
+
 # MCP `instructions` Field
 
 The MCP spec defines an `instructions` field on the schema response — guidance on how to use the server's tools effectively. This is separate from:

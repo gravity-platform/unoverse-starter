@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Ingest Content to Spatial"
+---
+
 # Challenge 4: Ingest Content to Spatial
 
 Add content to the spatial search index for semantic discovery.

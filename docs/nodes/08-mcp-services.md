@@ -1,3 +1,7 @@
+---
+sidebarTitle: "MCP Services"
+---
+
 # MCP Services Integration
 
 ## Overview

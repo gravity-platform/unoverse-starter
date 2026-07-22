@@ -1,0 +1,74 @@
+/* Typography: single family (Inter), contrast and measure tuned for readability.
+   Reference: Stripe/GitHub docs (16px body, 1.5 leading, near-black text). */
+
+/* Body text: darker than the theme default for contrast */
+#content-area p,
+#content-area li {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgb(31 41 55);
+}
+
+.dark #content-area p,
+.dark #content-area li {
+  color: rgb(209 213 219);
+}
+
+#content-area li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Headings: weight and tracking carry the brand, not a display font */
+#content-area h1,
+#content-area h2,
+#content-area h3 {
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgb(17 24 39);
+}
+
+.dark #content-area h1,
+.dark #content-area h2,
+.dark #content-area h3 {
+  color: rgb(243 244 246);
+}
+
+/* Keep line length readable (~75 characters) */
+#content-area p {
+  max-width: 42rem;
+}
+
+#content-area table {
+  font-size: 0.9375rem;
+}
+
+/* On-this-page: sizing and spacing to match the reference look */
+#table-of-contents-content .toc-item a {
+  font-size: 0.9375rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+#table-of-contents-content .toc-item[data-active] a {
+  font-weight: 600;
+  text-shadow: none;
+}
+
+/* On-this-page: dot marker that follows the active section */
+#table-of-contents-content .toc-item[data-active]::before {
+  content: "";
+  position: absolute;
+  left: -0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #6d5df6;
+}
+
+.dark #table-of-contents-content .toc-item[data-active]::before {
+  background: #8b7ef8;
+}

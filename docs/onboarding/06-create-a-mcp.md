@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Create an MCP"
+---
+
 # Challenge 6: Create a MCP
 
 _Coming soon_

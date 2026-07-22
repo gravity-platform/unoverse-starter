@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Testing Nodes"
+---
+
 # 13 — Testing Nodes
 
 Every code node should ship an **integration test** that exercises the node's real

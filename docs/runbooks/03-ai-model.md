@@ -1,3 +1,7 @@
+---
+sidebarTitle: "AI Model (UMAP)"
+---
+
 # Runbook: AI Model (UMAP)
 
 Deploy the UMAP AI service for spatial search and 3D dictionary visualization.

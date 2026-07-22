@@ -1,6 +1,6 @@
 # Unoverse Design — Agent Rulebook
 
-Condensed, non-negotiable rules for building Unoverse components and templates. Full journey: [README](./README.md), docs 01–09. Deep reference: `docs/unoverse/UNOVERSE_AUTHORING.md`, `UNOVERSE_STATE_MODEL.md` (§5b = the reaction contract), `UNOVERSE_LAYERS.md`, `UNOVERSE_CONFORMANCE.md`.
+Condensed, non-negotiable rules for building Unoverse components and templates. Full journey: [README](./overview.md), docs 01–09. Deep reference: `docs/unoverse/UNOVERSE_AUTHORING.md`, `UNOVERSE_STATE_MODEL.md` (§5b = the reaction contract), `UNOVERSE_LAYERS.md`, `UNOVERSE_CONFORMANCE.md`.
 
 ---
 

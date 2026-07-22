@@ -46,8 +46,8 @@
                 {[
                   ["unoverse", ":4105", "Platform runtime: workflow engine, node plane, API, WebSocket hub", "3GB / 1.5 CPU"],
                   ["umap", ":5001", "ML / semantic search", "2GB / 1 CPU"],
-                  ["mcp-server", ":4103", "OpenAI Apps integration", "512MB / 0.25 CPU"],
-                  ["canvas", ":3001", "Locode AI Agent builder UI", "256MB / 0.25 CPU"],
+                  ["memory", ":4104", "Agent memory: profiles, tasks, insights", "512MB / 0.25 CPU"],
+                  ["canvas", ":3001", "Visual Agent builder UI", "256MB / 0.25 CPU"],
                 ].map(([name, port, desc, resources]) => (
                   <div
                     key={name}
@@ -95,12 +95,12 @@
               <div className="bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-400 text-center">
                 <p className="font-bold text-gray-700 text-sm">PostgreSQL</p>
                 <p className="text-xs font-mono text-gray-500 mt-0.5">:5432</p>
-                <p className="text-xs text-gray-500 mt-1">Managed by customer &middot; not deployed by Gravity</p>
+                <p className="text-xs text-gray-500 mt-1">Managed by customer &middot; not deployed by unoverse</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-400 text-center">
                 <p className="font-bold text-gray-700 text-sm">Redis</p>
                 <p className="text-xs font-mono text-gray-500 mt-0.5">:6379</p>
-                <p className="text-xs text-gray-500 mt-1">Managed by customer &middot; not deployed by Gravity</p>
+                <p className="text-xs text-gray-500 mt-1">Managed by customer &middot; not deployed by unoverse</p>
               </div>
             </div>
           </div>
@@ -141,7 +141,7 @@
           </div>
 
           <p className="text-xs text-gray-400 text-right mt-6">
-            Gravity Platform Architecture Specification v1.2 | CONFIDENTIAL
+            unoverse platform architecture specification v1.2
           </p>
         </div>
       );

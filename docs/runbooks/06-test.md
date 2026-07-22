@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Test Connectivity"
+---
+
 # Runbook: Test Connectivity
 
 Verify all services are running and accessible.

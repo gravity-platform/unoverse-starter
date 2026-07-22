@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Create Your First Node"
+---
+
 # Challenge 3: Create Your First Node
 
 Build a custom node to extend the platform.

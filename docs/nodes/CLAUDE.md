@@ -1,6 +1,6 @@
 # CLAUDE.md — Creating GravityAI Plugin Nodes
 
-Authoritative guide for creating nodes in the GravityAI plugin system. Synthesized from `README.md` and `01-09.md` in this directory — consult those files for deeper detail on any section.
+Authoritative guide for creating nodes in the GravityAI plugin system. Synthesized from `overview.md` and `01-09.md` in this directory — consult those files for deeper detail on any section.
 
 ## Core architecture
 

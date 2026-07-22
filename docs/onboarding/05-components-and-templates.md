@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Components and Templates"
+---
+
 # Challenge 5: Components and Templates
 
 Build UI on Unoverse — restyle an existing component live, then create your own.

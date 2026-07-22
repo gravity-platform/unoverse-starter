@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Patterns"
+---
+
 # Implementation Patterns
 
 **Core patterns and architecture for GravityAI plugin nodes**

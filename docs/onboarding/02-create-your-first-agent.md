@@ -1,109 +1,92 @@
-# Challenge 2: Create Your First Agent
+---
+sidebarTitle: "Create Your First Agent"
+---
 
-Build a simple AI chat agent in Canvas.
+# Create Your First Agent
 
-## Goal
+Build a chat Agent in Canvas: a trigger that receives the message, a model that thinks, and a response that streams back. Ten minutes, no code.
 
-Create a workflow that:
+## Before you begin
 
-- Receives user messages
-- Sends them to an LLM (OpenAI/Bedrock)
-- Returns AI responses
+The platform is running (`unoverse dev`) and Canvas is open at http://localhost:3001. You have an OpenAI API key.
 
-## Prerequisites
+## Build it
 
-You need credentials configured for at least one LLM provider:
+<Steps>
+<Step title="Add your OpenAI credential">
 
-- **OpenAI**: Add `OPENAI_API_KEY` to your `.env`
-- **AWS Bedrock**: Configure AWS credentials with Bedrock access
+Open **Credentials** (http://localhost:3001/credentials) and click **Add Credential**. Select the **OpenAI API** type, name it, paste your API key, and save. Nodes never read keys from config or env files; they request credentials at execution time, decrypted and injected by the platform.
 
-## Steps
+</Step>
+<Step title="Create a workflow">
 
-### 1. Open Canvas
+Click **Create New Workflow** and name it. An empty canvas opens.
 
-Navigate to http://localhost:3001
+</Step>
+<Step title="Add three nodes">
 
-### 2. Create New Workflow
+Drag these onto the canvas and connect them left to right:
 
-Click **Create New Workflow** and name it "My First Agent"
+1. **InputTrigger** receives the user's message.
+2. **OpenAIStream** sends it to the model and streams the reply.
+3. **AIResponse** displays the reply to the user.
 
-### 3. Add Nodes
+Connect InputTrigger's output to OpenAIStream's input, and OpenAIStream's output to AIResponse's input.
 
-Drag these nodes onto the canvas:
+<Note>
+Every node instance gets an id: its type, lowercased, plus a number. Your three nodes are `inputtrigger1`, `openaistream1`, and `airesponse1`. Downstream nodes read upstream outputs through these ids: `signal.<nodeId>.<output>`.
+</Note>
 
-1. **InputTrigger** - Entry point for user messages
-2. **OpenAIStream** (or BedrockClaude) - LLM processing
-3. **AIResponse** - Display response to user
+</Step>
+<Step title="Configure the model">
 
-### 4. Connect Nodes
+Click the OpenAIStream node to open its config panel:
 
-- InputTrigger `output` → OpenAI `input`
-- OpenAI `output` → AIResponse `input`
-
-### 5. Configure OpenAI Node
-
-Click on the OpenAI node to open the **Config Panel** on the right.
-
-**Configuration tab:**
-
-- **Model**: gpt-5.2
-- **System Prompt**: "You are a helpful assistant....."
+- **Model**: pick a GPT-5.6 variant.
+- **System Prompt**: `You are a helpful assistant.`
 - **User Prompt**: `{{{signal.inputtrigger1.output.message}}}`
 
-**Debug tab:**
+The triple braces are a Handlebars reference: at run time it resolves to the message the trigger received.
 
-- View node outputs after running
-- See the raw response from the LLM
-- Inspect errors if something goes wrong
+</Step>
+<Step title="Configure the response">
 
-### 6. Configure AIResponse Node
+Click the AIResponse node:
 
-Click on the AIResponse node to configure how the response displays:
+- **Main response text**: `return signal.openaistream1.chunk`
 
-**Configuration tab:**
+This field takes JavaScript. `chunk` is the model's streaming output, so text appears live as the model writes. The complete reply is also available as `signal.openaistream1.text` once the node finishes.
 
-- **Progress/thinking message**: `return signal.openai1.text` (shows partial response while streaming)
-- **Main response text**: `return signal.openaistream1.chunk` (displays the streaming output)
+<Note>
+Config fields accept two syntaxes: Handlebars (`{{{signal...}}}`) for templating text, and JavaScript (`return signal...`) for computing a value. Use either; don't mix them in one field.
+</Note>
 
-### 7. Save Workflow
+</Step>
+<Step title="Save and test">
 
-Click the green **Save** button in the top left.
+Save the workflow. Click **Test Inputs**, enter a message such as `What can you help me with?`, and set a test user id. Then run it: play each node one at a time to inspect its output, or run the whole workflow at once. Watch the reply stream into AIResponse.
 
-### 8. Add Test Input
+</Step>
+</Steps>
 
-1. Click **Test Inputs** (top right)
-2. Enter a test message: `What card is best for travel`
-3. Set **User ID**: `debug-user`
+## Have Claude Code build it
 
-### 9. Step Through Nodes
+Everything above, Claude Code can drive through the platform's builder MCP, registered by this repo's `.mcp.json`:
 
-1. Click the **play button** (▶️) on the InputTrigger node to run just that node
-2. Check the node output - you should see your test message
-3. Click play on the **OpenAIStream** node
-4. Watch the response stream in
-5. Click play on **AIResponse** to see the final output
+1. With the platform running, open this repo in Claude Code and approve the `unoverse-builder` server when it asks.
+2. In Canvas, create a new empty workflow and copy the `wf-xxxxxx` id from the URL.
+3. Ask:
 
-> **Tip:** Use the ⚡ button to run the entire workflow at once
+> Bind workflow wf-xxxxxx, then build a chat agent: input trigger → OpenAI → response display. Test each stage with runTest before adding the next.
 
-## Bonus: Have Claude Code build it for you
+Claude binds to that one canvas, builds stage by stage, and runs each stage while you watch the nodes appear live. It can't see or touch any other workflow.
 
-Everything you just did by hand, Claude Code can drive through the platform's
-**builder MCP** (registered automatically by this repo's `.mcp.json`):
+## Next steps
 
-1. Make sure the platform is running, then open this repo in Claude Code
-   (approve the `unoverse-builder` server the first time it asks).
-2. In Canvas, create a **new empty workflow** and copy its id — the `wf-xxxxxx`
-   in the URL.
-3. Ask Claude:
+<Card title="Create your first node" icon="box" href="./03-create-your-first-node.md" horizontal>
+Extend the platform with your own logic.
+</Card>
 
-   > Bind workflow wf-xxxxxx, then build a chat agent: input trigger → OpenAI →
-   > response display. Test each stage with runTest before adding the next.
-
-Claude binds to that one canvas (it can't see or touch any other workflow),
-builds one stage at a time, runs each stage, and reads the traces — while you
-watch the nodes appear live in Canvas. You stay the judge: run it yourself when
-it reports done, and ask for changes in plain language.
-
-## ✅ Challenge Complete
-
-Your agent workflow is built and tested in Canvas! Proceed to [Challenge 3: Create Your First Node](./03-create-your-first-node.md).
+<Card title="Ingest content to Spatial" icon="globe" href="./04-ingest-content-to-spatial.md" horizontal>
+Ground your Agent's answers in your own content.
+</Card>

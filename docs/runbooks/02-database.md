@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Database Setup"
+---
+
 # Runbook: Database Setup
 
 Create database tables and schema.

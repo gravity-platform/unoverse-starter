@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Update Unoverse"
+---
+
 # Challenge 9: Update Unoverse
 
 Keep your platform up to date when new versions are released.
@@ -65,4 +69,4 @@ This rebuilds packages, generates nodes, and restarts only unoverse — much fas
 
 ## ✅ Onboarding Complete!
 
-For detailed node development, see the [Node Documentation](../nodes/README.md).
+For detailed node development, see the [Node Documentation](../nodes/overview.md).

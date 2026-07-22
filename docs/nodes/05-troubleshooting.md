@@ -1,3 +1,7 @@
+---
+sidebarTitle: "Troubleshooting"
+---
+
 # Troubleshooting
 
 **Common issues and solutions for GravityAI plugin node development**
