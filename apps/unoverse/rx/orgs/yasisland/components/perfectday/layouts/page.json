@@ -305,7 +305,8 @@
               {
                 "type": "Image",
                 "brief": {
-                  "description": "One real image from a chosen content item, verbatim URL. Must be a DIRECT IMAGE FILE URL — a photo ending .jpg/.jpeg/.png/.webp (often on static.myconnect.ae) taken verbatim from a search result — NEVER a webpage URL (yasisland.com/en/... pages are not images and render broken)."
+                  "description": "One image from a chosen content item \u2014 never a repeat of the hero.",
+                  "hydrate": "image"
                 },
                 "bind": {
                   "src": "image",

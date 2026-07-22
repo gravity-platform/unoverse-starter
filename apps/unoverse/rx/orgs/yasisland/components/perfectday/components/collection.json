@@ -79,7 +79,8 @@
         {
           "type": "Image",
           "brief": {
-            "description": "The single most striking image among THIS chapter's experiences \u2014 a real content image that sets the chapter's mood, never stock, never invented. Must be a DIRECT IMAGE FILE URL \u2014 a photo ending .jpg/.jpeg/.png/.webp (often on static.myconnect.ae) taken verbatim from a search result \u2014 NEVER a webpage URL (yasisland.com/en/... pages are not images and render broken)."
+            "description": "The most striking image among THIS chapter's experiences \u2014 the one that sets the chapter's mood.",
+            "hydrate": "image"
           },
           "bind": {
             "src": "image",

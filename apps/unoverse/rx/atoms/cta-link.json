@@ -41,7 +41,8 @@
       {
         "type": "Markdown",
         "brief": {
-          "description": "A markdown link to THIS item's own page — the real URL taken verbatim from the content, never invented. Label: 2-4 words, ALL CAPITALS, in the guest's language: [SEE THE ROOFTOP](its-url)."
+          "description": "A markdown link to THIS item's own page. If you write it yourself: label 2-4 words, ALL CAPITALS, in the guest's language: [SEE THE ROOFTOP](its-url) — URL verbatim from the content, never invented.",
+          "hydrate": "link"
         },
         "bind": {
           "value": "link"

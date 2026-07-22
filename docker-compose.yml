@@ -305,6 +305,8 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_TLS=${REDIS_TLS}
+      # Same namespace as the platform/memory — CRM-sync nodes share outbox lanes by key.
+      - REDIS_NAMESPACE=${REDIS_NAMESPACE}
       # Companions (§6.2): memory rides the kit's memory server.
       - MEMORY_SERVICE_URL=http://memory:4104
     volumes:

@@ -363,12 +363,17 @@ function walkNode(node, file, root, widthCap = null, isLayoutRoot = false) {
     if (typeof b !== "string" && (typeof b !== "object" || b === null || Array.isArray(b)))
       report("error", file, `"brief" must be a string (the description) or { description, maxLength | minItems/maxItems } (docs/design/03)`);
     else if (typeof b === "object") {
-      const BRIEF_KEYS = new Set(["description", "maxLength", "minItems", "maxItems"]);
+      // description/maxLength/minItems/maxItems COMPILE into the tool inputSchema. `hydrate` is a
+      // NON-schema brief annotation (a hydration hook naming what to hydrate) — a valid brief key
+      // that does NOT compile into the schema; allowed here so it doesn't read as a typo.
+      const BRIEF_KEYS = new Set(["description", "maxLength", "minItems", "maxItems", "hydrate"]);
       for (const k of Object.keys(b))
         if (!BRIEF_KEYS.has(k))
-          report("error", file, `brief.${k} is not part of the brief contract — only description / maxLength / minItems / maxItems compile into the tool schema (docs/design/03)`);
+          report("error", file, `brief.${k} is not part of the brief contract — only description / maxLength / minItems / maxItems (schema) or hydrate (hydration hook) are allowed (docs/design/03)`);
       if (b.description !== undefined && typeof b.description !== "string")
         report("error", file, `brief.description must be a string — it IS the schema field's description (docs/design/03)`);
+      if (b.hydrate !== undefined && typeof b.hydrate !== "string")
+        report("error", file, `brief.hydrate must be a string (names the field/source to hydrate) (docs/design/03)`);
       for (const nk of ["maxLength", "minItems", "maxItems"])
         if (b[nk] !== undefined && (typeof b[nk] !== "number" || b[nk] < 0 || !Number.isInteger(b[nk])))
           report("error", file, `brief.${nk} must be a non-negative integer — it compiles to the native JSON Schema keyword (docs/design/03)`);

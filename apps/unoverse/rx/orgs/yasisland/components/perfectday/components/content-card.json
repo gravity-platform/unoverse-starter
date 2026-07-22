@@ -21,7 +21,8 @@
         {
           "type": "Image",
           "brief": {
-            "description": "The image belonging to THIS content item \u2014 never borrowed from another item, never stock, never invented. Must be a DIRECT IMAGE FILE URL \u2014 a photo ending .jpg/.jpeg/.png/.webp (often on static.myconnect.ae) taken verbatim from a search result \u2014 NEVER a webpage URL (yasisland.com/en/... pages are not images and render broken)."
+            "description": "The image of THIS experience \u2014 never borrowed from another item.",
+            "hydrate": "image"
           },
           "bind": {
             "src": "image",
@@ -66,9 +67,10 @@
             {
               "type": "Text",
               "brief": {
-                "description": "The real location name from the content item, verbatim \u2014 never paraphrased.",
-                "maxLength": 50
-              },
+            "description": "The location name \u2014 the referenced result's own name serves unless you have a truer one.",
+            "hydrate": "place",
+            "maxLength": 50
+          },
               "bind": {
                 "value": "place"
               },
@@ -85,9 +87,10 @@
     {
       "type": "Text",
       "brief": {
-        "description": "The experience, phrased in the guest's language \u2014 what they'd feel, not the venue's marketing name. 5-8 plain English words, 35-55 characters \u2014 keep every card title in the guide roughly the SAME length (about two lines). Never markdown, never abbreviations or substituted characters to fit \u2014 write a shorter title instead.",
-        "maxLength": 55
-      },
+            "description": "The experience in the guest's language \u2014 what they'd feel, not the venue's marketing name. 5-8 plain English words.",
+            "hydrate": "title",
+            "maxLength": 55
+          },
       "bind": {
         "value": "title"
       },
@@ -101,9 +104,10 @@
     {
       "type": "Markdown",
       "brief": {
-        "description": "1-2 sentences grounded ONLY in the source content \u2014 never invent facts, prices, opening times or names not present in it. May use **bold** on the real place names; no other markdown.",
-        "maxLength": 240
-      },
+            "description": "1-2 sentences grounded ONLY in the source content \u2014 never invent facts, prices or times. May use **bold** on real place names; no other markdown.",
+            "hydrate": "body",
+            "maxLength": 240
+          },
       "bind": {
         "value": "body"
       },

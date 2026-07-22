@@ -13,7 +13,8 @@
       "type": "Image",
       "skeleton": true,
       "brief": {
-        "description": "The single most striking image among the chosen content \u2014 the one that sells the whole day at a glance. Always from a real content item; never a stock or invented URL. Must be a DIRECT IMAGE FILE URL \u2014 a photo ending .jpg/.jpeg/.png/.webp (often on static.myconnect.ae) taken verbatim from a search result \u2014 NEVER a webpage URL (yasisland.com/en/... pages are not images and render broken)."
+        "description": "The one image that sells the whole day at a glance \u2014 the most striking among the chosen content.",
+        "hydrate": "image"
       },
       "bind": {
         "src": "heroImage",
