@@ -57,7 +57,103 @@ Change token values freely; keep every token name, and the theme contract stays 
 </Step>
 <Step title="Create your own component">
 
-Author your component in your org, at `rx/orgs/acme/components/pricecard/`. Start from the closest existing component's shape. Declare every field the workflow will fill in `props` with a realistic `default`; those defaults are what **Studio** renders in mock mode. Compose the layout from the closed set of primitives.
+Author your component in your org, at `rx/orgs/acme/components/pricecard/pricecard.json`. Here is a complete simple price card, and what it renders:
+
+<Tabs>
+<Tab title="Definition">
+
+```json rx/orgs/acme/components/pricecard/pricecard.json
+{
+  "unoverse": "1.0",
+  "kind": "component",
+  "name": "PriceCard",
+  "category": "General",
+  "nodeSize": { "width": 360, "height": 320 },
+  "description": "A pricing card: plan name, price, feature list, and a call to action.",
+  "whenToUse": "Present ONE plan or offer with its price and what it includes. Pick for a single purchasable option, not for comparing metrics or listing content.",
+  "props": {
+    "title": { "type": "string", "default": "Starter", "input": true },
+    "price": { "type": "string", "default": "$19/month", "input": true },
+    "features": {
+      "type": "array",
+      "default": [
+        { "label": "3 projects" },
+        { "label": "Email support" },
+        { "label": "Weekly reports" }
+      ],
+      "input": true
+    }
+  },
+  "root": {
+    "type": "Box",
+    "style": {
+      "width": "full",
+      "direction": "column",
+      "gap": "3",
+      "padding": "6",
+      "background": "surface.base",
+      "border": "subtle",
+      "radius": "lg",
+      "shadow": "sm"
+    },
+    "children": [
+      {
+        "type": "Text",
+        "bind": { "value": "title" },
+        "style": { "font": "label", "weight": "medium", "color": "text.secondary" }
+      },
+      {
+        "type": "Text",
+        "bind": { "value": "price" },
+        "style": { "font": "headline.lg", "weight": "semibold", "color": "text.primary" }
+      },
+      {
+        "type": "Each",
+        "bind": { "items": "features" },
+        "style": { "direction": "column", "gap": "2" },
+        "template": {
+          "type": "Text",
+          "bind": { "value": "label" },
+          "style": { "font": "body.sm", "color": "text.tertiary" }
+        }
+      },
+      { "type": "Ref", "ref": "button", "with": { "label": "Choose Starter" } }
+    ]
+  }
+}
+```
+
+</Tab>
+<Tab title="Rendered">
+
+![The price card as Studio renders it from the prop defaults](../images/onboarding/pricecardPreview.png)
+
+</Tab>
+<Tab title="Data">
+
+A workflow fills the card by sending an object whose keys match the `props`, by name:
+
+```json Data a workflow streams in
+{
+  "title": "Pro",
+  "price": "$49/month",
+  "features": [
+    { "label": "Unlimited projects" },
+    { "label": "Priority support" },
+    { "label": "Daily reports" }
+  ]
+}
+```
+
+</Tab>
+</Tabs>
+
+Reading it top to bottom:
+
+- The envelope names the component and carries `whenToUse`, how Agents discover it.
+- `props` declares every field a workflow can fill, each with a realistic `default`. The defaults are exactly what **Studio** renders in mock mode. `input: true` marks the field as workflow-fed.
+- `root` composes the layout from the closed primitives: a `Box`, two bound `Text` elements, an `Each` over the features, and the shared button atom via `Ref`.
+- Every style value is a token name. No pixels, no hex.
 
 </Step>
 <Step title="Lint it">
@@ -71,13 +167,23 @@ The linter enforces the design rules with doc-cited messages: token names only (
 </Step>
 <Step title="Put it in a workflow">
 
-New components register as nodes at boot:
+New components register as nodes at boot, and a build restarts the platform:
 
 ```bash Load the new node
-docker compose restart unoverse
+unoverse build
 ```
 
-Then, exactly as in [Create Your First Agent](./02-create-your-first-agent.md): open your component in **Studio**, click **Copy for Canvas**, and paste it into a workflow. Wire data into it and your design renders live in the conversation.
+Your component now travels from **Studio** to **Canvas** by copy and paste:
+
+1. In **Studio**, open **PriceCard** under **Components**.
+2. Click **Copy for Canvas**. The component is copied to your clipboard as a canvas node.
+
+![The Copy for Canvas button in Studio](../images/onboarding/copy.png)
+
+3. In **Canvas**, open your workflow and paste with **Cmd+V**. The node lands on the canvas, sized to the card.
+4. Double-click it and fill its fields, the same `title`, `price`, and `features` you saw in the Data tab, from upstream signals or literals.
+
+Step through the workflow and the card renders live in the conversation, in your org's theme.
 
 </Step>
 </Steps>
@@ -85,6 +191,12 @@ Then, exactly as in [Create Your First Agent](./02-create-your-first-agent.md): 
 <Note>
 Restarts are only for **new** components, because the platform synthesizes a node per definition at boot. Edits to existing components apply live.
 </Note>
+
+## How far this goes
+
+A price card is the small end. Components carry **states and layouts**: a component can be a wizard that walks through steps, a card that expands into a full-screen focus view, or a product finder with its own private flow. Templates go further and become **full microapps**, MCP Apps with their own layouts, states, and workflow bindings, discovered and opened by Agents in conversation.
+
+Application state is managed for you. Every component owns its own state, templates react to it, and the platform holds one shared state across the whole conversation, so views, panels, and flows stay in sync with no state library to wire. The [Design](../design/01-quick-start.md) section covers all of it: components, [state](../design/04-state.md), templates, and tokens.
 
 ## Have Claude Code build it
 

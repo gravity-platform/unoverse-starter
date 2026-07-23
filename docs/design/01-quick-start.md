@@ -100,7 +100,7 @@ Two mechanisms, both already in your file:
 
 ```bash
 ./unoverse lint         # authoring-time checks: schema rules, tokens, state rules — with doc-cited messages
-docker compose restart unoverse    # nodes synthesize from your definitions at boot
+./unoverse build    # nodes synthesize from your definitions at boot
 ```
 
 Component nodes are **definition-backed**: one universal executor serves every component, and the platform synthesizes a node per definition at boot — there is no code generation. The restart just picks up your new definition. Your `PriceCard` is now:
@@ -129,7 +129,7 @@ If it looks right in **Studio**, it looks right in production — **Studio** is 
 - [ ] Every `bind` has a matching prop **with a default**, workflow-fed props marked `input: true`
 - [ ] Zero raw values — token names only in every `style`
 - [ ] Prop defaults realistic (they ARE the mock); multi-layer components enumerate `states/`
-- [ ] `./unoverse lint` clean, then `docker compose restart unoverse`
+- [ ] `./unoverse lint` clean, then `./unoverse build`
 - [ ] Previewed in **Studio** (mock states, then live)
 
 ---

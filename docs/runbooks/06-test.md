@@ -134,7 +134,7 @@ Domain: yourdomain.com
 docker compose restart
 
 # Restart specific service
-docker compose restart unoverse
+./unoverse build
 
 # View logs
 docker compose logs -f unoverse

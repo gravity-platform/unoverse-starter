@@ -292,6 +292,10 @@ services:
   # this container). Boots as an EMPTY SLOT; the deployed artifact persists in the
   # runtime_workflow volume, so it survives restarts. Same image a customer VM runs.
   unoverse-runtime:
+    # NOT part of the core platform. It's the per-workflow runtime you eject/test with — a ~1.5GB
+    # image. Behind a profile so a plain `docker compose pull` / `up -d` (the deploy path) SKIPS it
+    # entirely; start it only when needed: `docker compose --profile runtime up -d unoverse-runtime`.
+    profiles: ["runtime"]
     image: registry.digitalocean.com/gravity-repo/unoverse-runtime:${TAG:-latest}
     ports:
       - "4107:4107"

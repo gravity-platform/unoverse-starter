@@ -94,7 +94,7 @@ What no linter can decide — audit every artifact against this before calling i
 
 ```bash
 ./unoverse lint          # clean?
-docker compose restart unoverse    # component nodes re-synthesize from rx/ (no codegen)
+./unoverse build    # component nodes re-synthesize from rx/ (no codegen)
 ./unoverse check         # health check: services, endpoints, node catalog
 ```
 

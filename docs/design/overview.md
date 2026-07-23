@@ -75,7 +75,7 @@ Work through these in order — each doc builds on the previous one.
 
 # 2. Lint (schema + token law + state rules, doc-cited messages), then deploy
 ./unoverse lint
-docker compose restart unoverse
+./unoverse build
 
 # 3. Open Studio and preview it with mock states, or live against a workflow
 ```

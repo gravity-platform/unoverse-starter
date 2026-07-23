@@ -24,7 +24,7 @@ Rebuild packages and restart services so the platform picks up your latest chang
 ./unoverse build @unoverse-platform/my-package
 
 # Restart only — component nodes re-synthesize from rx/ definitions at boot
-docker compose restart unoverse
+./unoverse build
 
 # Full dev setup — install deps, build, restart
 ./unoverse dev
@@ -46,7 +46,7 @@ unoverse deploy packages
 |------|---------|-------------|
 | **1. Install deps** | `npm install` | Installs workspace dependencies |
 | **2. Build packages** | `npm run build` | Compiles node packages (TypeScript → `dist/`) |
-| **3. Restart unoverse** | `docker compose restart unoverse` | Reloads built packages, and re-synthesizes component nodes from `rx/` definitions — the node catalog is loaded **at boot**, so a rebuild without a restart appears to do nothing |
+| **3. Restart unoverse** | `./unoverse build` | Reloads built packages, and re-synthesizes component nodes from `rx/` definitions — the node catalog is loaded **at boot**, so a rebuild without a restart appears to do nothing |
 
 ## Which change needs which step?
 
@@ -54,8 +54,8 @@ unoverse deploy packages
 |---|---|
 | A node package (`apps/unoverse/nodes/<pkg>/`) | `./unoverse build @unoverse-platform/<pkg>` |
 | An **existing** component/template's look (`rx/`) | nothing — definitions are read live; hard-refresh the client |
-| A **new** component, or props/structure changes (`rx/`) | `docker compose restart unoverse` |
-| A skill or prompt block (`prompts/`) | `docker compose restart unoverse` |
+| A **new** component, or props/structure changes (`rx/`) | `./unoverse build` |
+| A skill or prompt block (`prompts/`) | `./unoverse build` |
 
 ## Manual Step-by-Step (when CLI commands aren't enough)
 
@@ -69,7 +69,7 @@ npm run build
 # 3. Restart the service that loads packages (the workflow engine runs
 #    in-process in unoverse, so one restart covers everything — component
 #    nodes re-synthesize from rx/ at this boot)
-docker compose restart unoverse
+./unoverse build
 
 # 4. Verify
 ./unoverse status
@@ -107,7 +107,7 @@ docker compose exec -T unoverse node -e \
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| New component not in **Canvas** | unoverse not restarted since the definition was added | `docker compose restart unoverse` |
+| New component not in **Canvas** | unoverse not restarted since the definition was added | `./unoverse build` |
 | Node shows in **Canvas** but errors | Package not built | `./unoverse build` |
 | Component renders old version | Client caching | hard-refresh the browser |
 | `nodes: 0` in status | unoverse didn't load packages | Check `docker compose logs unoverse` |

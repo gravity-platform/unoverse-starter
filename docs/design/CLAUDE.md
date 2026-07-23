@@ -64,7 +64,7 @@ Arrival `defaultState` lives in the **manifest**, not the state block.
 1. Read the matching journey doc ([03](./03-components.md) component / [05](./05-templates.md) template / [06](./06-styles-and-tokens.md) styles); study the exemplars: `productfinder`/`planfinder` (components), `acmechatlayout` (template).
 2. Author to the anatomy in §2; put every shown thing in its ONE home (§3).
 3. **`./unoverse lint` — 0 errors required**; it enforces §2–§5 with doc-cited messages. Justify any warning.
-4. Restart: `docker compose restart unoverse`; then **Studio** — mock (prop defaults + state picker + Inline/Focused toggle), then live. Debug order: stream log → state inspector → definition. Never edit on a guess.
+4. Restart: `./unoverse build`; then **Studio** — mock (prop defaults + state picker + Inline/Focused toggle), then live. Debug order: stream log → state inspector → definition. Never edit on a guess.
 
 ## 7. Error → fix quick table
 
@@ -77,7 +77,7 @@ Arrival `defaultState` lives in the **manifest**, not the state block.
 | Component invisible in a template | unknown state name + no matching surface = inline is where it went — check the flow slot exists |
 | Card shows mock image/tagline while title streams | prop name isn't the source's field name (hydration is by-name, no mapping) — rename to the writer vocabulary (§3) |
 | Style ignored / element auto-sizes | raw value, unknown style key, or off-scale step — lint tells you which |
-| Edit does nothing | node contract changed → `docker compose restart unoverse` |
+| Edit does nothing | node contract changed → `./unoverse build` |
 | AI never picks it | manifest `whenToUse` is selector-shaped or missing — write the user's words |
 
 Full table: [09 — Troubleshooting](./09-troubleshooting.md).
